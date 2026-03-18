@@ -907,7 +907,14 @@ def generate_bowling_plan(
         opp_pp_sr   = opp.get("powerplay_sr",       130.0)
         opp_death_sr= opp.get("death_sr",           155.0)
         estimated   = opp.get("is_estimated",        False)
-        tag         = " (estimated)" if estimated else ""
+        tag         = " [NO DATA — default assumption]" if estimated else ""
+
+        if estimated:
+            key_decisions.insert(0,
+                f"[WARNING] ESTIMATED PROFILE — {opposition_team} has no PSL career data. "
+                f"All opposition intelligence below is seeded from league defaults. "
+                f"Treat as orientation only."
+            )
 
         spin_bowlers_avail = [b for b in our_bowlers if _bowl_type(b, meta) == "spin"]
         pace_bowlers_avail = [b for b in our_bowlers if _bowl_type(b, meta) == "pace"
