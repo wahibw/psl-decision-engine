@@ -567,6 +567,7 @@ def _start_match(n_clicks, bowling_team, batting_team, venue, innings, target, b
             for oa in plan.overs
         ],
         "bowler_summary": plan.bowler_summary,
+        "key_decisions":  plan.key_decisions,
         "contingencies":  plan.contingencies,
     }
 
@@ -859,6 +860,7 @@ def _render_panels(live_store, match_store):
         bowling_plan = BowlingPlan(
             overs           = plan_over_list,
             bowler_summary  = {k: list(v) for k, v in bowler_summary.items()},
+            key_decisions   = ms.get("plan", {}).get("key_decisions", []),
             contingencies   = contingencies,
         )
 
