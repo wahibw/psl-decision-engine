@@ -928,6 +928,7 @@ def _render_panels(live_store, match_store):
             partnership_balls = p_balls,
             overs_bowled_by   = overs_bowled,
             wickets_this_over = ls.get("wickets_this_over", 0),
+            weather_impact    = weather,
         )
 
         from engine.bowling_recommender import recommend_bowler_this_over
@@ -1024,7 +1025,7 @@ def _render_bowling_tracker(plan_overs, current_over, actual_bowlers, overs_bowl
     boxes = []
     for oa in plan_overs:
         over_n = oa["over"]
-        planned = oa["primary_bowler"].split()[-1]
+        planned = (oa["primary_bowler"].split() or ["—"])[-1]
         phase_col = _phase_color(oa["phase"])
 
         is_current  = (over_n == current_over)
@@ -1105,7 +1106,7 @@ def _render_bowling_tracker(plan_overs, current_over, actual_bowlers, overs_bowl
         chip_col  = GREEN if remaining >= 3 else AMBER if remaining >= 1 else RED
         summary_chips.append(
             html.Span(
-                f"{bowler.split()[-1]} ({remaining})",
+                f"{(bowler.split() or ['—'])[-1]} ({remaining})",
                 style={
                     "color": chip_col,
                     "fontSize": "0.68rem",
@@ -1253,14 +1254,6 @@ def _render_next_batter(opp_order: list, current_wickets: int) -> html.Div:
         if pb.position == next_pos:
             next_batter = pb
             break
-    # Also find who's currently batting (positions ≤ wickets+1 who aren't out)
-    on_deck_pos = current_wickets + 3
-    on_deck = None
-    for pb in opp_order:
-        if pb.position == on_deck_pos:
-            on_deck = pb
-            break
-
     if next_batter is None:
         return html.Div(
             style={"height": "100%", "display": "flex", "flexDirection": "column"},
@@ -1326,7 +1319,7 @@ def _render_next_batter(opp_order: list, current_wickets: int) -> html.Div:
                     ]),
                     html.Div([
                         html.Div(
-                            next_batter.batting_style.split("-")[0],
+                            (next_batter.batting_style or "").split("-")[0] or "—",
                             style={"color": TEXT_PRIMARY, "fontWeight": "700", "fontSize": "0.95rem"},
                         ),
                         html.Div("Hand", style={"color": TEXT_SECONDARY, "fontSize": "0.60rem", "letterSpacing": "0.08em"}),
