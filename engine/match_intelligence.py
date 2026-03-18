@@ -321,18 +321,36 @@ def _check_dl_par(
     if state.innings != 2:
         return None
     state.compute_derived()
-    # Require RRR >= 10 to avoid false positives in early overs where a small
-    # absolute deficit looks like a large ratio (e.g. 3 vs 2 = 1.5x but not urgent).
-    # This is still a run-rate proxy — not official DLS. See note in detail below.
-    if state.rrr >= 10 and state.crr > 0 and state.rrr > state.crr * 1.3:
+    if state.crr <= 0:
+        return None
+
+    # Threshold tightens in death overs — a 15% RR gap at over 16 is a crisis,
+    # the same gap at over 5 is normal T20 variance.
+    over = state.current_over
+    if over <= 10:
+        # Powerplay + early middle: only flag genuinely severe early pressure
+        threshold = 1.5
+        phase = "powerplay/early-middle"
+    elif over <= 15:
+        # Mid-overs: moderate tightening
+        threshold = 1.35
+        phase = "mid-overs"
+    else:
+        # Death: flag even moderate gaps — every over matters
+        threshold = 1.15
+        phase = "death overs"
+
+    # Still require a meaningful absolute RRR to avoid noise (e.g. 3 vs 2 ratio early)
+    if state.rrr >= 8 and state.rrr > state.crr * threshold:
         deficit = state.rrr - state.crr
         return (
             9,
-            f"Run rate warning — required {state.rrr:.1f} vs current {state.crr:.1f} "
+            f"Run rate warning ({phase}): need {state.rrr:.1f}, current {state.crr:.1f} "
             f"(+{deficit:.1f} behind). Batting must accelerate. "
             f"[Use official DLS calculator if rain threatens.]",
             True,
             f"Required rate {state.rrr:.1f}, current {state.crr:.1f} — gap {deficit:.1f}/over. "
+            f"Phase: {phase} (threshold {threshold:.2f}x). "
             f"IMPORTANT: This is not an official D/L par figure. "
             f"For rain scenarios, use the official DLS resource table. "
             f"Batting side needs to accelerate under normal conditions.",
