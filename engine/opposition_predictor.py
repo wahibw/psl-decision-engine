@@ -21,8 +21,8 @@ import pandas as pd
 
 PROJ_ROOT    = Path(__file__).resolve().parent.parent
 PROFILES_PATH = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
-PLAYER_INDEX  = PROJ_ROOT / "data" / "processed" / "player_index.csv"
-PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index.csv"
+PLAYER_INDEX  = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
+PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 MATCHUP_PATH  = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
 
 
@@ -78,10 +78,21 @@ def _load_player_index(path: str) -> dict[str, dict]:
         for row in csv.DictReader(f):
             name = row.get("player_name", "").strip()
             if name:
+                def _f(key: str, default: float, _row: dict = row) -> float:
+                    try:
+                        v = _row.get(key, "")
+                        return float(v) if v and str(v).strip() not in ("", "nan") else default
+                    except (ValueError, TypeError):
+                        return default
                 meta[name] = {
                     "batting_style": row.get("batting_style", "Right-hand bat").strip(),
                     "primary_role":  row.get("primary_role",  "Batsman").strip(),
                     "is_overseas":   row.get("is_overseas",   "False").strip().lower() == "true",
+                    # New columns from player_index_2026_enriched.csv
+                    "bat_sr_set":       _f("bat_sr_set",       0.0),
+                    "bat_sr_chase":     _f("bat_sr_chase",     0.0),
+                    "innings_sr_delta": _f("innings_sr_delta", 0.0),
+                    "bowl_dot_pct":     _f("bowl_dot_pct",     0.0),
                 }
     return meta
 
@@ -288,12 +299,12 @@ def _vs_bowler_sr(
 
 
 def _is_pace(player: str, meta: dict[str, dict]) -> bool:
-    style = meta.get(player, {}).get("bowling_style", "").lower() if "bowling_style" in (meta.get(player) or {}) else ""
+    style = meta.get(player, {}).get("bowling_style", "").lower()
     return any(w in style for w in ("fast", "medium", "seam", "swing", "pace"))
 
 
 def _is_spin(player: str, meta: dict[str, dict]) -> bool:
-    style = meta.get(player, {}).get("bowling_style", "").lower() if "bowling_style" in (meta.get(player) or {}) else ""
+    style = meta.get(player, {}).get("bowling_style", "").lower()
     return any(w in style for w in ("spin", "off", "leg", "googly", "chinaman", "slow"))
 
 

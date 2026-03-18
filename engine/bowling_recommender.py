@@ -63,6 +63,14 @@ def recommend_bowler_this_over(
 
     if plan_assignment is None:
         # Over not in plan (e.g. super over or beyond plan)
+        import warnings
+        max_planned = max((oa.over for oa in bowling_plan.overs), default=0)
+        warnings.warn(
+            f"Over {current_over} not found in bowling plan (plan covers overs 1-{max_planned}). "
+            f"Falling back to TBD. Check for state sync issues.",
+            UserWarning,
+            stacklevel=2,
+        )
         plan_assignment   = "TBD"
         backup_assignment = "TBD"
         plan_phase        = "Death"

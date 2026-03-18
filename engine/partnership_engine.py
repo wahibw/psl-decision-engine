@@ -258,12 +258,12 @@ def assess_partnership(
         change_pct      = _LEAGUE_AVG_CHANGE_PCT
         avg_over_broken = _LEAGUE_AVG_OVER_BROKEN
 
-    # Small-sample SR blending: pairs with <5 occurrences have unreliable histories.
+    # Small-sample SR blending: pairs with <MIN_OCCURRENCES have unreliable histories.
     # Blend observed SR toward T20 generic (120) weighted by data confidence.
     # At 0 occurrences: use T20 generic entirely.
-    # At 5+ occurrences: use raw_sr (full confidence in historical pattern).
-    # Formula: current_sr = raw_sr × (occ/5) + T20_GENERIC_SR × (1 − occ/5)
-    blend_weight = min(1.0, occurrences / 8.0)   # full confidence at MIN_OCCURRENCES (8)
+    # At MIN_OCCURRENCES+: use raw_sr (full confidence in historical pattern).
+    # Formula: current_sr = raw_sr × weight + T20_GENERIC_SR × (1 − weight)
+    blend_weight = min(1.0, occurrences / MIN_OCCURRENCES)
     hist_sr      = (hist_avg_runs / hist_avg_balls * 100) if hist_avg_balls > 0 else T20_GENERIC_SR
     current_sr   = round(raw_sr * blend_weight + hist_sr * (1.0 - blend_weight), 1)
 
