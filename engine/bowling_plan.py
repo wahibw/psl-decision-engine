@@ -33,6 +33,9 @@ OPP_PROFILES = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
 MAX_OVERS_PER_BOWLER = 4
 TOTAL_OVERS          = 20
 
+# League-average fallbacks. Source: PSL 2019-2025 all-bowler career averages.
+LEAGUE_AVG_DOT_PCT   = 35.0   # % of balls that are dots across all PSL bowlers
+
 PHASE_LABEL = {
     0:  "PP", 1:  "PP", 2:  "PP", 3:  "PP", 4:  "PP", 5:  "PP",
     6:  "Mid",7:  "Mid",8:  "Mid",9:  "Mid",10: "Mid",11: "Mid",
@@ -194,6 +197,16 @@ def _load_opposition_profile(
                    & (df["season"] == 0)
             row = df[mask]
         if row.empty:
+            # No match found — return neutral defaults with is_estimated=True so
+            # callers can show a clear "TEAM NOT FOUND — estimated profile" warning.
+            import warnings
+            warnings.warn(
+                f"Opposition profile not found for '{opposition_team}'. "
+                f"Using neutral league-average defaults (is_estimated=True). "
+                f"Check team name spelling against opposition_profiles.csv.",
+                UserWarning,
+                stacklevel=3,
+            )
             return NEUTRAL
         r = row.iloc[0]
         _ZERO_NULL_KEYS = ("economy", "sr", "pct", "score", "rate")
@@ -300,7 +313,7 @@ def _load_bowler_phase_stats(
             elif pi_dot_pct > 0:
                 bowl_dot = pi_dot_pct   # use T20I value when PSL parquet has no data
             else:
-                bowl_dot = 35.0         # final fallback to league average
+                bowl_dot = LEAGUE_AVG_DOT_PCT  # final fallback to league average
             result[b] = {
                 "pp_economy":    _get("powerplay", "bowl_economy",  8.5),
                 "mid_economy":   _get("middle",    "bowl_economy",  7.5),
@@ -328,7 +341,7 @@ def _load_bowler_phase_stats(
         # proxy_overs=12 → confidence = 12/20 = 0.60 in _phase_fitness()
         PROXY_OVERS  = 12.0
         pi_dot_pct   = px.get("bowl_dot_pct", 0.0)
-        bowl_dot     = pi_dot_pct if pi_dot_pct > 0 else 35.0
+        bowl_dot     = pi_dot_pct if pi_dot_pct > 0 else LEAGUE_AVG_DOT_PCT
         result[b] = {
             "pp_economy":    pp_eco,
             "mid_economy":   mid_eco,
@@ -413,7 +426,7 @@ def _phase_fitness(
         wpo    = s.get("pp_wkts_po",  0.2)
         # bowl_dot_pct priority: PSL parquet > player index T20I > league avg (35.0)
         # Resolved upstream in _load_bowler_phase_stats(); 35.0 is the last-resort default.
-        dots   = s.get("bowl_dot_pct", 35.0)
+        dots   = s.get("bowl_dot_pct", LEAGUE_AVG_DOT_PCT)
         sample = s.get("pp_overs",    0.0)
 
         # Swing conditions boost pace bowlers in PP.
@@ -455,7 +468,7 @@ def _phase_fitness(
     elif phase == "Death":
         eco    = s.get("death_economy",  9.5)
         wpo    = s.get("death_wkts_po",  0.2)
-        dots   = s.get("bowl_dot_pct",  35.0)
+        dots   = s.get("bowl_dot_pct",  LEAGUE_AVG_DOT_PCT)
         sample = s.get("death_overs",    0.0)
 
         # Dew degrades spinners at death — raise their effective economy
@@ -490,7 +503,7 @@ def _phase_fitness(
     else:  # Mid
         eco    = s.get("mid_economy",  8.0)
         wpo    = s.get("mid_wkts_po",  0.2)
-        dots   = s.get("bowl_dot_pct", 35.0)
+        dots   = s.get("bowl_dot_pct", LEAGUE_AVG_DOT_PCT)
         sample = s.get("mid_overs",    0.0)
 
         # Dry/slow conditions (low swing bonus) suit spinners more

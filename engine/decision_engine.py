@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -227,8 +228,6 @@ def _recommend_toss(
 
 def _load_player_tiers(squad: list[str]) -> dict[str, int]:
     """Load data_tier for each squad player from player_index.csv."""
-    import csv
-    from pathlib import Path
     pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index_2026_enriched.csv"
     tiers: dict[str, int] = {}
     try:
@@ -247,8 +246,6 @@ def _load_player_tiers(squad: list[str]) -> dict[str, int]:
 
 def _load_t20_proxies(squad: list[str]) -> dict[str, dict]:
     """Load T20 career proxy stats for Tier 3 players from player_index.csv."""
-    import csv
-    from pathlib import Path
     pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index_2026_enriched.csv"
     proxies: dict[str, dict] = {}
     try:
@@ -303,6 +300,12 @@ def generate_prematch_brief(
     Returns:
         PreMatchBrief with all sections populated.
     """
+    if len(our_squad) < 11:
+        raise ValueError(
+            f"generate_prematch_brief() requires at least 11 players in the squad, "
+            f"got {len(our_squad)}."
+        )
+
     if weather_impact is None:
         weather_impact = WeatherImpact.neutral()
 
