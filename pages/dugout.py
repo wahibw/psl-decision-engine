@@ -37,14 +37,14 @@ PSL_VENUES = [
 
 def _bowlers_for_team(team: str) -> list[str]:
     """
-    Dynamically load bowlers (Bowlers + All-rounders) for a team from player_index.csv.
+    Dynamically load bowlers (Bowlers + All-rounders) for a team from player_index_2026_enriched.csv.
     Falls back to an empty list if the file is missing or the team isn't found.
     This replaces the hardcoded TEAM_BOWLERS dict — squad changes mid-tournament
     are reflected automatically without editing source code.
     """
     from pathlib import Path
     import csv
-    pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index.csv"
+    pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index_2026_enriched.csv"
     result = []
     try:
         with open(pi_path, newline="", encoding="utf-8") as f:
@@ -632,6 +632,7 @@ def _start_match(n_clicks, bowling_team, batting_team, venue, innings, target, b
         "batter2":             "",
         "partnership_runs":    0,
         "partnership_balls":   0,
+        "wickets_this_over":   0,
         "overs_bowled_by":     {b: 0 for b in bowlers},
         "actual_bowlers":      {},   # {"1": "Shaheen Shah Afridi", ...}
     }
@@ -876,14 +877,38 @@ def _render_panels(live_store, match_store):
             else "Middle"
         )
 
-        # Assess partnership
-        from engine.partnership_engine import assess_partnership
-        partnership = assess_partnership(
-            batter1       = batter1,
-            batter2       = batter2,
-            current_runs  = p_runs,
-            current_balls = p_balls,
-        )
+        # Assess partnership — skip engine call when either batter slot is empty
+        from engine.partnership_engine import assess_partnership, PartnershipAssessment
+        if batter1 != "—" and batter2 != "—" and batter1 and batter2:
+            partnership = assess_partnership(
+                batter1       = batter1,
+                batter2       = batter2,
+                current_runs  = p_runs,
+                current_balls = p_balls,
+            )
+        else:
+            # Neutral stub so downstream engine calls don't receive None
+            partnership = PartnershipAssessment(
+                batter1                = batter1 or "—",
+                batter2                = batter2 or "—",
+                current_runs           = p_runs,
+                current_balls          = p_balls,
+                current_sr             = 0.0,
+                historical_avg_runs    = 0.0,
+                historical_avg_balls   = 0.0,
+                historical_occurrences = 0,
+                danger_level           = "Monitoring",
+                danger_trigger         = "No batters selected.",
+                break_with_pace_pct    = 50.0,
+                break_with_spin_pct    = 35.0,
+                break_with_change_pct  = 40.0,
+                avg_over_when_broken   = 0.0,
+                recommended_action     = "Select batters to enable partnership analysis.",
+                confidence             = "Low",
+                danger_score           = 0,
+                alert_message          = "Partnership: awaiting batter selection.",
+                is_historical          = False,
+            )
 
         # Bowler recommendation
         from utils.situation import LiveMatchState
@@ -1394,7 +1419,12 @@ def _live_batting_guidance(
 
 def _render_situation_read(sit_read, live_batting_msg: str | None = None) -> html.Div:
     """Panel 4: Match situation read — the most prominent panel."""
-    priority_col = PRIORITY_COLORS.get(sit_read.priority, TEXT_PRIMARY)
+    if sit_read is None:
+        sit_read = type("_SR", (), {
+            "priority": "INFO", "message": "Awaiting match data.",
+            "action_needed": False, "detail": "",
+        })()
+    priority_col = PRIORITY_COLORS.get(sit_read.priority or "INFO", TEXT_PRIMARY)
 
     return html.Div(
         style={"height": "100%", "display": "flex", "flexDirection": "column", "justifyContent": "center"},

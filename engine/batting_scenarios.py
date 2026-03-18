@@ -22,8 +22,8 @@ from utils.situation import WeatherImpact
 # ---------------------------------------------------------------------------
 
 PROJ_ROOT    = Path(__file__).resolve().parent.parent
-PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index.csv"
-PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index.csv"
+PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
+PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 
 
 # ---------------------------------------------------------------------------
@@ -62,19 +62,22 @@ def _load_meta(path: str) -> dict[str, dict]:
         for row in csv.DictReader(f):
             name = row.get("player_name", "").strip()
             if name:
-                try:
-                    sr = float(row.get("t20_career_sr", "") or 120.0)
-                except (ValueError, TypeError):
-                    sr = 120.0
-                try:
-                    avg = float(row.get("t20_career_avg", "") or 15.0)
-                except (ValueError, TypeError):
-                    avg = 15.0
+                def _f(key: str, default: float, _row: dict = row) -> float:
+                    try:
+                        v = _row.get(key, "")
+                        return float(v) if v and str(v).strip() not in ("", "nan") else default
+                    except (ValueError, TypeError):
+                        return default
                 meta[name] = {
                     "primary_role":   row.get("primary_role",  "Batsman").strip(),
                     "batting_style":  row.get("batting_style", "Right-hand bat").strip(),
-                    "t20_career_sr":  sr,
-                    "t20_career_avg": avg,
+                    "t20_career_sr":  _f("t20_career_sr",  120.0),
+                    "t20_career_avg": _f("t20_career_avg",   15.0),
+                    # New columns from player_index_2026_enriched.csv
+                    "bat_sr_set":       _f("bat_sr_set",       0.0),
+                    "bat_sr_chase":     _f("bat_sr_chase",     0.0),
+                    "innings_sr_delta": _f("innings_sr_delta", 0.0),
+                    "bowl_dot_pct":     _f("bowl_dot_pct",     0.0),
                 }
     return meta
 
@@ -82,6 +85,28 @@ def _load_meta(path: str) -> dict[str, dict]:
 # ---------------------------------------------------------------------------
 # FALLBACK RANKER
 # ---------------------------------------------------------------------------
+
+def _get_sr(player: str, scenario_id: str, meta: dict) -> float:
+    """
+    Return the most appropriate strike rate for this player in this scenario.
+
+    For chase scenarios (C), prefer bat_sr_chase if available.
+    For setting scenarios (A, D), prefer bat_sr_set if available.
+    Scenario B (collapse) uses career average SR — not context-specific.
+    Falls back to t20_career_sr (0.0 means no data, not actual zero SR).
+    """
+    m = meta.get(player, {})
+    if scenario_id == "C":
+        chase_sr = m.get("bat_sr_chase", 0.0)
+        if chase_sr > 0:
+            return chase_sr
+    elif scenario_id in ("A", "D"):
+        set_sr = m.get("bat_sr_set", 0.0)
+        if set_sr > 0:
+            return set_sr
+    # Scenario B or no innings-split data available
+    return float(m.get("t20_career_sr", 120.0) or 120.0)
+
 
 def _rank_players_fallback(
     players:     list[str],
@@ -97,12 +122,12 @@ def _rank_players_fallback(
     for player in players:
         info   = meta.get(player, {})
         role   = info.get("primary_role", "Batsman")
-        sr     = info.get("t20_career_sr",  120.0)
+        sr     = _get_sr(player, scenario_id, meta)
         avg    = info.get("t20_career_avg",  15.0)
         is_lhb = "left" in info.get("batting_style", "").lower()
 
         if scenario_id == "A":
-            # Ideal Start: rank by SR. Batsmen/WK first, All-rounders next, Bowlers last.
+            # Ideal Start: rank by SR (setting). Batsmen/WK first, All-rounders next, Bowlers last.
             score = sr
             if role in ("Batsman", "Wicketkeeper", "WK-Batsman"):
                 prio = 0
@@ -117,7 +142,7 @@ def _rank_players_fallback(
             prio  = 0 if role in ("Batsman", "WK-Batsman", "Wicketkeeper", "All-rounder") else 1
 
         elif scenario_id == "C":
-            # Death Chase: rank by SR. All-rounders/Bowlers with sr>=130 promoted.
+            # Death Chase: rank by chase SR. All-rounders/Bowlers with sr>=130 promoted.
             score = sr
             prio  = 0 if (role in ("All-rounder", "Bowler") and sr >= 130) else 1
 
