@@ -22,8 +22,8 @@ from utils.situation import WeatherImpact
 
 PROJ_ROOT    = Path(__file__).resolve().parent.parent
 STATS_PATH   = PROJ_ROOT / "data" / "processed" / "player_stats.parquet"
-PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index.csv"
-PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index.csv"
+PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
+PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 OPP_PROFILES = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
 
 # ---------------------------------------------------------------------------
@@ -84,11 +84,22 @@ def _load_player_meta(pi_path: Path) -> dict[str, dict]:
             style = (row.get("bowling_style") or "").lower()
             if not name:
                 continue
+            def _f(key: str, default: float, _row: dict = row) -> float:
+                try:
+                    v = _row.get(key, "")
+                    return float(v) if v and str(v).strip() not in ("", "nan") else default
+                except (ValueError, TypeError):
+                    return default
             meta[name] = {
                 "primary_role":  row.get("primary_role", "Batsman").strip(),
                 "bowling_style": row.get("bowling_style", "").strip(),
                 "is_pace":  any(w in style for w in ("fast","medium","seam","swing","pace")),
                 "is_spin":  any(w in style for w in ("spin","off","leg","googly","chinaman","slow")),
+                # New columns from player_index_2026_enriched.csv
+                "bat_sr_set":       _f("bat_sr_set",       0.0),
+                "bat_sr_chase":     _f("bat_sr_chase",     0.0),
+                "innings_sr_delta": _f("innings_sr_delta", 0.0),
+                "bowl_dot_pct":     _f("bowl_dot_pct",     0.0),
             }
     return meta
 
@@ -139,8 +150,9 @@ def _load_t20_proxy(pi_path: Path) -> dict[str, dict]:
             # Prefer IPL economy (subcontinent conditions ≈ PSL) when available
             use_ipl = ipl_matches >= 5 and ipl_eco > 0
             proxy[name] = {
-                "t20_eco":   ipl_eco  if use_ipl else t20_eco,
-                "data_tier": 2        if use_ipl else tier,
+                "t20_eco":      ipl_eco  if use_ipl else t20_eco,
+                "data_tier":    2        if use_ipl else tier,
+                "bowl_dot_pct": _safe("bowl_dot_pct"),   # T20I dot ball % — real data for Tier 2/3
             }
     return proxy
 
@@ -209,7 +221,7 @@ def _load_opposition_profile(
             "vs_leftarm_economy":      _f("vs_leftarm_economy",           8.0),
             "powerplay_sr":            _f("powerplay_sr",                130.0),
             "death_sr":                _f("death_sr",                   155.0),
-            "is_estimated":            bool(r.get("is_estimated", True)),
+            "is_estimated":            bool(r.get("is_estimated", False)),
         }
     except Exception:
         return NEUTRAL
@@ -279,6 +291,16 @@ def _load_bowler_phase_stats(
 
         # Player has meaningful PSL data — use it directly
         if total_ov >= 2.0:
+            # bowl_dot_pct priority: PSL parquet > player index T20I > league avg (35.0)
+            px_dot      = t20_proxy.get(b, {})
+            pi_dot_pct  = px_dot.get("bowl_dot_pct", 0.0)
+            parquet_dot = _get("overall", "bowl_dot_pct", 0.0)
+            if parquet_dot > 0:
+                bowl_dot = parquet_dot
+            elif pi_dot_pct > 0:
+                bowl_dot = pi_dot_pct   # use T20I value when PSL parquet has no data
+            else:
+                bowl_dot = 35.0         # final fallback to league average
             result[b] = {
                 "pp_economy":    _get("powerplay", "bowl_economy",  8.5),
                 "mid_economy":   _get("middle",    "bowl_economy",  7.5),
@@ -289,6 +311,7 @@ def _load_bowler_phase_stats(
                 "pp_overs":      pp_ov,
                 "mid_overs":     mid_ov,
                 "death_overs":   death_ov,
+                "bowl_dot_pct":  bowl_dot,
             }
             continue
 
@@ -303,7 +326,9 @@ def _load_bowler_phase_stats(
         mid_eco   = round(eco * 1.00, 2)
         death_eco = round(eco * 1.12, 2)
         # proxy_overs=12 → confidence = 12/20 = 0.60 in _phase_fitness()
-        PROXY_OVERS = 12.0
+        PROXY_OVERS  = 12.0
+        pi_dot_pct   = px.get("bowl_dot_pct", 0.0)
+        bowl_dot     = pi_dot_pct if pi_dot_pct > 0 else 35.0
         result[b] = {
             "pp_economy":    pp_eco,
             "mid_economy":   mid_eco,
@@ -314,6 +339,7 @@ def _load_bowler_phase_stats(
             "pp_overs":      PROXY_OVERS,
             "mid_overs":     PROXY_OVERS,
             "death_overs":   PROXY_OVERS,
+            "bowl_dot_pct":  bowl_dot,
         }
 
     return result
@@ -385,6 +411,8 @@ def _phase_fitness(
     if phase == "PP":
         eco    = s.get("pp_economy",  8.5)
         wpo    = s.get("pp_wkts_po",  0.2)
+        # bowl_dot_pct priority: PSL parquet > player index T20I > league avg (35.0)
+        # Resolved upstream in _load_bowler_phase_stats(); 35.0 is the last-resort default.
         dots   = s.get("bowl_dot_pct", 35.0)
         sample = s.get("pp_overs",    0.0)
 
