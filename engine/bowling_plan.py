@@ -36,14 +36,15 @@ TOTAL_OVERS          = 20
 PHASE_LABEL = {
     0:  "PP", 1:  "PP", 2:  "PP", 3:  "PP", 4:  "PP", 5:  "PP",
     6:  "Mid",7:  "Mid",8:  "Mid",9:  "Mid",10: "Mid",11: "Mid",
-    12: "Mid",13: "Mid",14: "Mid",15: "Death",16: "Death",
-    17: "Death",18: "Death",19: "Death",
+    12: "Mid",13: "Mid",14: "Pre-Death",15: "Pre-Death",
+    16: "Death",17: "Death",18: "Death",19: "Death",
 }
 
 PHASE_NAME = {
-    "PP":    "powerplay",
-    "Mid":   "middle",
-    "Death": "death",
+    "PP":        "powerplay",
+    "Mid":       "middle",
+    "Pre-Death": "pre-death",
+    "Death":     "death",
 }
 
 
@@ -507,13 +508,16 @@ def _classify_bowlers(
 ) -> dict[str, list[str]]:
     """
     Classify each bowler into phases, ranked by _phase_fitness (descending).
-    All genuine bowlers appear in all three pools; part-timers only in Mid.
+    All genuine bowlers appear in all phase pools; part-timers only in Mid.
     Spinners are excluded from Death pool if severe dew.
+    Pre-Death pool (overs 15-16): medium-pace / secondary options — top death
+    specialists are reserved for overs 17-20.
     Opposition profile (opp) adjusts fitness scores when provided.
     """
-    pp_bowlers:    list[tuple[str, float]] = []
-    mid_bowlers:   list[tuple[str, float]] = []
-    death_bowlers: list[tuple[str, float]] = []
+    pp_bowlers:        list[tuple[str, float]] = []
+    mid_bowlers:       list[tuple[str, float]] = []
+    predeath_bowlers:  list[tuple[str, float]] = []
+    death_bowlers:     list[tuple[str, float]] = []
 
     for b in bowlers:
         bt         = _bowl_type(b, meta)
@@ -529,6 +533,9 @@ def _classify_bowlers(
             mid_bowlers.append((b, mid_fit))
             if not (weather.severe_dew and bt == "spin"):
                 death_bowlers.append((b, death_fit))
+            # Pre-Death: all genuine bowlers eligible, ranked by mid fitness
+            # (medium-pace / secondary options preferred here over strike bowlers)
+            predeath_bowlers.append((b, mid_fit))
 
         # Part-timers only enter mid pool (safest phase for them)
         else:
@@ -537,12 +544,14 @@ def _classify_bowlers(
     # Sort descending (highest fitness first)
     pp_bowlers.sort(key=lambda x: x[1], reverse=True)
     mid_bowlers.sort(key=lambda x: x[1], reverse=True)
+    predeath_bowlers.sort(key=lambda x: x[1], reverse=True)
     death_bowlers.sort(key=lambda x: x[1], reverse=True)
 
     return {
-        "PP":    [b for b, _ in pp_bowlers],
-        "Mid":   [b for b, _ in mid_bowlers],
-        "Death": [b for b, _ in death_bowlers],
+        "PP":        [b for b, _ in pp_bowlers],
+        "Mid":       [b for b, _ in mid_bowlers],
+        "Pre-Death": [b for b, _ in predeath_bowlers],
+        "Death":     [b for b, _ in death_bowlers],
     }
 
 
@@ -603,9 +612,10 @@ def generate_bowling_plan(
     # Phase-specialist classification (opposition-aware)
     phase_pools = _classify_bowlers(genuine + parttimers, stats, meta, weather, opp)
 
-    pp_pool    = phase_pools["PP"]
-    mid_pool   = phase_pools["Mid"]
-    death_pool = phase_pools["Death"]
+    pp_pool        = phase_pools["PP"]
+    mid_pool       = phase_pools["Mid"]
+    predeath_pool  = phase_pools["Pre-Death"]
+    death_pool     = phase_pools["Death"]
 
     # ------------------------------------------------------------------
     # PARTNERSHIP-BASED ALLOCATION
@@ -617,10 +627,11 @@ def generate_bowling_plan(
     # Only then is a new bowler brought in to replace one end.
     #
     # Phase blocks:
-    #   PP      overs 0-5   (6 overs): opening pair, 3 overs each
-    #   Mid-1   overs 6-10  (5 overs): first middle pair (e.g. spinners)
-    #   Mid-2   overs 11-14 (4 overs): second middle pair (change-up / returnee)
-    #   Death   overs 15-19 (5 overs): death pair, 3+2 overs
+    #   PP        overs 0-5   (6 overs): opening pair, 3 overs each
+    #   Mid-1     overs 6-10  (5 overs): first middle pair (e.g. spinners)
+    #   Mid-2     overs 11-13 (3 overs): second middle pair (change-up / returnee)
+    #   Pre-Death overs 14-15 (2 overs): secondary bowlers — save death specialists
+    #   Death     overs 16-19 (4 overs): death pair, 2+2 overs
     # ------------------------------------------------------------------
 
     overs_used:  dict[str, int] = {b: 0 for b in our_bowlers}
@@ -631,9 +642,10 @@ def generate_bowling_plan(
 
     # ------------------------------------------------------------------
     # PRE-PLAN: reserve death overs for top-2 death specialists
-    # Both top death bowlers reserve 2 overs each (4 of the 5 death overs).
-    # This prevents them from being fully consumed in the middle overs,
-    # and ensures the 5th death over goes to the next best available.
+    # Top death bowlers reserve 2 overs each (4 of the 4 death overs 17-20).
+    # Pre-Death overs (15-16) are covered by secondary bowlers so the best
+    # death specialist only enters at over 17 at the earliest.
+    # If only one death specialist is available they bowl overs 19-20, not 15-16.
     # ------------------------------------------------------------------
     top_death = death_pool[:2]
     for b in top_death:
@@ -643,7 +655,9 @@ def generate_bowling_plan(
         """Check if b can bowl in this phase without breaking death reservation."""
         used  = overs_used.get(b, 0)
         quota = MAX_OVERS_PER_BOWLER
-        if phase != "Death":
+        # Reserve death overs for both Death and Pre-Death phases:
+        # top death specialists should not be consumed before over 17.
+        if phase not in ("Death",):
             quota = quota - death_reserved.get(b, 0)
         return used < quota
 
@@ -709,13 +723,22 @@ def generate_bowling_plan(
     # Middle block 1 (overs 7-11): best mid fitness pair
     _assign_pair(list(range(6, 11)),  "Mid", mid_pool)
 
-    # Middle block 2 (overs 12-15): change-up pair — prefer bowlers not yet used heavily
+    # Middle block 2 (overs 12-14): change-up pair — prefer bowlers not yet used heavily
     # Death specialists' reserved overs prevent them appearing here
     remaining_mid = [b for b in mid_pool + pp_pool if _available_now(b, "Mid")]
-    _assign_pair(list(range(11, 15)), "Mid", remaining_mid if remaining_mid else mid_pool)
+    _assign_pair(list(range(11, 14)), "Mid", remaining_mid if remaining_mid else mid_pool)
 
-    # Death: two death specialists, 3+2 overs
-    _assign_pair(list(range(15, 20)), "Death", death_pool)
+    # Pre-Death (overs 15-16): secondary bowlers — reserve top death specialists for 17-20
+    # Top-2 death specialists are excluded via death_reserved; use predeath_pool which
+    # ranks by mid fitness (medium-pace / secondary spinners preferred here).
+    predeath_available = [b for b in predeath_pool if _available_now(b, "Pre-Death")
+                          and b not in top_death]
+    if not predeath_available:
+        predeath_available = [b for b in predeath_pool if _available_now(b, "Pre-Death")]
+    _assign_pair(list(range(14, 16)), "Pre-Death", predeath_available if predeath_available else predeath_pool)
+
+    # Death (overs 17-20): top death specialists, 2+2 overs
+    _assign_pair(list(range(16, 20)), "Death", death_pool)
 
     # ------------------------------------------------------------------
     # Build OverAssignment list
@@ -747,6 +770,14 @@ def generate_bowling_plan(
                 if new_spell
                 else f"Continuing death spell — economy {econ:.1f}."
             )
+        elif phase == "Pre-Death":
+            econ   = s.get("mid_economy", 7.5)
+            reason = (
+                f"Pre-death spell (overs 15-16) — holding death specialists for 17-20. "
+                f"Economy {econ:.1f}."
+                if new_spell
+                else f"Continuing pre-death spell — economy {econ:.1f}."
+            )
         else:
             econ   = s.get("mid_economy", 7.5)
             reason = (
@@ -757,7 +788,7 @@ def generate_bowling_plan(
 
         # Weather note
         w_note = ""
-        if phase == "Death" and bt == "spin" and weather.dew_onset_over <= over:
+        if phase in ("Death", "Pre-Death") and bt == "spin" and weather.dew_onset_over <= over:
             w_note = (
                 f"Dew warning — spinner risky here "
                 f"(onset over {weather.dew_onset_over}). Consider pace."
@@ -806,12 +837,20 @@ def generate_bowling_plan(
                 f"{s.get('pp_wkts_po', 0):.2f} wkts/over."
             )
 
-    # Death pair — explain selection based on wickets + economy
+    # Death pair — explain selection and pre-death separation
     if death_pool:
         d1 = death_pool[0]
         d2 = death_pool[1] if len(death_pool) > 1 else None
         s1 = stats.get(d1, {})
         fit1 = _phase_fitness(d1, "Death", stats, meta, weather)
+        # Identify who covers pre-death overs 15-16
+        predeath_covers = [assignments.get(o) for o in (14, 15) if assignments.get(o)]
+        predeath_names  = list(dict.fromkeys(b for b in predeath_covers if b not in top_death))
+        if predeath_names:
+            key_decisions.append(
+                f"Saving {d1} for overs 17-20 — pre-death overs 15-16 covered by "
+                f"{predeath_names[0]}."
+            )
         msg = (
             f"Death pair: {d1} (death fitness {fit1:.0f}/100 — "
             f"{s1.get('death_wkts_po', 0):.2f} wkts/over, "
