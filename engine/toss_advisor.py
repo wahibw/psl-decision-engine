@@ -118,6 +118,7 @@ def advise_toss(
 
     # ------------------------------------------------------------------
     # FACTOR 1 — Dew (highest weight: +/-4)
+    # Consistent with decision_engine: dew favours bowl first.
     # ------------------------------------------------------------------
     dew_note = ""
     if weather.dew_onset_over > 0:

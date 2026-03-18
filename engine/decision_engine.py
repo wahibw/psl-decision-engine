@@ -141,13 +141,13 @@ def _recommend_toss(
         rec = "BOWL FIRST"
         reasons.append(
             f"Severe dew from over {weather.dew_onset_over} — batting second is significantly "
-            f"easier on a wet ball. Bowl first, bat in dew-affected conditions."
+            f"easier on a wet ball. Bowl first, exploit dew conditions when chasing."
         )
     elif weather.spinner_penalty <= 0.75:
         rec = "BOWL FIRST"
         reasons.append(
             f"Heavy dew likely (spinner penalty {weather.spinner_penalty:.2f}) — "
-            f"batting second benefits from wet ball conditions. Bowl first."
+            f"batting second benefits from wet ball. Bowl first."
         )
 
     # --- Priority 3: Venue historical data ---
@@ -342,6 +342,13 @@ def generate_prematch_brief(
     # 1a. Opposition profile (needed before XI selection for matchup bonuses)
     from engine.opposition_predictor import predict_batting_order as _pred_opp
     from engine.bowling_plan import _load_opposition_profile as _load_opp_profile
+    _opp_profile_check = _load_opp_profile(opposition)
+    if _opp_profile_check.get("is_estimated", False):
+        data_tier_notes.append(
+            f"Opposition profile for {opposition} is estimated (no PSL history). "
+            f"XI selection matchup bonuses and bowling plan opposition intelligence "
+            f"have no empirical basis."
+        )
     _opp_preview = _pred_opp(
         team    = opposition,
         venue   = venue,
