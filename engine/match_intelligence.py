@@ -20,8 +20,8 @@ from engine.partnership_engine import PartnershipAssessment
 from utils.situation import LiveMatchState, WeatherImpact
 
 _PROJ_ROOT              = Path(__file__).resolve().parent.parent
-_PLAYER_INDEX           = _PROJ_ROOT / "data" / "processed" / "player_index.csv"
-_PLAYER_INDEX_FALLBACK  = _PROJ_ROOT.parent / "player_index.csv"
+_PLAYER_INDEX           = _PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
+_PLAYER_INDEX_FALLBACK  = _PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 
 
 @lru_cache(maxsize=1)

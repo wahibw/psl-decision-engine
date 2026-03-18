@@ -206,13 +206,6 @@ def _recommend_toss(
             f"but dew/venue data overrides that."
         )
 
-    # Swing bonus note
-    if weather.swing_bonus >= 1.20 and rec == "BOWL FIRST":
-        reasons.append(
-            f"Swing conditions ({weather.swing_bonus:.2f}x) favour bowling with the new ball — "
-            f"consider bowling first if your pacers are the stronger attack."
-        )
-
     # D/L note
     dl_note = ""
     if weather.dl_planning_needed:
@@ -236,7 +229,7 @@ def _load_player_tiers(squad: list[str]) -> dict[str, int]:
     """Load data_tier for each squad player from player_index.csv."""
     import csv
     from pathlib import Path
-    pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index.csv"
+    pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index_2026_enriched.csv"
     tiers: dict[str, int] = {}
     try:
         with open(pi_path, newline="", encoding="utf-8") as f:
@@ -256,7 +249,7 @@ def _load_t20_proxies(squad: list[str]) -> dict[str, dict]:
     """Load T20 career proxy stats for Tier 3 players from player_index.csv."""
     import csv
     from pathlib import Path
-    pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index.csv"
+    pi_path = Path(__file__).resolve().parent.parent / "data" / "processed" / "player_index_2026_enriched.csv"
     proxies: dict[str, dict] = {}
     try:
         with open(pi_path, newline="", encoding="utf-8") as f:
@@ -380,7 +373,7 @@ def generate_prematch_brief(
     )
 
     # 2. Toss recommendation
-    toss = _recommend_toss(venue, weather_impact, opposition)
+    toss = _recommend_toss(venue, weather_impact, opposition, match_datetime)
 
     # 3. Opposition batting order prediction
     # Identify our bowlers from primary XI
