@@ -129,8 +129,15 @@ def _recommend_toss(
         month = match_datetime.month if hasattr(match_datetime, "month") else 0
         month_dew_risk = month in (2, 3, 4)  # Feb-Apr: pre-monsoon dew season
 
-    # --- Priority 1: Dew / severe weather ---
-    if weather.severe_dew:
+    # --- Priority 1: Rain / D-L (checked first — sets a total early regardless of dew) ---
+    if weather.dl_planning_needed:
+        rec = "BAT FIRST"
+        reasons.append(
+            f"Rain risk — D/L favours the team that scores early. BAT FIRST to control D/L par."
+        )
+
+    # --- Priority 2: Dew (only when no rain risk) ---
+    elif weather.severe_dew:
         rec = "BOWL FIRST"
         reasons.append(
             f"Severe dew from over {weather.dew_onset_over} — batting second is significantly "
@@ -142,13 +149,8 @@ def _recommend_toss(
             f"Heavy dew likely (spinner penalty {weather.spinner_penalty:.2f}) — "
             f"batting second benefits from wet ball conditions. Bowl first."
         )
-    elif weather.dl_planning_needed:
-        rec = "BAT FIRST"
-        reasons.append(
-            f"Rain risk — D/L favours the team that scores early. BAT FIRST to control D/L par."
-        )
 
-    # --- Priority 2: Venue historical data ---
+    # --- Priority 3: Venue historical data ---
     else:
         sample_note = f" ({n_matches} PSL matches)" if n_matches >= 10 else " (limited data)"
         if chase_pct >= 57:
