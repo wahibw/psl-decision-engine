@@ -1211,11 +1211,19 @@ if __name__ == "__main__":
         warnings           = ["Heavy dew from over 13"],
     )
 
+    # Minimal opposition order stubs for [MATCHUP] self-test
+    _test_order = [
+        {"player_name": "Azam Khan",    "position": 2, "danger_rating": "High"},
+        {"player_name": "David Warner", "position": 1, "danger_rating": "Medium"},
+        {"player_name": "Khushdil Shah","position": 6, "danger_rating": "High"},
+    ]
+
     plan = generate_bowling_plan(
-        our_bowlers     = lahore_bowlers,
-        weather         = weather_dew,
-        venue           = "Gaddafi Stadium, Lahore",
-        opposition_team = "Karachi Kings",
+        our_bowlers              = lahore_bowlers,
+        weather                  = weather_dew,
+        venue                    = "Gaddafi Stadium, Lahore",
+        opposition_team          = "Karachi Kings",
+        opposition_batting_order = _test_order,
     )
 
     print(f"\nBowling Plan — Lahore vs Karachi (with dew)")
