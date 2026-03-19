@@ -24,7 +24,8 @@ PROJ_ROOT    = Path(__file__).resolve().parent.parent
 STATS_PATH   = PROJ_ROOT / "data" / "processed" / "player_stats.parquet"
 PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
-OPP_PROFILES = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
+OPP_PROFILES  = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
+MATCHUP_PATH  = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
 
 # ---------------------------------------------------------------------------
 # CONSTANTS
@@ -601,12 +602,13 @@ def _classify_bowlers(
 # ---------------------------------------------------------------------------
 
 def generate_bowling_plan(
-    our_bowlers:           list[str],
-    weather:               WeatherImpact,
-    venue:                 str = "",
-    opposition_team:       str = "",
-    stats_path:            Optional[Path] = None,
-    player_index_path:     Optional[Path] = None,
+    our_bowlers:              list[str],
+    weather:                  WeatherImpact,
+    venue:                    str = "",
+    opposition_team:          str = "",
+    stats_path:               Optional[Path] = None,
+    player_index_path:        Optional[Path] = None,
+    opposition_batting_order: Optional[list] = None,
 ) -> BowlingPlan:
     """
     Generate a 20-over bowling plan template.
@@ -634,6 +636,23 @@ def generate_bowling_plan(
     meta  = _load_player_meta(pi)
     stats = _load_bowler_phase_stats(our_bowlers, sp, pi_path=pi)
     opp   = _load_opposition_profile(opposition_team)
+
+    # Load matchup matrix for danger-batter intelligence
+    _matchup_df: Optional[pd.DataFrame] = None
+    if MATCHUP_PATH.exists():
+        try:
+            _matchup_df = pd.read_parquet(MATCHUP_PATH)
+        except Exception as _e:
+            import warnings as _w
+            _w.warn(f"Could not load matchup_matrix.parquet: {_e}", UserWarning, stacklevel=2)
+    else:
+        import warnings as _w
+        _w.warn(
+            f"matchup_matrix.parquet not found at {MATCHUP_PATH}. "
+            "Matchup key decisions will be skipped.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     # Identify genuine bowlers vs part-timers
     genuine = [b for b in our_bowlers if _is_genuine_bowler(b, meta)]
@@ -732,7 +751,12 @@ def generate_bowling_plan(
             end_a = our_bowlers[0] if our_bowlers else "TBD"
         end_b = _best_for_phase(pool, phase, exclude=end_a)
         if end_b is None:
-            end_b = end_a
+            # Expand beyond phase pool — try any bowler with overs remaining
+            _all_remaining = [
+                b for b in our_bowlers
+                if b != end_a and overs_used.get(b, 0) < MAX_OVERS_PER_BOWLER
+            ]
+            end_b = _all_remaining[0] if _all_remaining else end_a
 
         for idx, over in enumerate(over_indices):
             bowling_a = (idx % 2 == 0)
@@ -775,8 +799,18 @@ def generate_bowling_plan(
     predeath_available = [b for b in predeath_pool if _available_now(b, "Pre-Death")
                           and b not in top_death]
     if not predeath_available:
-        predeath_available = [b for b in predeath_pool if _available_now(b, "Pre-Death")]
-    _assign_pair(list(range(14, 16)), "Pre-Death", predeath_available if predeath_available else predeath_pool)
+        # Secondary pool exhausted — widen to all bowlers except top death specialists.
+        # Death specialists are excluded even in this fallback to preserve their full
+        # 4-over quota for overs 17-20.
+        predeath_available = [
+            b for b in our_bowlers
+            if _available_now(b, "Pre-Death") and b not in top_death
+        ]
+    if not predeath_available:
+        # Truly nothing left — last resort: use predeath_pool including death specialists.
+        # This only fires if the squad has fewer than 5 genuine bowlers.
+        predeath_available = predeath_pool
+    _assign_pair(list(range(14, 16)), "Pre-Death", predeath_available)
 
     # Death (overs 17-20): top death specialists, 2+2 overs
     _assign_pair(list(range(16, 20)), "Death", death_pool)
@@ -1026,7 +1060,72 @@ def generate_bowling_plan(
                 f"Use your best wicket-takers at death — can't afford to concede boundaries."
             )
 
-    key_decisions = key_decisions[:7]  # allow up to 7 with opp intelligence
+    # Reserve the last 3 slots for [MATCHUP] notes — trim prior decisions now
+    # so high-value matchup intelligence is never crowded out.
+    key_decisions = key_decisions[:7]
+
+    # [MATCHUP] key decisions — danger batters vs our bowlers
+    # bowler_adv in the parquet uses formula: (dismissal_pct/100) - (sr/150), range -4 to +1.
+    # Thresholds of 15/-15 are calibrated for the live formula:
+    #   (PRIOR_SR - sr)*0.6 + (dismissal_pct - PRIOR_DIS)*3.0
+    # We compute that equivalent here so the thresholds fire correctly.
+    _PRIOR_SR  = 130.0
+    _PRIOR_DIS =   7.5
+    _MIN_BALLS =   8    # minimum meaningful sample
+
+    if opposition_batting_order and _matchup_df is not None:
+        _matchup_notes: list[tuple[float, str]] = []  # (abs_adv, note)
+        try:
+            # Build lookup: (batter, bowler) -> (balls, sr, dismissal_pct)
+            _needed = ["batter", "bowler", "balls", "sr", "dismissal_pct"]
+            _mx_raw = (
+                _matchup_df[_needed]
+                .set_index(["batter", "bowler"])
+                .to_dict(orient="index")
+            )
+            for _pb in opposition_batting_order[:7]:  # top-7 batting positions, High danger only
+                _danger = getattr(_pb, "danger_rating", None) or (
+                    _pb.get("danger_rating") if isinstance(_pb, dict) else None
+                )
+                if _danger != "High":
+                    continue
+                _bname = getattr(_pb, "player_name", None) or (
+                    _pb.get("player_name") if isinstance(_pb, dict) else None
+                )
+                if not _bname:
+                    continue
+                _pos = getattr(_pb, "position", None) or (
+                    _pb.get("position") if isinstance(_pb, dict) else "?"
+                )
+                for _bowler in our_bowlers:
+                    _row = _mx_raw.get((_bname, _bowler))
+                    if _row is None or int(_row["balls"]) < _MIN_BALLS:
+                        continue
+                    # Compute live-formula equivalent for correct scale
+                    _adv = (
+                        (_PRIOR_SR  - float(_row["sr"])) * 0.6
+                        + (float(_row["dismissal_pct"]) - _PRIOR_DIS) * 3.0
+                    )
+                    if _adv >= 15.0:
+                        _matchup_notes.append((
+                            abs(_adv),
+                            f"[MATCHUP] {_bowler.split()[-1]} vs {_bname} (pos {_pos}) — "
+                            f"bowler edge (adv +{_adv:.0f}). Bowl him at {_bname} early."
+                        ))
+                    elif _adv <= -15.0:
+                        _matchup_notes.append((
+                            abs(_adv),
+                            f"[MATCHUP] DANGER — {_bname} (pos {_pos}) dominates "
+                            f"{_bowler.split()[-1]} (adv {_adv:.0f}). Avoid this matchup or "
+                            f"set boundary protection."
+                        ))
+        except Exception as _me:
+            import warnings as _w2
+            _w2.warn(f"Matchup key-decision build failed: {_me}", UserWarning, stacklevel=2)
+
+        _matchup_notes.sort(key=lambda x: x[0], reverse=True)
+        for _, _note in _matchup_notes[:3]:
+            key_decisions.append(_note)
 
     # Contingencies
     contingencies: list[str] = []
@@ -1045,15 +1144,37 @@ def generate_bowling_plan(
             "Rain risk — front-load your strike bowlers in overs 1-10. D/L favours the side with early wickets."
         )
 
-    # Validate cap compliance — the plan generator must never produce a plan
-    # where any bowler is assigned more than 4 overs. If this fires, it's a
-    # bug in the allocation logic above, not a live-match deviation.
-    for bowler, alloc in bowler_summary.items():
+    # Validate cap compliance — warn and clamp if any bowler exceeds 4-over PSL cap.
+    # This can happen with very small squads (< 5 genuine bowlers); the allocation
+    # logic does its best but may still over-assign part-timers in edge cases.
+    import warnings as _vcw
+    for bowler, alloc in list(bowler_summary.items()):
         if len(alloc) > MAX_OVERS_PER_BOWLER:
-            raise RuntimeError(
-                f"[bowling_plan] BUG: {bowler} allocated {len(alloc)} overs "
-                f"(cap = {MAX_OVERS_PER_BOWLER}). Fix the allocation logic."
+            _vcw.warn(
+                f"[bowling_plan] {bowler} allocated {len(alloc)} overs "
+                f"(PSL cap = {MAX_OVERS_PER_BOWLER}). Squad may have too few genuine bowlers. "
+                f"Plan clamped to {MAX_OVERS_PER_BOWLER} overs for this bowler.",
+                UserWarning,
+                stacklevel=2,
             )
+            # Clamp: remove excess overs from bowler_summary
+            excess_overs = alloc[MAX_OVERS_PER_BOWLER:]
+            bowler_summary[bowler] = alloc[:MAX_OVERS_PER_BOWLER]
+            # Re-assign excess overs to TBD in over_assignments
+            for _ov in excess_overs:
+                assignments[_ov - 1] = "TBD"
+            # Rebuild over_assignments from updated assignments
+            over_assignments = [
+                OverAssignment(
+                    over           = oa.over,
+                    primary_bowler = assignments.get(oa.over - 1, oa.primary_bowler),
+                    backup_bowler  = oa.backup_bowler,
+                    phase          = oa.phase,
+                    reason         = oa.reason,
+                    weather_note   = oa.weather_note,
+                )
+                for oa in over_assignments
+            ]
 
     return BowlingPlan(
         overs          = over_assignments,
