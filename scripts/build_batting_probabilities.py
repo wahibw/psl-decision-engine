@@ -148,7 +148,12 @@ if __name__ == "__main__":
     for i, (player, data) in enumerate(result[first_team].items()):
         if i >= 3:
             break
+        _conf_label = (
+            "Single season — position uncertain"
+            if data["position_confidence"] == "Low"
+            else f"{data['position_confidence']} confidence"
+        )
         print(f"  {player}: pos {data['most_common_position']} ({data['position_range']}), "
-              f"{data['seasons_count']} seasons, {data['position_confidence']} confidence")
+              f"{data['seasons_count']} season(s), {_conf_label}")
 
     sys.exit(0)
