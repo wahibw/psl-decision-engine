@@ -395,10 +395,11 @@ def generate_prematch_brief(
 
     # 4. Bowling plan
     bowling_plan = generate_bowling_plan(
-        our_bowlers     = our_bowlers,
-        weather         = weather_impact,
-        venue           = venue,
-        opposition_team = opposition,
+        our_bowlers              = our_bowlers,
+        weather                  = weather_impact,
+        venue                    = venue,
+        opposition_team          = opposition,
+        opposition_batting_order = opposition_order.predicted_order,
     )
 
     # 5. Batting scenarios
@@ -562,7 +563,22 @@ if __name__ == "__main__":
 
     print(f"\n  OPPOSITION ORDER (top 5):")
     for pb in brief.opposition_order.predicted_order[:5]:
-        print(f"    {pb.position}. {pb.player_name:<25} [{pb.danger_rating} danger]  {pb.key_note[:50]}")
+        _pos_note = ""
+        if pb.position_confidence == "Low":
+            _seasons = pb.position_range or "?"
+            _pos_note = "  (position uncertain — 1 PSL season only)"
+        elif pb.position_confidence == "Medium":
+            _rng = pb.position_range or "?"
+            _pos_note = f"  (pos range {_rng}, Medium confidence)"
+        elif pb.position_confidence == "High":
+            _rng = pb.position_range or "?"
+            _pos_note = f"  (pos {_rng}, High confidence)"
+        else:
+            _pos_note = "  (position uncertain — new or insufficient PSL data)"
+        print(
+            f"    {pb.position}. {pb.player_name:<25} [{pb.danger_rating} danger]  "
+            f"{pb.key_note[:50]}{_pos_note}"
+        )
 
     print(f"\n  BOWLING PLAN (overs 1-6):")
     for oa in brief.bowling_plan.overs[:6]:
