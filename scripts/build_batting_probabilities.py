@@ -135,9 +135,10 @@ if __name__ == "__main__":
     medium = sum(1 for t in result.values() for p in t.values() if p["position_confidence"] == "Medium")
     low    = sum(1 for t in result.values() for p in t.values() if p["position_confidence"] == "Low")
 
-    print(f"\nDone.")
-    print(f"  Teams   : {total_teams}")
-    print(f"  Players : {total_players}")
+    coverage = sum(1 for t in result.values() for p in t.values() if p["seasons_count"] >= 2)
+
+    print(f"\nBuilt batting probabilities for {total_teams} teams, {total_players} players")
+    print(f"Coverage: {coverage} player-position pairs with >= 2 season observations")
     print(f"  High confidence  : {high}")
     print(f"  Medium confidence: {medium}")
     print(f"  Low confidence   : {low}")
