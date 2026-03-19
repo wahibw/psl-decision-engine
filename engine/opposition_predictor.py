@@ -23,7 +23,8 @@ PROJ_ROOT    = Path(__file__).resolve().parent.parent
 PROFILES_PATH = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
 PLAYER_INDEX  = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
-MATCHUP_PATH  = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
+MATCHUP_PATH       = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
+BATTING_PROBS_PATH = PROJ_ROOT / "data" / "processed" / "batting_order_probabilities.json"
 
 
 # ---------------------------------------------------------------------------
@@ -32,18 +33,20 @@ MATCHUP_PATH  = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
 
 @dataclass
 class PredictedBatter:
-    position:           int
-    player_name:        str
-    confidence:         str         # "High" | "Medium" | "Low"
-    arrival_over_range: str         # "typically arrives over 8-11"
-    batting_style:      str         # "Left-hand" | "Right-hand"
-    phase_strength:     str         # e.g. "Powerplay aggressor"
-    career_sr:          float
-    death_sr:           float
-    vs_our_spin_sr:     float
-    vs_our_pace_sr:     float
-    danger_rating:      str         # "High" | "Medium" | "Low"
-    key_note:           str
+    position:            int
+    player_name:         str
+    confidence:          str         # "High" | "Medium" | "Low"
+    arrival_over_range:  str         # "typically arrives over 8-11"
+    batting_style:       str         # "Left-hand" | "Right-hand"
+    phase_strength:      str         # e.g. "Powerplay aggressor"
+    career_sr:           float
+    death_sr:            float
+    vs_our_spin_sr:      float
+    vs_our_pace_sr:      float
+    danger_rating:       str         # "High" | "Medium" | "Low"
+    key_note:            str
+    position_confidence: str = ""    # "High" | "Medium" | "Low" — based on PSL seasons seen
+    position_range:      str = ""    # e.g. "1-3" or "2" — positions seen across seasons
 
 
 @dataclass
@@ -518,6 +521,31 @@ def predict_batting_order(
         v = row.iloc[0].get("bat_sr")
         return float(v) if pd.notna(v) else 120.0
 
+    # Load batting order probabilities (Fix 2 — position confidence from PSL seasons)
+    _bat_probs: dict = {}
+    _bp_path = BATTING_PROBS_PATH
+    if _bp_path.exists():
+        try:
+            with open(_bp_path, encoding="utf-8") as _bpf:
+                _bat_probs = json.load(_bpf)
+        except Exception as _bpe:
+            import warnings as _bpw
+            _bpw.warn(
+                f"Could not load batting_order_probabilities.json: {_bpe}. "
+                "Position confidence fields will be empty.",
+                UserWarning,
+                stacklevel=2,
+            )
+    else:
+        import warnings as _bpw2
+        _bpw2.warn(
+            f"batting_order_probabilities.json not found at {_bp_path}. "
+            "Run scripts/build_batting_probabilities.py to generate it. "
+            "Position confidence fields will be empty.",
+            UserWarning,
+            stacklevel=2,
+        )
+
     # Build predicted batters
     predicted: list[PredictedBatter] = []
     left_hand_count = 0
@@ -542,19 +570,30 @@ def predict_batting_order(
             career_sr, death_sr, vs_spin_sr, vs_pace_sr
         )
 
+        _player_probs  = _bat_probs.get(team, {}).get(player, {})
+        _pos_conf  = _player_probs.get("position_confidence", "")
+        _pos_range = _player_probs.get("position_range", "")
+        if _pos_conf and pos > 5:
+            _pos_conf = "Low"
+        if not _pos_conf:
+            _pos_conf = "Low"
+            _pos_range = "unknown"
+
         predicted.append(PredictedBatter(
-            position           = pos,
-            player_name        = player,
-            confidence         = _position_confidence(pos, base_confidence),
-            arrival_over_range = _arrival_over(pos),
-            batting_style      = bat_sty,
-            phase_strength     = _phase_strength(pos, profile),
-            career_sr          = career_sr,
-            death_sr           = death_sr,
-            vs_our_spin_sr     = vs_spin_sr,
-            vs_our_pace_sr     = vs_pace_sr,
-            danger_rating      = danger,
-            key_note           = note,
+            position             = pos,
+            player_name          = player,
+            confidence           = _position_confidence(pos, base_confidence),
+            arrival_over_range   = _arrival_over(pos),
+            batting_style        = bat_sty,
+            phase_strength       = _phase_strength(pos, profile),
+            career_sr            = career_sr,
+            death_sr             = death_sr,
+            vs_our_spin_sr       = vs_spin_sr,
+            vs_our_pace_sr       = vs_pace_sr,
+            danger_rating        = danger,
+            key_note             = note,
+            position_confidence  = _pos_conf,
+            position_range       = _pos_range,
         ))
 
     # Identify danger window (positions rated High danger)
