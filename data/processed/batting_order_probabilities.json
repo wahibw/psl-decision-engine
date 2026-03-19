@@ -1,0 +1,2413 @@
+{
+  "Islamabad United": {
+    "AD Hales": {
+      "most_common_position": 2,
+      "position_range": "2-3",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "2": 0.75,
+        "3": 0.25
+      }
+    },
+    "AD Russell": {
+      "most_common_position": 5,
+      "position_range": "5-8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 0.5,
+        "8": 0.5
+      }
+    },
+    "AGS Gous": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Agha Salman": {
+      "most_common_position": 3,
+      "position_range": "3-4",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "3": 0.5,
+        "4": 0.5
+      }
+    },
+    "Amad Butt": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Asif Ali": {
+      "most_common_position": 6,
+      "position_range": "4-6",
+      "seasons_count": 7,
+      "position_confidence": "High",
+      "position_probs": {
+        "4": 0.1429,
+        "5": 0.2857,
+        "6": 0.5714
+      }
+    },
+    "Azam Khan": {
+      "most_common_position": 5,
+      "position_range": "5-6",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 0.75,
+        "6": 0.25
+      }
+    },
+    "Azhar Mahmood": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "BJ Dwarshuis": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "BJ Haddin": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "C Munro": {
+      "most_common_position": 2,
+      "position_range": "1-3",
+      "seasons_count": 5,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.2,
+        "2": 0.4,
+        "3": 0.4
+      }
+    },
+    "CA Ingram": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "CAK Walton": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "CS Delport": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "DJ Malan": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "DR Smith": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Faheem Ashraf": {
+      "most_common_position": 7,
+      "position_range": "6-8",
+      "seasons_count": 7,
+      "position_confidence": "High",
+      "position_probs": {
+        "6": 0.1429,
+        "7": 0.7143,
+        "8": 0.1429
+      }
+    },
+    "HE van der Dussen": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Haider Ali": {
+      "most_common_position": 6,
+      "position_range": "6-8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "6": 0.5,
+        "8": 0.5
+      }
+    },
+    "Hasan Ali": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Hussain Talat": {
+      "most_common_position": 4,
+      "position_range": "4-5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "4": 0.5,
+        "5": 0.5
+      }
+    },
+    "Iftikhar Ahmed": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Imad Wasim": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Imran Khalid": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Khalid Latif": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "L Gregory": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "L Ronchi": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Misbah-ul-Haq": {
+      "most_common_position": 4,
+      "position_range": "4-6",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "4": 0.5,
+        "6": 0.5
+      }
+    },
+    "Mohammad Sami": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Muhammad Akhlaq": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "PD Salt": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "PR Stirling": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Rafatullah Mohmand": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Rahmanullah Gurbaz": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Rizwan Hussain": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "SR Patel": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "SR Watson": {
+      "most_common_position": 1,
+      "position_range": "1-5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "1": 0.5,
+        "5": 0.5
+      }
+    },
+    "Sahibzada Farhan": {
+      "most_common_position": 1,
+      "position_range": "1-2",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "1": 0.5,
+        "2": 0.5
+      }
+    },
+    "Shadab Khan": {
+      "most_common_position": 4,
+      "position_range": "4-7",
+      "seasons_count": 7,
+      "position_confidence": "High",
+      "position_probs": {
+        "4": 0.4286,
+        "5": 0.1429,
+        "6": 0.1429,
+        "7": 0.2857
+      }
+    },
+    "Sharjeel Khan": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "TK Curran": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "UT Khawaja": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    }
+  },
+  "Karachi Kings": {
+    "AD Hales": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Aamer Yamin": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Abbas Afridi": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "BCJ Cutting": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "BR Dunk": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Babar Azam": {
+      "most_common_position": 2,
+      "position_range": "1-3",
+      "seasons_count": 6,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.3333,
+        "2": 0.5,
+        "3": 0.1667
+      }
+    },
+    "C Munro": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "CA Ingram": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "CAK Walton": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "CH Gayle": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "CJ Jordan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "CS Delport": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "D Wiese": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "DA Warner": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Danish Aziz": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Haider Ali": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Hasan Ali": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Iftikhar Ahmed": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Imad Wasim": {
+      "most_common_position": 7,
+      "position_range": "5-7",
+      "seasons_count": 8,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 0.125,
+        "6": 0.125,
+        "7": 0.75
+      }
+    },
+    "Irfan Khan": {
+      "most_common_position": 7,
+      "position_range": "5-7",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 0.3333,
+        "7": 0.6667
+      }
+    },
+    "JL Denly": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "JM Clarke": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "JM Vince": {
+      "most_common_position": 3,
+      "position_range": "2-3",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "2": 0.25,
+        "3": 0.75
+      }
+    },
+    "KA Pollard": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "KC Sangakkara": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Khurram Manzoor": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Khushdil Shah": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "L Gregory": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "LMP Simmons": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "LS Livingstone": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "MJ Guptill": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "MS Wade": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Mohammad Ilyas": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Mohammad Nabi": {
+      "most_common_position": 5,
+      "position_range": "5-7",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 0.5,
+        "7": 0.5
+      }
+    },
+    "Mohammad Nawaz": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Nauman Anwar": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Qasim Akram": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "RS Bopara": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Rohail Nazir": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Saad Baig": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Shahid Afridi": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Shakib Al Hasan": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Shan Masood": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Sharjeel Khan": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Shoaib Malik": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Sohail Khan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "TL Seifert": {
+      "most_common_position": 1,
+      "position_range": "1-2",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "1": 0.5,
+        "2": 0.5
+      }
+    }
+  },
+  "Lahore Qalandars": {
+    "AB de Villiers": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "AP Devcich": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Aamer Yamin": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Abdullah Shafique": {
+      "most_common_position": 3,
+      "position_range": "2-3",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "2": 0.3333,
+        "3": 0.6667
+      }
+    },
+    "Agha Salman": {
+      "most_common_position": 3,
+      "position_range": "3-4",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "3": 0.5,
+        "4": 0.5
+      }
+    },
+    "Asif Ali": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Azhar Ali": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "BB McCullum": {
+      "most_common_position": 2,
+      "position_range": "2-5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "2": 0.5,
+        "5": 0.5
+      }
+    },
+    "BR Dunk": {
+      "most_common_position": 4,
+      "position_range": "4-5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "4": 0.5,
+        "5": 0.5
+      }
+    },
+    "BRM Taylor": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "CA Lynn": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "CR Brathwaite": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "CS Delport": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "D Wiese": {
+      "most_common_position": 7,
+      "position_range": "6-8",
+      "seasons_count": 5,
+      "position_confidence": "High",
+      "position_probs": {
+        "6": 0.2,
+        "7": 0.6,
+        "8": 0.2
+      }
+    },
+    "DJ Bravo": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "DJ Mitchell": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Fakhar Zaman": {
+      "most_common_position": 1,
+      "position_range": "1-3",
+      "seasons_count": 9,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.6667,
+        "2": 0.2222,
+        "3": 0.1111
+      }
+    },
+    "GC Viljoen": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "GD Elliott": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "HC Brook": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "HE van der Dussen": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Hammad Azam": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Haris Sohail": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Hussain Talat": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "JJ Roy": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "JP Faulkner": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Jahandad Khan": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "KK Cooper": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Kamran Ghulam": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Mirza Baig": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Mohammad Hafeez": {
+      "most_common_position": 3,
+      "position_range": "3-4",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.6667,
+        "4": 0.3333
+      }
+    },
+    "Mohammad Rizwan": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Muhammad Faizan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Muhammad Naeem": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "PD Salt": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Rashid Khan": {
+      "most_common_position": 8,
+      "position_range": "7-8",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "7": 0.3333,
+        "8": 0.6667
+      }
+    },
+    "SD Hope": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "SP Narine": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "SR Patel": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "SW Billings": {
+      "most_common_position": 4,
+      "position_range": "4-5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "4": 0.5,
+        "5": 0.5
+      }
+    },
+    "Sahibzada Farhan": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Shaheen Shah Afridi": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Sikandar Raza": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Sohail Akhtar": {
+      "most_common_position": 2,
+      "position_range": "2-6",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "2": 0.5,
+        "6": 0.5
+      }
+    },
+    "Sohail Khan": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Sohail Tanvir": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "TH David": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Umar Akmal": {
+      "most_common_position": 4,
+      "position_range": "3-4",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.3333,
+        "4": 0.6667
+      }
+    },
+    "Yasir Shah": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Zohaib Khan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    }
+  },
+  "Multan Sultans": {
+    "Abbas Afridi": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Ahmed Shehzad": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Anwar Ali": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "CJ Green": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "CJ Jordan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "CR Brathwaite": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "DJ Malan": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "DJ Willey": {
+      "most_common_position": 7,
+      "position_range": "7-8",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "7": 0.6667,
+        "8": 0.3333
+      }
+    },
+    "DT Christian": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Hammad Azam": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Iftikhar Ahmed": {
+      "most_common_position": 5,
+      "position_range": "5-6",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 0.5,
+        "6": 0.5
+      }
+    },
+    "J Charles": {
+      "most_common_position": 3,
+      "position_range": "3-5",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.3333,
+        "4": 0.3333,
+        "5": 0.3333
+      }
+    },
+    "JM Vince": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "KA Pollard": {
+      "most_common_position": 4,
+      "position_range": "4-5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "4": 0.5,
+        "5": 0.5
+      }
+    },
+    "KC Sangakkara": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Kamran Ghulam": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Khushdil Shah": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 5,
+      "position_confidence": "High",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "MG Bracewell": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Mohammad Rizwan": {
+      "most_common_position": 2,
+      "position_range": "1-2",
+      "seasons_count": 5,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.2,
+        "2": 0.8
+      }
+    },
+    "RA Whiteley": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "RR Rossouw": {
+      "most_common_position": 4,
+      "position_range": "3-4",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.25,
+        "4": 0.75
+      }
+    },
+    "RS Bopara": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Saif Badar": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Shahid Afridi": {
+      "most_common_position": 6,
+      "position_range": "6-7",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "6": 0.5,
+        "7": 0.5
+      }
+    },
+    "Shan Masood": {
+      "most_common_position": 1,
+      "position_range": "1-3",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.75,
+        "3": 0.25
+      }
+    },
+    "Shoaib Malik": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Sohaib Maqsood": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Sohail Tanvir": {
+      "most_common_position": 8,
+      "position_range": "7-8",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "7": 0.3333,
+        "8": 0.6667
+      }
+    },
+    "TH David": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Umar Siddiq": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Usama Mir": {
+      "most_common_position": 7,
+      "position_range": "7-8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "7": 0.5,
+        "8": 0.5
+      }
+    },
+    "Usman Khan": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Yasir Khan": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Zeeshan Ashraf": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    }
+  },
+  "Peshawar Zalmi": {
+    "AS Joseph": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Aamer Jamal": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Abdul Samad": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Amad Butt": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "BCJ Cutting": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "BJ Hodge": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Babar Azam": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "CJ Jordan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "CR Brathwaite": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "DA Miller": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "DJ Malan": {
+      "most_common_position": 2,
+      "position_range": "2-3",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "2": 0.5,
+        "3": 0.5
+      }
+    },
+    "DJG Sammy": {
+      "most_common_position": 7,
+      "position_range": "5-7",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 0.25,
+        "7": 0.75
+      }
+    },
+    "DR Smith": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "EJG Morgan": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Haider Ali": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Hammad Azam": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Haseebullah Khan": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Hazratullah": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Hussain Talat": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Imam-ul-Haq": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "JDS Neesham": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "KA Pollard": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Kamran Akmal": {
+      "most_common_position": 1,
+      "position_range": "1-3",
+      "seasons_count": 5,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.4,
+        "2": 0.4,
+        "3": 0.2
+      }
+    },
+    "L Gregory": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "L Wood": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "LA Dawson": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "LS Livingstone": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "MJ Owen": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Mohammad Hafeez": {
+      "most_common_position": 2,
+      "position_range": "2-4",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "2": 0.5,
+        "4": 0.5
+      }
+    },
+    "Mohammad Haris": {
+      "most_common_position": 1,
+      "position_range": "1-4",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.25,
+        "2": 0.25,
+        "3": 0.25,
+        "4": 0.25
+      }
+    },
+    "R Powell": {
+      "most_common_position": 5,
+      "position_range": "5-6",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 0.6667,
+        "6": 0.3333
+      }
+    },
+    "SE Rutherford": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Saim Ayub": {
+      "most_common_position": 1,
+      "position_range": "1-3",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.6667,
+        "3": 0.3333
+      }
+    },
+    "Shahid Afridi": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Shahid Yousuf": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Shakib Al Hasan": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Shoaib Malik": {
+      "most_common_position": 4,
+      "position_range": "3-4",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.3333,
+        "4": 0.6667
+      }
+    },
+    "Sohaib Maqsood": {
+      "most_common_position": 3,
+      "position_range": "3-6",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "3": 0.5,
+        "6": 0.5
+      }
+    },
+    "T Kohler-Cadmore": {
+      "most_common_position": 3,
+      "position_range": "3-5",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.3333,
+        "4": 0.3333,
+        "5": 0.3333
+      }
+    },
+    "Tamim Iqbal": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Umar Amin": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Wahab Riaz": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 6,
+      "position_confidence": "High",
+      "position_probs": {
+        "8": 1.0
+      }
+    }
+  },
+  "Quetta Gladiators": {
+    "AJ Hosein": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Abdul Bangalzai": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "Ahmed Shehzad": {
+      "most_common_position": 2,
+      "position_range": "2-3",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "2": 0.6667,
+        "3": 0.3333
+      }
+    },
+    "Ahsan Ali": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Akbar-ur-Rehman": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "Anwar Ali": {
+      "most_common_position": 6,
+      "position_range": "6-8",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "6": 0.5,
+        "8": 0.5
+      }
+    },
+    "Asad Shafiq": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "Azam Khan": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "BCJ Cutting": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "F du Plessis": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "FH Allen": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Faheem Ashraf": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "GD Elliott": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Hassan Khan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Hassan Nawaz": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Iftikhar Ahmed": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "J Weatherald": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "JD Wildermuth": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "JJ Roy": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 4,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "JM Vince": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "KP Pietersen": {
+      "most_common_position": 3,
+      "position_range": "3-4",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.6667,
+        "4": 0.3333
+      }
+    },
+    "Khawaja Nafay": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "LD Chandimal": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "LJ Wright": {
+      "most_common_position": 1,
+      "position_range": "1",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "1": 1.0
+      }
+    },
+    "MJ Guptill": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "MS Chapman": {
+      "most_common_position": 5,
+      "position_range": "5",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "5": 1.0
+      }
+    },
+    "Mohammad Hafeez": {
+      "most_common_position": 4,
+      "position_range": "4",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "4": 1.0
+      }
+    },
+    "Mohammad Nawaz": {
+      "most_common_position": 7,
+      "position_range": "5-7",
+      "seasons_count": 6,
+      "position_confidence": "High",
+      "position_probs": {
+        "5": 0.1667,
+        "6": 0.3333,
+        "7": 0.5
+      }
+    },
+    "Mohammad Wasim": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "NLTC Perera": {
+      "most_common_position": 7,
+      "position_range": "7",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "7": 1.0
+      }
+    },
+    "Noor Ahmad": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "OF Smith": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "RR Rossouw": {
+      "most_common_position": 3,
+      "position_range": "3-5",
+      "seasons_count": 5,
+      "position_confidence": "High",
+      "position_probs": {
+        "3": 0.4,
+        "4": 0.4,
+        "5": 0.2
+      }
+    },
+    "SE Rutherford": {
+      "most_common_position": 6,
+      "position_range": "6",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "6": 1.0
+      }
+    },
+    "SR Watson": {
+      "most_common_position": 2,
+      "position_range": "1-2",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "1": 0.3333,
+        "2": 0.6667
+      }
+    },
+    "Saim Ayub": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    },
+    "Sarfraz Ahmed": {
+      "most_common_position": 4,
+      "position_range": "4-6",
+      "seasons_count": 8,
+      "position_confidence": "High",
+      "position_probs": {
+        "4": 0.5,
+        "5": 0.375,
+        "6": 0.125
+      }
+    },
+    "Saud Shakeel": {
+      "most_common_position": 1,
+      "position_range": "1-2",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "1": 0.5,
+        "2": 0.5
+      }
+    },
+    "Sohail Khan": {
+      "most_common_position": 8,
+      "position_range": "8",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "8": 1.0
+      }
+    },
+    "Sohail Tanvir": {
+      "most_common_position": 7,
+      "position_range": "7-8",
+      "seasons_count": 2,
+      "position_confidence": "Medium",
+      "position_probs": {
+        "7": 0.5,
+        "8": 0.5
+      }
+    },
+    "Umar Akmal": {
+      "most_common_position": 6,
+      "position_range": "4-6",
+      "seasons_count": 3,
+      "position_confidence": "High",
+      "position_probs": {
+        "4": 0.3333,
+        "6": 0.6667
+      }
+    },
+    "Umar Amin": {
+      "most_common_position": 3,
+      "position_range": "3",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "3": 1.0
+      }
+    },
+    "WCF Smeed": {
+      "most_common_position": 2,
+      "position_range": "2",
+      "seasons_count": 1,
+      "position_confidence": "Low",
+      "position_probs": {
+        "2": 1.0
+      }
+    }
+  }
+}
