@@ -6,6 +6,7 @@
 #   2. build_features          -> player_stats.parquet, venue_stats.csv, matchup_matrix.parquet
 #   3. build_opposition_profiles -> opposition_profiles.csv
 #   4. build_partnership_history -> partnership_history.parquet
+#   5. build_recent_form       -> recent_form.parquet
 #
 # Usage:
 #   python pipeline/run_pipeline.py            # run all steps
@@ -56,6 +57,13 @@ STEPS = [
         "name":    "build_partnership_history",
         "output":  PROCESSED_DIR / "partnership_history.parquet",
         "module":  "pipeline.build_partnership_history",
+        "fn":      "run",
+    },
+    {
+        "num":     5,
+        "name":    "build_recent_form",
+        "output":  PROCESSED_DIR / "recent_form.parquet",
+        "module":  "pipeline.build_recent_form",
         "fn":      "run",
     },
 ]

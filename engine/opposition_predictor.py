@@ -25,6 +25,7 @@ PLAYER_INDEX  = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.c
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 MATCHUP_PATH       = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
 BATTING_PROBS_PATH = PROJ_ROOT / "data" / "processed" / "batting_order_probabilities.json"
+RECENT_FORM_PATH   = PROJ_ROOT / "data" / "processed" / "recent_form.parquet"
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +73,28 @@ class OppositionBattingPrediction:
 @lru_cache(maxsize=1)
 def _load_profiles(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
+
+
+@lru_cache(maxsize=1)
+def _load_recent_form_overall(path: str) -> "dict[str, dict]":
+    """
+    Load recent_form.parquet overall rows (venue=="") into a dict keyed by player_name.
+    Returns {} on any error or if file missing.
+    """
+    p = Path(path)
+    if not p.exists():
+        return {}
+    try:
+        df      = pd.read_parquet(p)
+        overall = df[df["venue"] == ""]
+        result  = {}
+        for _, row in overall.iterrows():
+            name = row.get("player_name", "")
+            if name:
+                result[name] = row.to_dict()
+        return result
+    except Exception:
+        return {}
 
 
 @lru_cache(maxsize=1)
@@ -312,10 +335,11 @@ def _is_spin(player: str, meta: dict[str, dict]) -> bool:
 
 
 def _danger_rating(
-    position:     int,
-    death_sr:     float,
-    career_sr:    float,
-    vs_spin_sr:   float,
+    position:       int,
+    death_sr:       float,
+    career_sr:      float,
+    vs_spin_sr:     float,
+    bat_form_score: float = 50.0,
 ) -> str:
     """
     Phase-aware danger rating.
@@ -324,6 +348,10 @@ def _danger_rating(
     Lower-order (pos 6+): death SR drives the rating — they are death-phase specialists.
     A #7 finisher with death SR 195 is more dangerous in overs 16-20 than a #2
     with career SR 145, so death SR must dominate for lower-order batters.
+
+    Recent form adjustment (bat_form_score from recent_form.parquet):
+      ≥70: upgrade rating one level (Low→Medium, Medium→High)
+      <35: downgrade rating one level (High→Medium, Medium→Low)
     """
     score = 0
 
@@ -352,21 +380,32 @@ def _danger_rating(
     if vs_spin_sr >= 145: score += 1
 
     if score >= 4:
-        return "High"
+        base_rating = "High"
     elif score >= 2:
-        return "Medium"
-    return "Low"
+        base_rating = "Medium"
+    else:
+        base_rating = "Low"
+
+    # Recent form adjustment
+    _UPGRADE = {"Low": "Medium", "Medium": "High", "High": "High"}
+    _DOWNGRADE = {"High": "Medium", "Medium": "Low", "Low": "Low"}
+    if bat_form_score >= 70:
+        return _UPGRADE[base_rating]
+    if bat_form_score < 35:
+        return _DOWNGRADE[base_rating]
+    return base_rating
 
 
 def _build_key_note(
-    player:       str,
-    position:     int,
-    profile:      pd.Series,
-    meta:         dict[str, dict],
-    career_sr:    float,
-    death_sr:     float,
-    vs_spin_sr:   float,
-    vs_pace_sr:   float,
+    player:         str,
+    position:       int,
+    profile:        pd.Series,
+    meta:           dict[str, dict],
+    career_sr:      float,
+    death_sr:       float,
+    vs_spin_sr:     float,
+    vs_pace_sr:     float,
+    recent_form:    dict | None = None,
 ) -> str:
     """Generate a one-line tactical note for this batter."""
     batting_style = _batting_style(player, meta)
@@ -385,9 +424,17 @@ def _build_key_note(
     if batting_style == "Left-hand":
         notes.append("left-hand bat")
 
-    if notes:
-        return "; ".join(notes).capitalize() + "."
-    return f"Career PSL SR {career_sr:.0f}."
+    base = ("; ".join(notes).capitalize() + ".") if notes else f"Career PSL SR {career_sr:.0f}."
+
+    # Append recent form context when available
+    if recent_form:
+        r_avg = recent_form.get("bat_avg", 0.0)
+        r_sr  = recent_form.get("bat_sr",  0.0)
+        r_inn = recent_form.get("bat_innings", 0)
+        if r_inn >= 3 and r_avg > 0:
+            base += f" Current form: {r_avg:.0f} avg, {r_sr:.0f} SR last 10 T20s."
+
+    return base
 
 
 # ---------------------------------------------------------------------------
@@ -546,6 +593,9 @@ def predict_batting_order(
             stacklevel=2,
         )
 
+    # Load recent form data (best-effort; empty dict if parquet unavailable)
+    _rf_map = _load_recent_form_overall(str(RECENT_FORM_PATH))
+
     # Build predicted batters
     predicted: list[PredictedBatter] = []
     left_hand_count = 0
@@ -564,10 +614,13 @@ def predict_batting_order(
         if bat_sty == "Left-hand":
             left_hand_count += 1
 
-        danger = _danger_rating(pos, death_sr, career_sr, vs_spin_sr)
+        player_rf     = _rf_map.get(player)
+        bat_form_score = float(player_rf.get("bat_form_score", 50.0)) if player_rf else 50.0
+
+        danger = _danger_rating(pos, death_sr, career_sr, vs_spin_sr, bat_form_score)
         note   = _build_key_note(
             player, pos, profile, meta,
-            career_sr, death_sr, vs_spin_sr, vs_pace_sr
+            career_sr, death_sr, vs_spin_sr, vs_pace_sr, player_rf
         )
 
         _player_probs  = _bat_probs.get(team, {}).get(player, {})

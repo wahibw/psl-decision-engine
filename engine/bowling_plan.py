@@ -24,8 +24,9 @@ PROJ_ROOT    = Path(__file__).resolve().parent.parent
 STATS_PATH   = PROJ_ROOT / "data" / "processed" / "player_stats.parquet"
 PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
-OPP_PROFILES  = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
-MATCHUP_PATH  = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
+OPP_PROFILES       = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
+MATCHUP_PATH       = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
+RECENT_FORM_PATH   = PROJ_ROOT / "data" / "processed" / "recent_form.parquet"
 
 # ---------------------------------------------------------------------------
 # CONSTANTS
@@ -360,16 +361,42 @@ def _load_bowler_phase_stats(
 
 
 # ---------------------------------------------------------------------------
+# RECENT FORM LOADER (bowl_form_score for phase fitness blending)
+# ---------------------------------------------------------------------------
+
+def _load_bowl_form_scores(bowlers: list[str]) -> dict[str, float]:
+    """
+    Load bowl_form_score (0-100) from recent_form.parquet for a list of bowlers.
+    Returns {player_name: bowl_form_score}. Defaults to 50.0 (neutral) on any error.
+    """
+    scores: dict[str, float] = {b: 50.0 for b in bowlers}
+    if not RECENT_FORM_PATH.exists():
+        return scores
+    try:
+        df      = pd.read_parquet(RECENT_FORM_PATH)
+        overall = df[df["venue"] == ""]
+        for b in bowlers:
+            row = overall[overall["player_name"] == b]
+            if not row.empty:
+                val = row.iloc[0].get("bowl_form_score", 50.0)
+                scores[b] = float(val) if pd.notna(val) else 50.0
+    except Exception:
+        pass
+    return scores
+
+
+# ---------------------------------------------------------------------------
 # PHASE FITNESS SCORING
 # ---------------------------------------------------------------------------
 
 def _phase_fitness(
-    b:       str,
-    phase:   str,
-    stats:   dict[str, dict],
-    meta:    dict[str, dict],
-    weather: WeatherImpact,
-    opp:     dict | None = None,
+    b:              str,
+    phase:          str,
+    stats:          dict[str, dict],
+    meta:           dict[str, dict],
+    weather:        WeatherImpact,
+    opp:            dict | None = None,
+    bowl_form_score: float = 50.0,
 ) -> float:
     """
     Return a 0-100 fitness score for a bowler in a specific phase.
@@ -534,7 +561,11 @@ def _phase_fitness(
     # Sample reliability blend: small-sample bowlers converge toward 45
     RELIABLE_OVERS = 20.0
     confidence = min(1.0, sample / RELIABLE_OVERS)
-    return round(raw * confidence + 45.0 * (1.0 - confidence), 2)
+    career_fit = raw * confidence + 45.0 * (1.0 - confidence)
+
+    # Blend in recent form (30% weight). bowl_form_score is 0-100 where 50=neutral.
+    # Normalise to 0-100 scale (career_fit is already in 0-100 range from _norm()).
+    return round(career_fit * 0.70 + bowl_form_score * 0.30, 2)
 
 
 # ---------------------------------------------------------------------------
@@ -555,7 +586,10 @@ def _classify_bowlers(
     Pre-Death pool (overs 15-16): medium-pace / secondary options — top death
     specialists are reserved for overs 17-20.
     Opposition profile (opp) adjusts fitness scores when provided.
+    Recent bowl_form_score (from recent_form.parquet) blended at 30% weight.
     """
+    bowl_forms = _load_bowl_form_scores(bowlers)
+
     pp_bowlers:        list[tuple[str, float]] = []
     mid_bowlers:       list[tuple[str, float]] = []
     predeath_bowlers:  list[tuple[str, float]] = []
@@ -564,10 +598,11 @@ def _classify_bowlers(
     for b in bowlers:
         bt         = _bowl_type(b, meta)
         is_genuine = _is_genuine_bowler(b, meta)
+        bfs        = bowl_forms.get(b, 50.0)
 
-        pp_fit    = _phase_fitness(b, "PP",    stats, meta, weather, opp)
-        mid_fit   = _phase_fitness(b, "Mid",   stats, meta, weather, opp)
-        death_fit = _phase_fitness(b, "Death", stats, meta, weather, opp)
+        pp_fit    = _phase_fitness(b, "PP",    stats, meta, weather, opp, bfs)
+        mid_fit   = _phase_fitness(b, "Mid",   stats, meta, weather, opp, bfs)
+        death_fit = _phase_fitness(b, "Death", stats, meta, weather, opp, bfs)
 
         # All genuine bowlers enter all phase pools
         if is_genuine:

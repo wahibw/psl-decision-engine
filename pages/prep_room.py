@@ -857,11 +857,75 @@ def _render_weather(brief) -> list:
     ]
 
 
+def _load_form_badges() -> dict[str, tuple[str, float]]:
+    """Return {player_name: (form_tag, form_score)} from recent_form.parquet."""
+    rf_path = PROJ_ROOT / "data" / "processed" / "recent_form.parquet"
+    if not rf_path.exists():
+        return {}
+    try:
+        df      = pd.read_parquet(rf_path)
+        overall = df[df["venue"] == ""]
+        result  = {}
+        for _, row in overall.iterrows():
+            name  = row.get("player_name", "")
+            bscore = float(row.get("bat_form_score",  50.0))
+            wscore = float(row.get("bowl_form_score", 50.0))
+            btrend = str(row.get("bat_trend", "stable"))
+            wtrend = str(row.get("bowl_trend", "stable"))
+            # Determine best applicable tag
+            if bscore >= 70 and btrend == "rising":
+                tag = "In form"
+            elif bscore >= 55:
+                tag = "Good form"
+            elif wscore >= 70 and wtrend == "rising":
+                tag = "In form"
+            elif wscore >= 55:
+                tag = "Good form"
+            elif bscore < 40 and btrend == "declining":
+                tag = "Out of form"
+            elif wscore < 40 and wtrend == "declining":
+                tag = "Out of form"
+            else:
+                tag = ""
+            result[name] = (tag, max(bscore, wscore))
+        return result
+    except Exception:
+        return {}
+
+
+def _form_badge(form_tag: str) -> list:
+    """Return a form badge element, or [] if no tag."""
+    if not form_tag:
+        return []
+    colors = {
+        "In form":     ("#00C853", "#00C85320"),
+        "Good form":   ("#2196F3", "#2196F320"),
+        "Out of form": (RED,       f"{RED}20"),
+    }
+    fg, bg = colors.get(form_tag, (TEXT_SECONDARY, f"{TEXT_SECONDARY}20"))
+    return [html.Span(
+        form_tag,
+        style={
+            "color": fg,
+            "backgroundColor": bg,
+            "fontSize": "0.58rem",
+            "fontWeight": "700",
+            "padding": "1px 5px",
+            "borderRadius": "3px",
+            "marginLeft": "6px",
+            "verticalAlign": "middle",
+            "letterSpacing": "0.04em",
+            "whiteSpace": "nowrap",
+        },
+    )]
+
+
 def _render_xi(brief) -> list:
     try:
         _pi_xi = pd.read_csv(PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv")
     except Exception:
         _pi_xi = pd.DataFrame()
+    form_badges_map = _load_form_badges()
     captain_name = getattr(brief, "captain", None) or ""
     tabs = []
     for opt in brief.xi_options:
@@ -915,6 +979,7 @@ def _render_xi(brief) -> list:
                                 *captain_badge,
                                 *_get_tier_badge(p.player_name, _pi_xi),
                                 *_get_model_source_badge(getattr(p, "model_source", "")),
+                                *_form_badge(form_badges_map.get(p.player_name, ("", 50.0))[0]),
                             ],
                         ),
                         html.Span(
@@ -1076,17 +1141,39 @@ def _render_toss(brief) -> list:
 
 def _render_opposition(brief) -> list:
     opp = brief.opposition_order
+    form_badges_map = _load_form_badges()
     rows = []
 
     for pb in opp.predicted_order:
-        danger_col = DANGER_COLORS.get(pb.danger_rating, TEXT_SECONDARY)
-        conf_col   = CONFIDENCE_COLORS.get(pb.confidence, TEXT_SECONDARY)
+        danger_col  = DANGER_COLORS.get(pb.danger_rating, TEXT_SECONDARY)
+        conf_col    = CONFIDENCE_COLORS.get(pb.confidence, TEXT_SECONDARY)
+        form_tag, form_score = form_badges_map.get(pb.player_name, ("", 50.0))
+
+        # Mini form bar (0-100 → 0%-100% width, colour coded)
+        bar_color  = "#00C853" if form_score >= 65 else (RED if form_score < 35 else AMBER)
+        bar_width  = f"{int(form_score)}%"
+        form_cell  = html.Div(
+            style={"display": "flex", "flexDirection": "column", "gap": "2px"},
+            children=[
+                html.Div(
+                    style={
+                        "width": bar_width, "height": "5px",
+                        "backgroundColor": bar_color, "borderRadius": "2px",
+                        "minWidth": "4px",
+                    }
+                ),
+                html.Span(
+                    form_tag or f"{form_score:.0f}",
+                    style={"color": bar_color, "fontSize": "0.65rem", "fontWeight": "600"},
+                ),
+            ],
+        )
 
         rows.append(
             html.Div(
                 style={
                     "display": "grid",
-                    "gridTemplateColumns": "30px 1fr 80px 100px 90px 1fr",
+                    "gridTemplateColumns": "30px 1fr 80px 80px 70px 80px 1fr",
                     "gap": "8px",
                     "alignItems": "center",
                     "padding": "8px 10px",
@@ -1110,6 +1197,7 @@ def _render_opposition(brief) -> list:
                             "textAlign": "center",
                         },
                     ),
+                    form_cell,
                     html.Span(
                         pb.arrival_over_range,
                         style={"color": TEXT_SECONDARY, "fontSize": "0.75rem"},
@@ -1130,14 +1218,14 @@ def _render_opposition(brief) -> list:
     header = html.Div(
         style={
             "display": "grid",
-            "gridTemplateColumns": "30px 1fr 80px 100px 90px 1fr",
+            "gridTemplateColumns": "30px 1fr 80px 80px 70px 80px 1fr",
             "gap": "8px",
             "padding": "6px 10px",
             "marginBottom": "6px",
         },
         children=[
             html.Span(h, style={"color": TEXT_SECONDARY, "fontSize": "0.70rem", "fontWeight": "700", "letterSpacing": "0.08em"})
-            for h in ["#", "PLAYER", "DANGER", "ARRIVAL", "CONF.", "KEY NOTE"]
+            for h in ["#", "PLAYER", "DANGER", "FORM", "ARRIVAL", "CONF.", "KEY NOTE"]
         ],
     )
 

@@ -35,6 +35,7 @@ PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.cs
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 STATS_PATH        = PROJ_ROOT / "data" / "processed" / "player_stats.parquet"
 PARTNERSHIP_PATH  = PROJ_ROOT / "data" / "processed" / "partnership_history.parquet"
+RECENT_FORM_PATH  = PROJ_ROOT / "data" / "processed" / "recent_form.parquet"
 
 # ---------------------------------------------------------------------------
 # CONSTANTS
@@ -372,6 +373,78 @@ def _load_form_coefficients(
 
 
 # ---------------------------------------------------------------------------
+# RECENT FORM LOADER
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=4)
+def _load_recent_form_df(path: str) -> "pd.DataFrame | None":
+    """Load recent_form.parquet and return it, or None if unavailable."""
+    p = Path(path)
+    if not p.exists():
+        return None
+    try:
+        return pd.read_parquet(p)
+    except Exception:
+        return None
+
+
+def _recent_form_lookup(
+    player: str,
+    role: str,
+    venue: str,
+    rf_path: str,
+) -> tuple[float, str, float]:
+    """
+    Return (form_score, form_trend, venue_form_score) for a player.
+
+    form_score:       0-100 based on bat/bowl/blend recent form.
+    form_trend:       "rising" | "stable" | "declining"
+    venue_form_score: 0-100 for the match venue (50 = neutral / insufficient data).
+    """
+    df = _load_recent_form_df(rf_path)
+    if df is None:
+        return 50.0, "stable", 50.0
+
+    # Overall row (venue == "")
+    overall = df[(df["player_name"] == player) & (df["venue"] == "")]
+    if overall.empty:
+        return 50.0, "stable", 50.0
+
+    row   = overall.iloc[0]
+    is_bowler     = role in ("Bowler",)
+    is_allrounder = role in ("All-rounder",)
+
+    if is_bowler:
+        form_score = float(row.get("bowl_form_score", 50.0))
+        form_trend = str(row.get("bowl_trend", "stable"))
+    elif is_allrounder:
+        form_score = (float(row.get("bat_form_score", 50.0)) +
+                      float(row.get("bowl_form_score", 50.0))) / 2.0
+        bat_t  = str(row.get("bat_trend", "stable"))
+        bowl_t = str(row.get("bowl_trend", "stable"))
+        if bat_t == "rising" and bowl_t == "rising":
+            form_trend = "rising"
+        elif bat_t == "declining" and bowl_t == "declining":
+            form_trend = "declining"
+        else:
+            form_trend = "stable"
+    else:
+        form_score = float(row.get("bat_form_score", 50.0))
+        form_trend = str(row.get("bat_trend", "stable"))
+
+    # Venue-specific row
+    venue_form = 50.0
+    if venue:
+        vrow = df[(df["player_name"] == player) & (df["venue"] == venue)]
+        if not vrow.empty:
+            vm = int(vrow.iloc[0].get("venue_matches", 0))
+            if vm >= 3:
+                venue_form = float(vrow.iloc[0].get("venue_form_score", 50.0))
+
+    return round(form_score, 2), form_trend, round(venue_form, 2)
+
+
+# ---------------------------------------------------------------------------
 # PLAYER SCORING
 # ---------------------------------------------------------------------------
 
@@ -468,13 +541,18 @@ def _score_squad(
     Score every player in the squad for this match context.
 
     Layers applied on top of base XGBoost score:
-      1. Form coefficient (±20%) from recent PSL season data (2025/2024/2023).
-      2. Matchup bonus (+0–6) for bowlers who exploit opposition LH/RH composition.
+      1. Recent form blend: final_score = career_score * 0.60 + form_score * 0.40
+         (form_score 0-100 from recent_form.parquet; falls back to season-form
+         coefficient if parquet is unavailable).
+      2. Venue form modifier (+10%) when player has ≥3 matches at this venue
+         and a strong venue_form_score.
+      3. Matchup bonus (+0–8) for bowlers who exploit opposition LH/RH composition.
     """
     from models.train_xi_scorer import score_player
 
     form_map = _load_form_coefficients(squad, meta, stats_path)
     opp_bat  = opp_batters or []
+    rf_path  = str(RECENT_FORM_PATH)
 
     # Phase-aware spinner penalty:
     # Dew builds up during the innings and is WORST when it arrives early (many overs affected).
@@ -529,9 +607,35 @@ def _score_squad(
             _source_out     = _src,
         )
 
-        form_coeff, form_tag = form_map.get(p, (1.0, ""))
+        form_coeff, _legacy_tag = form_map.get(p, (1.0, ""))
+
+        # Blend career score (60%) with recent form score (40%) from recent_form.parquet.
+        # Falls back to the season-form coefficient if parquet unavailable.
+        rf_score, rf_trend, rf_venue = _recent_form_lookup(p, role, venue, rf_path)
+        if rf_score != 50.0 or rf_trend != "stable":
+            # Recent form data available — use 60/40 blend
+            blended = base_score * 0.60 + rf_score * 0.40
+            # Venue form modifier: +10% when ≥3 matches at this venue with strong record
+            if rf_venue >= 65.0:
+                blended *= 1.10
+        else:
+            # Fallback: existing season-form coefficient
+            blended = base_score * form_coeff
+
+        # Build form tag from recent form score + trend
+        if rf_score >= 70 and rf_trend == "rising":
+            form_tag = "In form"
+        elif rf_score >= 55:
+            form_tag = "Good form"
+        elif rf_score < 40 and rf_trend == "declining":
+            form_tag = "Out of form"
+        elif rf_score < 40:
+            form_tag = "Below par"
+        else:
+            form_tag = _legacy_tag   # fall back to season-based tag when recent form is neutral
+
         matchup_b = _matchup_bonus(p, role, meta, opp_lh_pct, opp_bat, opp_spin_economies)
-        sc = round(base_score * form_coeff + matchup_b, 2)
+        sc = round(blended + matchup_b, 2)
 
         scored.append(ScoredPlayer(
             player_name      = p,

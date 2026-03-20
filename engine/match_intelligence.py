@@ -22,11 +22,38 @@ from utils.situation import LiveMatchState, WeatherImpact
 _PROJ_ROOT              = Path(__file__).resolve().parent.parent
 _PLAYER_INDEX           = _PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 _PLAYER_INDEX_FALLBACK  = _PROJ_ROOT.parent / "player_index_2026_enriched.csv"
+_RECENT_FORM_PATH       = _PROJ_ROOT / "data" / "processed" / "recent_form.parquet"
 
 _CLASSIFIER_PATH = _PROJ_ROOT / "models" / "saved" / "situation_classifier"
 _MIN_CONF        = 0.6   # minimum confidence to use ML vs rule-based
 
 _classifier_pipeline = None   # module-level lazy cache
+
+
+@lru_cache(maxsize=1)
+def _load_recent_form_map(path: str) -> dict[str, dict]:
+    """Load {player_name: {bat_form_score, bat_avg, bat_sr, bat_trend}} from recent_form.parquet."""
+    p = Path(path)
+    if not p.exists():
+        return {}
+    try:
+        import pandas as _pd
+        df      = _pd.read_parquet(p)
+        overall = df[df["venue"] == ""]
+        result  = {}
+        for _, row in overall.iterrows():
+            name = row.get("player_name", "")
+            if name:
+                result[name] = {
+                    "bat_form_score": float(row.get("bat_form_score", 50.0)),
+                    "bat_avg":        float(row.get("bat_avg",        0.0)),
+                    "bat_sr":         float(row.get("bat_sr",         0.0)),
+                    "bat_trend":      str(row.get("bat_trend",        "stable")),
+                    "bat_innings":    int(row.get("bat_innings",      0)),
+                }
+        return result
+    except Exception:
+        return {}
 
 
 @lru_cache(maxsize=1)
@@ -460,6 +487,44 @@ def _check_batting_collapse(
     return None
 
 
+def _check_exceptional_form_batter(
+    state:      LiveMatchState,
+    opposition: OppositionBattingPrediction,
+) -> tuple | None:
+    """
+    Warn when an opposition batter currently at the crease (or incoming next wicket)
+    is in exceptional recent form (bat_form_score ≥ 70).
+    Only fires once per match to avoid noise — ranks between dangerous-batter-incoming
+    (3) and rain spike (4) at rank 3.5.
+    """
+    rf = _load_recent_form_map(str(_RECENT_FORM_PATH))
+    if not rf:
+        return None
+
+    # Check batters currently at the crease
+    for batter in (state.current_batter1, state.current_batter2):
+        if not batter:
+            continue
+        form = rf.get(batter)
+        if form and form["bat_form_score"] >= 70 and form["bat_innings"] >= 5:
+            score = form["bat_form_score"]
+            sr    = form["bat_sr"]
+            trend = form["bat_trend"]
+            trend_note = " (rising)" if trend == "rising" else ""
+            return (
+                3.5,
+                f"FORM ALERT: {batter.split()[-1]} is in exceptional form "
+                f"({score:.0f}/100{trend_note}, {sr:.0f} SR last 10) - "
+                f"assign your best matchup bowler immediately.",
+                True,
+                f"{batter} has a bat_form_score of {score:.0f}/100 "
+                f"({form['bat_avg']:.0f} avg, {sr:.0f} SR across {form['bat_innings']} innings). "
+                f"Trend: {trend}. This is a high-priority in-match threat. "
+                f"Check matchup matrix for their bowling style weakness.",
+            )
+    return None
+
+
 def _check_plan_on_track(
     state:        LiveMatchState,
     bowling_plan: BowlingPlan,
@@ -521,6 +586,7 @@ def generate_situation_read(
         _check_batting_collapse(state),
         _check_dew_onset(state, weather),
         _check_dangerous_batter_incoming(state, opposition),
+        _check_exceptional_form_batter(state, opposition),
         _check_rain_spike(weather),
         _check_partnership_dangerous(partnership),
         _check_dew_active_ongoing(state, weather),

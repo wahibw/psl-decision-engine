@@ -6,7 +6,10 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Optional
+
+import pandas as pd
 
 import dash
 from dash import html, dcc, Input, Output, State, callback, no_update
@@ -1153,6 +1156,37 @@ def _render_bowling_tracker(plan_overs, current_over, actual_bowlers, overs_bowl
     )
 
 
+_PROJ_ROOT_DUG = Path(__file__).resolve().parent.parent
+_RECENT_FORM_DUG = _PROJ_ROOT_DUG / "data" / "processed" / "recent_form.parquet"
+
+
+def _dug_bat_form(player_name: str) -> tuple[float, str]:
+    """Return (bat_form_score, form_tag) for a player. Defaults to (50, '') if unavailable."""
+    if not _RECENT_FORM_DUG.exists() or not player_name:
+        return 50.0, ""
+    try:
+        df      = pd.read_parquet(_RECENT_FORM_DUG)
+        overall = df[(df["venue"] == "") & (df["player_name"] == player_name)]
+        if overall.empty:
+            return 50.0, ""
+        row   = overall.iloc[0]
+        score = float(row.get("bat_form_score", 50.0))
+        trend = str(row.get("bat_trend", "stable"))
+        if score >= 70 and trend == "rising":
+            tag = "In form"
+        elif score >= 55:
+            tag = "Good form"
+        elif score < 40 and trend == "declining":
+            tag = "Out of form"
+        elif score < 40:
+            tag = "Below par"
+        else:
+            tag = ""
+        return score, tag
+    except Exception:
+        return 50.0, ""
+
+
 def _render_partnership_panel(partnership, p_runs, p_balls) -> html.Div:
     """Panel 2: Partnership alert with danger meter."""
     danger_col = DANGER_COLORS.get(partnership.danger_level, TEXT_SECONDARY)
@@ -1173,10 +1207,44 @@ def _render_partnership_panel(partnership, p_runs, p_balls) -> html.Div:
     elif partnership.break_with_change_pct >= 40:
         break_method = f"Bowling change breaks them {partnership.break_with_change_pct:.0f}%"
 
+    b1_score, b1_tag = _dug_bat_form(partnership.batter1 or "")
+    b2_score, b2_tag = _dug_bat_form(partnership.batter2 or "")
+    both_in_form = b1_score >= 70 and b2_score >= 70
+
+    def _inline_tag(tag: str) -> list:
+        if not tag:
+            return []
+        fg = "#00C853" if "form" in tag.lower() and "out" not in tag.lower() else RED
+        return [html.Span(tag, style={
+            "color": fg, "fontSize": "0.60rem", "fontWeight": "700",
+            "padding": "1px 4px", "borderRadius": "3px",
+            "backgroundColor": f"{fg}20", "marginLeft": "4px",
+        })]
+
+    both_form_banner = []
+    if both_in_form:
+        both_form_banner = [html.Div(
+            style={
+                "display": "flex", "gap": "6px", "alignItems": "center",
+                "padding": "5px 8px", "marginBottom": "8px",
+                "backgroundColor": "#003300", "border": f"1px solid #00C853",
+                "borderRadius": "4px",
+            },
+            children=[
+                html.Span("!", style={"color": "#00C853", "fontWeight": "900"}),
+                html.Span(
+                    f"Both batters in form ({b1_score:.0f} & {b2_score:.0f}/100) — "
+                    "prioritise a bowling change to break the partnership early.",
+                    style={"color": "#00C853", "fontSize": "0.73rem", "fontWeight": "600"},
+                ),
+            ],
+        )]
+
     return html.Div(
         style={"height": "100%", "display": "flex", "flexDirection": "column"},
         children=[
             html.Div("Partnership Alert", style=PANEL_HEADER),
+            *both_form_banner,
             # Names
             html.Div(
                 style={"display": "flex", "gap": "8px", "marginBottom": "10px", "alignItems": "center"},
@@ -1185,11 +1253,13 @@ def _render_partnership_panel(partnership, p_runs, p_balls) -> html.Div:
                         partnership.batter1 or "—",
                         style={"color": TEXT_PRIMARY, "fontWeight": "700", "fontSize": "0.88rem"},
                     ),
+                    *_inline_tag(b1_tag),
                     html.Span("&", style={"color": TEXT_SECONDARY, "fontSize": "0.80rem"}),
                     html.Span(
                         partnership.batter2 or "—",
                         style={"color": TEXT_PRIMARY, "fontWeight": "700", "fontSize": "0.88rem"},
                     ),
+                    *_inline_tag(b2_tag),
                 ],
             ),
             # Stats row
