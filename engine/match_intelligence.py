@@ -23,6 +23,11 @@ _PROJ_ROOT              = Path(__file__).resolve().parent.parent
 _PLAYER_INDEX           = _PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 _PLAYER_INDEX_FALLBACK  = _PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 
+_CLASSIFIER_PATH = _PROJ_ROOT / "models" / "saved" / "situation_classifier"
+_MIN_CONF        = 0.6   # minimum confidence to use ML vs rule-based
+
+_classifier_pipeline = None   # module-level lazy cache
+
 
 @lru_cache(maxsize=1)
 def _load_player_roles(path: str) -> dict[str, str]:
@@ -42,6 +47,76 @@ def _load_player_roles(path: str) -> dict[str, str]:
 
 def _player_index_path() -> str:
     return str(_PLAYER_INDEX if _PLAYER_INDEX.exists() else _PLAYER_INDEX_FALLBACK)
+
+
+# ---------------------------------------------------------------------------
+# ML SITUATION CLASSIFIER (Upgrade 4 — DistilBERT)
+# ---------------------------------------------------------------------------
+
+def _load_classifier():
+    """Lazy-load DistilBERT situation classifier from models/saved/situation_classifier/."""
+    global _classifier_pipeline
+    if _classifier_pipeline is not None:
+        return _classifier_pipeline
+    if not _CLASSIFIER_PATH.exists():
+        return None
+    try:
+        from transformers import pipeline as hf_pipeline
+        _classifier_pipeline = hf_pipeline(
+            "text-classification",
+            model=str(_CLASSIFIER_PATH),
+            tokenizer=str(_CLASSIFIER_PATH),
+            top_k=None,          # return scores for all 3 classes
+        )
+        return _classifier_pipeline
+    except Exception:
+        return None
+
+
+def _classify_situation_ml(state) -> tuple | None:
+    """
+    Run DistilBERT on the current match state.
+    Returns (label, confidence) or None if model not available or confidence below threshold.
+    Labels: CRITICAL | WARNING | INFO
+    """
+    clf = _load_classifier()
+    if clf is None:
+        return None
+
+    over    = state.current_over
+    score   = state.current_score
+    wickets = state.current_wickets
+    phase   = getattr(state, "phase", "middle")
+    dew     = "yes" if getattr(state, "dew_active", False) else "no"
+
+    # Bowler type proxy from phase (matches training logic)
+    if phase == "powerplay":
+        btype = "pace"
+    elif phase == "death":
+        btype = "pace/mixed"
+    else:
+        btype = "mixed"
+
+    p_runs  = getattr(state, "partnership_runs",  0)
+    p_balls = min(getattr(state, "partnership_balls", 0), 24)
+
+    text = (
+        f"Over {over}. "
+        f"Score {score}/{wickets}. "
+        f"Partnership {p_runs} off {p_balls}. "
+        f"Phase {phase}. "
+        f"Dew active: {dew}. "
+        f"Bowler: {btype}."
+    )
+
+    try:
+        results = clf(text)[0]   # list of {label: ..., score: ...}
+        best = max(results, key=lambda x: x["score"])
+        if best["score"] >= _MIN_CONF:
+            return best["label"], best["score"]
+    except Exception:
+        pass
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -467,6 +542,18 @@ def generate_situation_read(
     else:
         priority = "INFO"
 
+    # --- Upgrade 4: ML situation classifier augmentation ---
+    # Only let ML upgrade an INFO read; rule-based CRITICAL/WARNING takes precedence.
+    if priority == "INFO":
+        ml = _classify_situation_ml(state)
+        if ml is not None:
+            ml_label, ml_conf = ml
+            if ml_label in ("CRITICAL", "WARNING"):
+                priority      = ml_label
+                action_needed = ml_label == "CRITICAL"
+                message       = f"[ML {ml_conf:.0%}] " + message
+                detail        = detail + f" | ML situation classifier: {ml_label} ({ml_conf:.0%} confidence)."
+
     return SituationRead(
         priority      = priority,
         message       = message,
@@ -515,8 +602,10 @@ if __name__ == "__main__":
         (17, 145, 3, 62, 45, "Critical partnership"),
     ]
 
+    clf_status = "loaded" if _load_classifier() is not None else "not found (rule-based fallback active)"
     print(f"\n{'='*65}")
     print(f"  match_intelligence.py -- situation read test")
+    print(f"  ML classifier: {clf_status}")
     print(f"{'='*65}")
 
     for over, score, wickets, p_runs, p_balls, desc in test_cases:

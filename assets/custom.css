@@ -1,0 +1,443 @@
+/* ============================================================
+   PSL Decision Intelligence — Custom CSS
+   Dark orange theme polish
+   ============================================================ */
+
+/* ---- GLOBAL RESET & BASE ---- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0E1117 !important;
+  color: #E8F5E9 !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+  font-size: 14px;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- SCROLLBARS ---- */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1A1F26;
+}
+::-webkit-scrollbar-thumb {
+  background: #2D3A42;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF8C00;
+}
+
+/* ---- DASH DROPDOWN — psl-dropdown class ---- */
+/* Dash 4 uses VirtualizedSelect / react-select under .Select */
+
+.psl-dropdown .Select-control,
+.psl-dropdown .VirtualizedSelect,
+.psl-dropdown > div {
+  background-color: #1E252D !important;
+  border: 1px solid #2D3A42 !important;
+  border-radius: 5px !important;
+  color: #E8F5E9 !important;
+  min-height: 36px !important;
+}
+
+.psl-dropdown .Select-control:hover {
+  border-color: #FF8C00 !important;
+}
+
+.psl-dropdown .Select-placeholder,
+.psl-dropdown .Select-value-label {
+  color: #E8F5E9 !important;
+}
+
+.psl-dropdown .Select-menu-outer {
+  background-color: #1A1F26 !important;
+  border: 1px solid #2D3A42 !important;
+  border-radius: 5px !important;
+  z-index: 9999 !important;
+}
+
+.psl-dropdown .Select-option {
+  background-color: #1A1F26 !important;
+  color: #E8F5E9 !important;
+  padding: 8px 12px !important;
+  font-size: 0.83rem !important;
+}
+
+.psl-dropdown .Select-option:hover,
+.psl-dropdown .Select-option.is-focused {
+  background-color: #FF8C0022 !important;
+  color: #FF8C00 !important;
+}
+
+.psl-dropdown .Select-option.is-selected {
+  background-color: #FF8C0033 !important;
+  color: #FF8C00 !important;
+  font-weight: 700 !important;
+}
+
+.psl-dropdown .Select-arrow {
+  border-top-color: #A0AEC0 !important;
+}
+
+.psl-dropdown .Select-clear {
+  color: #A0AEC0 !important;
+}
+
+.psl-dropdown .Select-input input {
+  color: #E8F5E9 !important;
+  background-color: transparent !important;
+}
+
+/* Dash 4 newer Select classes */
+.psl-dropdown .dash-dropdown,
+.psl-dropdown .dropdown {
+  background-color: #1E252D !important;
+}
+
+/* The actual Dash 4 dropdown container */
+.Select.is-open > .Select-control {
+  border-color: #FF8C00 !important;
+}
+
+/* ---- DATE PICKER ---- */
+
+.psl-datepicker .DateInput_input {
+  background-color: #1E252D !important;
+  color: #E8F5E9 !important;
+  border: 1px solid #2D3A42 !important;
+  border-radius: 5px !important;
+  padding: 6px 10px !important;
+  font-size: 0.83rem !important;
+  width: 100% !important;
+}
+
+.psl-datepicker .DateInput {
+  width: 100% !important;
+  background: transparent !important;
+}
+
+.psl-datepicker .SingleDatePicker {
+  width: 100% !important;
+}
+
+.psl-datepicker .SingleDatePickerInput {
+  background-color: #1E252D !important;
+  border: 1px solid #2D3A42 !important;
+  border-radius: 5px !important;
+  width: 100% !important;
+}
+
+.psl-datepicker .DayPicker {
+  background-color: #1A1F26 !important;
+  border: 1px solid #2D3A42 !important;
+  border-radius: 8px !important;
+}
+
+.psl-datepicker .CalendarDay__default {
+  background-color: #1A1F26 !important;
+  color: #E8F5E9 !important;
+  border: 1px solid #2D3A42 !important;
+}
+
+.psl-datepicker .CalendarDay__selected {
+  background-color: #FF8C00 !important;
+  color: #000 !important;
+  border-color: #FF8C00 !important;
+}
+
+.psl-datepicker .CalendarDay__hovered_span,
+.psl-datepicker .CalendarDay__default:hover {
+  background-color: #FF8C0033 !important;
+  color: #FF8C00 !important;
+}
+
+.psl-datepicker .DayPickerNavigation_button {
+  background-color: transparent !important;
+  border: 1px solid #2D3A42 !important;
+  border-radius: 4px !important;
+  color: #A0AEC0 !important;
+}
+
+.psl-datepicker .CalendarMonth_caption {
+  color: #E8F5E9 !important;
+}
+
+/* ---- BUTTON HOVER STATES ---- */
+
+button {
+  transition: opacity 0.15s ease, filter 0.15s ease !important;
+}
+
+button:hover {
+  filter: brightness(1.12) !important;
+  opacity: 1 !important;
+}
+
+button:active {
+  filter: brightness(0.90) !important;
+  transform: translateY(1px) !important;
+}
+
+button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ---- INPUT FIELDS ---- */
+
+input[type="text"],
+input[type="number"] {
+  background-color: #1E252D !important;
+  border: 1px solid #2D3A42 !important;
+  color: #E8F5E9 !important;
+  border-radius: 4px !important;
+  padding: 5px 8px !important;
+  outline: none !important;
+  transition: border-color 0.15s ease !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #FF8C00 !important;
+  box-shadow: 0 0 0 2px #FF8C0022 !important;
+}
+
+/* ---- TABS (dcc.Tabs) ---- */
+
+.dash-tabs {
+  border-bottom: 1px solid #2D3A42 !important;
+}
+
+.dash-tab {
+  background-color: #1A1F26 !important;
+  color: #A0AEC0 !important;
+  border: 1px solid #2D3A42 !important;
+  border-bottom: none !important;
+  border-radius: 5px 5px 0 0 !important;
+  padding: 8px 16px !important;
+  font-size: 0.80rem !important;
+  font-weight: 600 !important;
+  transition: color 0.15s ease, background-color 0.15s ease !important;
+  cursor: pointer !important;
+}
+
+.dash-tab:hover {
+  color: #FF8C00 !important;
+  background-color: #FF8C0015 !important;
+}
+
+.dash-tab--selected {
+  background-color: #FF8C00 !important;
+  color: #000 !important;
+  border-color: #FF8C00 !important;
+  font-weight: 700 !important;
+}
+
+/* ---- CHECKLIST ITEMS ---- */
+
+.dash-checklist label {
+  cursor: pointer !important;
+  transition: color 0.12s ease !important;
+}
+
+.dash-checklist label:hover {
+  color: #FF8C00 !important;
+}
+
+.dash-checklist input[type="checkbox"] {
+  accent-color: #FF8C00 !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* ---- PLOTLY CHARTS ---- */
+
+.js-plotly-plot .plotly {
+  border-radius: 6px !important;
+}
+
+.js-plotly-plot .modebar {
+  background-color: transparent !important;
+}
+
+.js-plotly-plot .modebar-btn svg {
+  fill: #A0AEC0 !important;
+}
+
+.js-plotly-plot .modebar-btn:hover svg {
+  fill: #FF8C00 !important;
+}
+
+/* ---- NAVBAR LINK HOVER ---- */
+
+a[id^="nav-"] {
+  transition: color 0.15s ease, background-color 0.15s ease !important;
+  text-decoration: none !important;
+}
+
+a[id^="nav-"]:hover {
+  color: #FF8C00 !important;
+  background-color: rgba(255, 140, 0, 0.08) !important;
+  border-radius: 4px !important;
+}
+
+/* ---- CARDS — hover lift ---- */
+
+.psl-card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.psl-card-hover:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 20px rgba(255, 140, 0, 0.12) !important;
+}
+
+/* ---- DANGER LEVEL PULSE (critical partnership) ---- */
+
+@keyframes pulse-red {
+  0%   { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.50); }
+  70%  { box-shadow: 0 0 0 8px rgba(244, 67, 54, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+}
+
+.danger-pulse {
+  animation: pulse-red 2s ease infinite !important;
+}
+
+/* ---- LIVE INDICATOR DOT (navbar) ---- */
+
+@keyframes blink-green {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.live-dot-active {
+  animation: blink-green 1.4s ease infinite !important;
+  background-color: #4CAF50 !important;
+}
+
+/* ---- OVER BOX CURRENT HIGHLIGHT ---- */
+
+@keyframes over-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.60); }
+  70%  { box-shadow: 0 0 0 6px rgba(255, 140, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0); }
+}
+
+.over-current {
+  animation: over-glow 2s ease infinite !important;
+}
+
+/* ---- SQUAD CHECKLIST SCROLL AREA ---- */
+
+#prep-squad {
+  scrollbar-width: thin !important;
+  scrollbar-color: #FF8C00 #1E252D !important;
+}
+
+/* ---- PRIORITY BANNERS ---- */
+
+.priority-critical {
+  background-color: rgba(244, 67, 54, 0.10) !important;
+  border: 1px solid #F44336 !important;
+  border-radius: 6px !important;
+}
+
+.priority-warning {
+  background-color: rgba(255, 193, 7, 0.10) !important;
+  border: 1px solid #FFC107 !important;
+  border-radius: 6px !important;
+}
+
+.priority-info {
+  background-color: rgba(76, 175, 80, 0.08) !important;
+  border: 1px solid #4CAF50 !important;
+  border-radius: 6px !important;
+}
+
+/* ---- LOADING SPINNER OVERRIDE ---- */
+
+._dash-loading {
+  background-color: rgba(14, 17, 23, 0.80) !important;
+}
+
+._dash-loading-callback {
+  background-color: rgba(14, 17, 23, 0.80) !important;
+}
+
+/* ---- RESPONSIVE — hide grid labels on narrow screens ---- */
+
+@media (max-width: 1100px) {
+  body {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Stack dugout panels vertically on small screens */
+  #dugout-live > div {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
+/* ---- DBC DARKLY OVERRIDES ---- */
+
+.navbar, .navbar-dark {
+  background-color: #1A1F26 !important;
+  border-bottom: 2px solid #FF8C00 !important;
+}
+
+/* Remove default white background from dbc containers */
+.container-fluid {
+  background-color: transparent !important;
+}
+
+/* ---- TOOLTIP STYLE ---- */
+
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1A1F26;
+  color: #E8F5E9;
+  border: 1px solid #2D3A42;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 9999;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* ---- SMOOTH PAGE TRANSITIONS ---- */
+
+#_pages_content {
+  animation: fade-in 0.18s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

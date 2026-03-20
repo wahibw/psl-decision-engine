@@ -30,6 +30,8 @@ PSL_VENUES = [
     "National Stadium, Karachi",
     "Rawalpindi Cricket Stadium",
     "Multan Cricket Stadium",
+    "Arbab Niaz Stadium, Peshawar",
+    "Iqbal Stadium, Faisalabad",
     "Dubai International Cricket Stadium",
     "Sharjah Cricket Stadium",
     "Sheikh Zayed Stadium, Abu Dhabi",
@@ -539,7 +541,10 @@ def _start_match(n_clicks, bowling_team, batting_team, venue, innings, target, b
         from weather.weather_impact import get_match_weather_impact
         from datetime import datetime
         weather = get_match_weather_impact(venue, datetime.now())
-    except Exception:
+    except Exception as _we:
+        import traceback
+        print(f"[dugout] Weather fetch failed for venue={venue!r}: {_we}")
+        traceback.print_exc()
         weather = WeatherImpact.neutral()
 
     plan = generate_bowling_plan(
@@ -594,8 +599,10 @@ def _start_match(n_clicks, bowling_team, batting_team, venue, innings, target, b
                 "death_sr":          pb.death_sr,
                 "vs_our_spin_sr":    pb.vs_our_spin_sr,
                 "vs_our_pace_sr":    pb.vs_our_pace_sr,
-                "danger_rating":     pb.danger_rating,
-                "key_note":          pb.key_note,
+                "danger_rating":      pb.danger_rating,
+                "key_note":           pb.key_note,
+                "position_confidence":pb.position_confidence,
+                "position_range":     pb.position_range,
             }
             for pb in opp.predicted_order
         ],
@@ -950,8 +957,10 @@ def _render_panels(live_store, match_store):
                 death_sr          = pb["death_sr"],
                 vs_our_spin_sr    = pb["vs_our_spin_sr"],
                 vs_our_pace_sr    = pb["vs_our_pace_sr"],
-                danger_rating     = pb["danger_rating"],
-                key_note          = pb["key_note"],
+                danger_rating        = pb["danger_rating"],
+                key_note             = pb["key_note"],
+                position_confidence  = pb.get("position_confidence", ""),
+                position_range       = pb.get("position_range", ""),
             )
             for pb in opp_data.get("order", [])
         ]

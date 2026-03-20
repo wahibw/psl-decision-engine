@@ -42,6 +42,8 @@ PSL_VENUES = [
     "National Stadium, Karachi",
     "Rawalpindi Cricket Stadium",
     "Multan Cricket Stadium",
+    "Arbab Niaz Stadium, Peshawar",
+    "Iqbal Stadium, Faisalabad",
     "Dubai International Cricket Stadium",
     "Sharjah Cricket Stadium",
     "Sheikh Zayed Stadium, Abu Dhabi",
@@ -136,6 +138,31 @@ def _get_tier_badge(player_name: str, pi_df: pd.DataFrame) -> list:
             style={
                 "color": AMBER, "fontSize": "0.62rem", "fontWeight": "700",
                 "backgroundColor": f"{AMBER}22", "padding": "1px 5px",
+                "borderRadius": "3px", "marginLeft": "5px", "verticalAlign": "middle",
+            },
+        )]
+    return []
+
+
+def _get_model_source_badge(model_source: str) -> list:
+    """Return Upgrade-5 model source badge — only shown for transfer/analytical."""
+    if model_source == "transfer":
+        return [html.Span(
+            "Transfer",
+            title="Score estimated via transfer-learned model (recent PSL seasons)",
+            style={
+                "color": "#7EB3FF", "fontSize": "0.60rem", "fontWeight": "700",
+                "backgroundColor": "#7EB3FF22", "padding": "1px 5px",
+                "borderRadius": "3px", "marginLeft": "5px", "verticalAlign": "middle",
+            },
+        )]
+    if model_source == "analytical":
+        return [html.Span(
+            "Est.",
+            title="Score estimated from T20 career stats (no PSL lookup)",
+            style={
+                "color": TEXT_SECONDARY, "fontSize": "0.60rem", "fontWeight": "600",
+                "backgroundColor": f"{TEXT_SECONDARY}18", "padding": "1px 4px",
                 "borderRadius": "3px", "marginLeft": "5px", "verticalAlign": "middle",
             },
         )]
@@ -582,6 +609,16 @@ def _squad_count(squad, team):
     prevent_initial_call=True,
 )
 def _generate_brief(n_clicks, our_team, opposition, venue, match_date, squad, forced_players, captain):
+    import traceback as _tb, pathlib as _pl
+    _LOG = _pl.Path(__file__).parent.parent / "prep_room_debug.log"
+    def _dlog(msg):
+        try:
+            with open(_LOG, "a", encoding="utf-8") as _f:
+                _f.write(msg + "\n"); _f.flush()
+        except Exception:
+            pass
+    _dlog(f"=== CALLBACK n_clicks={n_clicks}, team={our_team!r}, venue={venue!r}, squad_size={len(squad) if squad else 0} ===")
+
     if not squad or len(squad) < 11:
         return (
             {"display": "none"},
@@ -607,88 +644,103 @@ def _generate_brief(n_clicks, our_team, opposition, venue, match_date, squad, fo
     except Exception:
         dt = datetime.now().replace(hour=19, minute=0)
 
+    _dlog(f"Date parsed: {dt}")
+
     # ----------------------------------------------------------------
     # Generate weather
     # ----------------------------------------------------------------
     try:
         from weather.weather_impact import get_match_weather_impact
         weather = get_match_weather_impact(venue, dt)
-    except Exception:
+        _dlog(f"Weather OK: spinner={weather.spinner_penalty}, swing={weather.swing_bonus}, dew_over={weather.dew_onset_over}")
+    except Exception as _we:
+        _dlog(f"Weather fetch failed: {_we}\n{_tb.format_exc()}")
         from utils.situation import WeatherImpact
         weather = WeatherImpact.neutral()
 
     # ----------------------------------------------------------------
     # Generate brief via decision engine
     # ----------------------------------------------------------------
-    clean_squad = [_strip_disambiguation(p) for p in squad]
-    clean_forced = [_strip_disambiguation(p) for p in (forced_players or [])]
-    # Captain is always locked into the XI — merge with forced (dedup)
-    clean_captain = _strip_disambiguation(captain) if captain else None
-    if clean_captain and clean_captain not in clean_forced:
-        clean_forced = [clean_captain] + clean_forced
-    from engine.decision_engine import generate_prematch_brief
-    brief = generate_prematch_brief(
-        our_team        = our_team,
-        opposition      = opposition,
-        venue           = venue,
-        match_datetime  = dt,
-        our_squad       = clean_squad,
-        weather_impact  = weather,
-        season          = 0,
-        innings         = 1,
-        forced_players  = clean_forced or None,
-        captain         = clean_captain,
-    )
+    try:
+        clean_squad = [_strip_disambiguation(p) for p in squad]
+        clean_forced = [_strip_disambiguation(p) for p in (forced_players or [])]
+        # Captain is always locked into the XI — merge with forced (dedup)
+        clean_captain = _strip_disambiguation(captain) if captain else None
+        if clean_captain and clean_captain not in clean_forced:
+            clean_forced = [clean_captain] + clean_forced
+        from engine.decision_engine import generate_prematch_brief
+        brief = generate_prematch_brief(
+            our_team        = our_team,
+            opposition      = opposition,
+            venue           = venue,
+            match_datetime  = dt,
+            our_squad       = clean_squad,
+            weather_impact  = weather,
+            season          = 0,
+            innings         = 1,
+            forced_players  = clean_forced or None,
+            captain         = clean_captain,
+        )
+        _dlog(f"Brief generated OK")
 
-    # Serialise key info for PDF callback
-    store_data = {
-        "our_team":   our_team,
-        "opposition": opposition,
-        "venue":      venue,
-        "match_date": match_date,
-        "squad":      squad,
-    }
+        # Serialise key info for PDF callback
+        store_data = {
+            "our_team":   our_team,
+            "opposition": opposition,
+            "venue":      venue,
+            "match_date": match_date,
+            "squad":      squad,
+        }
 
-    # ----------------------------------------------------------------
-    # Build each section's children
-    # ----------------------------------------------------------------
-    weather_children   = _render_weather(brief)
-    xi_children        = _render_xi(brief)
-    toss_children      = _render_toss(brief)
-    opposition_children= _render_opposition(brief)
-    plan_children      = _render_bowling_plan(brief)
-    scenarios_children = _render_batting_scenarios(brief)
-    matchup_children   = _render_matchups(brief)
+        # ----------------------------------------------------------------
+        # Build each section's children
+        # ----------------------------------------------------------------
+        weather_children   = _render_weather(brief)
+        xi_children        = _render_xi(brief)
+        toss_children      = _render_toss(brief)
+        opposition_children= _render_opposition(brief)
+        plan_children      = _render_bowling_plan(brief)
+        scenarios_children = _render_batting_scenarios(brief)
+        matchup_children   = _render_matchups(brief)
+        _dlog(f"All sections rendered OK")
 
-    return (
-        {"display": "block"},
-        html.Div([
-            html.Span(
-                f"Brief generated at {datetime.now().strftime('%H:%M:%S')}",
-                style={"color": GREEN, "display": "block"},
-            ),
-        ] + [
-            html.Span(
-                note,
-                style={
-                    "color": AMBER if "No PSL" in note else TEXT_SECONDARY,
-                    "fontSize": "0.75rem",
-                    "display": "block",
-                    "marginTop": "2px",
-                },
-            )
-            for note in (brief.data_tier_notes or [])
-        ]),
-        store_data,
-        store_data,   # shared match-brief-store (same payload)
-        weather_children,
-        xi_children,
-        toss_children,
-        opposition_children,
-        plan_children,
-        scenarios_children,
-        matchup_children,
-    )
+        return (
+            {"display": "block"},
+            html.Div([
+                html.Span(
+                    f"Brief generated at {datetime.now().strftime('%H:%M:%S')}",
+                    style={"color": GREEN, "display": "block"},
+                ),
+            ] + [
+                html.Span(
+                    note,
+                    style={
+                        "color": AMBER if "No PSL" in note else TEXT_SECONDARY,
+                        "fontSize": "0.75rem",
+                        "display": "block",
+                        "marginTop": "2px",
+                    },
+                )
+                for note in (brief.data_tier_notes or [])
+            ]),
+            store_data,
+            store_data,   # shared match-brief-store (same payload)
+            weather_children,
+            xi_children,
+            toss_children,
+            opposition_children,
+            plan_children,
+            scenarios_children,
+            matchup_children,
+        )
+
+    except Exception as _cb_err:
+        _dlog(f"CALLBACK ERROR: {type(_cb_err).__name__}: {_cb_err}\n{_tb.format_exc()}")
+        return (
+            {"display": "none"},
+            html.Span(f"Error generating brief: {_cb_err}", style={"color": RED}),
+            no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -862,6 +914,7 @@ def _render_xi(brief) -> list:
                                 html.Span(p.player_name, style={"color": TEXT_PRIMARY, "fontWeight": "600", "fontSize": "0.85rem"}),
                                 *captain_badge,
                                 *_get_tier_badge(p.player_name, _pi_xi),
+                                *_get_model_source_badge(getattr(p, "model_source", "")),
                             ],
                         ),
                         html.Span(
@@ -1539,7 +1592,10 @@ def _download_pdf(n_clicks, store_data, our_team, opposition, venue, match_date,
     try:
         from weather.weather_impact import get_match_weather_impact
         weather = get_match_weather_impact(venue, dt)
-    except Exception:
+    except Exception as _we:
+        import traceback
+        print(f"[prep_room] PDF weather fetch failed for venue={venue!r}: {_we}")
+        traceback.print_exc()
         from utils.situation import WeatherImpact
         weather = WeatherImpact.neutral()
 

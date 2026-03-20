@@ -70,6 +70,7 @@ class ScoredPlayer:
     bowling_style:    str
     form_coefficient: float = 1.0   # 0.80–1.20 based on recent PSL season trends
     form_tag:         str   = ""    # "In form" | "Out of form" | "Good form" | ""
+    model_source:     str   = ""    # "tabnet" | "transfer" | "analytical" | "standard"
 
 
 @dataclass
@@ -79,6 +80,7 @@ class XiPlayer:
     role:             str
     score:            float
     key_stat:         str     # one-line highlight for the brief
+    model_source:     str = ""  # Upgrade 5: "tabnet"|"transfer"|"analytical"|"standard"
 
 
 @dataclass
@@ -513,6 +515,7 @@ def _score_squad(
         else:
             eff_swing_bonus = 1.0
 
+        _src: list = []
         base_score = score_player(
             player          = p,
             venue           = venue,
@@ -523,6 +526,7 @@ def _score_squad(
             pace_bounce     = weather.pace_bounce_bonus if is_pace else 1.0,
             role_override   = role,
             t20_proxy       = _build_proxy(m, innings=innings),
+            _source_out     = _src,
         )
 
         form_coeff, form_tag = form_map.get(p, (1.0, ""))
@@ -541,6 +545,7 @@ def _score_squad(
             bowling_style    = m.get("bowling_style", ""),
             form_coefficient = form_coeff,
             form_tag         = form_tag,
+            model_source     = _src[0] if _src else "",
         ))
 
     return sorted(scored, key=lambda x: x.score, reverse=True)
@@ -1051,6 +1056,7 @@ def _assign_batting_order(
             role             = p.role,
             score            = p.score,
             key_stat         = key_stat,
+            model_source     = p.model_source,
         ))
 
     return result

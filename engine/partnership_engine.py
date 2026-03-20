@@ -18,8 +18,14 @@ import pandas as pd
 # PATHS
 # ---------------------------------------------------------------------------
 
-PROJ_ROOT    = Path(__file__).resolve().parent.parent
-HISTORY_PATH = PROJ_ROOT / "data" / "processed" / "partnership_history.parquet"
+PROJ_ROOT         = Path(__file__).resolve().parent.parent
+HISTORY_PATH      = PROJ_ROOT / "data" / "processed" / "partnership_history.parquet"
+PLAYER_EMBED_PATH = PROJ_ROOT / "models" / "saved" / "player_embeddings.pt"
+PAIR_EMBED_PATH   = PROJ_ROOT / "models" / "saved" / "pair_embeddings.pt"
+
+# Upgrade 6 — module-level embedding cache
+_player_embeddings: dict | None = None
+_pair_embeddings:   dict | None = None
 
 # ---------------------------------------------------------------------------
 # DANGER THRESHOLDS  (balls together)
@@ -82,6 +88,9 @@ class PartnershipAssessment:
     # Data quality flag: False = generic T20 league averages used (no PSL history for this pair)
     is_historical:          bool = False
 
+    # Upgrade 6: embedding source — "historical" | "embedding" | "league_avg"
+    embedding_source:       str  = "league_avg"
+
 
 # ---------------------------------------------------------------------------
 # HISTORY LOADER
@@ -94,6 +103,102 @@ def _load_history(path: str) -> pd.DataFrame:
 
 def _reload_history() -> None:
     _load_history.cache_clear()
+
+
+# ---------------------------------------------------------------------------
+# UPGRADE 6 — PLAYER EMBEDDING LOADER & SIMILARITY LOOKUP
+# ---------------------------------------------------------------------------
+
+def _load_embeddings() -> tuple[dict, dict]:
+    """Lazy-load player and pair embeddings from .pt files."""
+    global _player_embeddings, _pair_embeddings
+    if _player_embeddings is not None:
+        return _player_embeddings, _pair_embeddings  # type: ignore[return-value]
+    try:
+        import torch
+        if PLAYER_EMBED_PATH.exists() and PAIR_EMBED_PATH.exists():
+            _player_embeddings = torch.load(str(PLAYER_EMBED_PATH), weights_only=False)
+            _pair_embeddings   = torch.load(str(PAIR_EMBED_PATH),   weights_only=False)
+        else:
+            _player_embeddings = {}
+            _pair_embeddings   = {}
+    except Exception:
+        _player_embeddings = {}
+        _pair_embeddings   = {}
+    return _player_embeddings, _pair_embeddings  # type: ignore[return-value]
+
+
+def _find_similar_pair(
+    batter1: str,
+    batter2: str,
+    history: pd.DataFrame,
+    top_k: int = 3,
+) -> Optional[pd.Series]:
+    """
+    Upgrade 6: When no direct PSL history exists for (batter1, batter2),
+    find the most similar known pair using embedding cosine similarity and
+    return a weighted average of their historical stats.
+
+    Returns None if embeddings unavailable or similarity is too low.
+    """
+    import numpy as np
+
+    player_emb, pair_emb = _load_embeddings()
+    if not player_emb or batter1 not in player_emb or batter2 not in player_emb:
+        return None
+
+    # Combined query vector for this pair
+    combined = player_emb[batter1] + player_emb[batter2]
+    norm     = np.linalg.norm(combined)
+    if norm < 1e-8:
+        return None
+    query = combined / norm
+
+    # Score all known pairs
+    scored = []
+    for (b1, b2), pvec in pair_emb.items():
+        sim = float(np.dot(query, pvec))
+        scored.append(((b1, b2), sim))
+
+    if not scored:
+        return None
+
+    scored.sort(key=lambda x: x[1], reverse=True)
+    top_pairs = scored[:top_k]
+
+    # If best similarity < 0.7 the match is too weak — prefer league avg
+    if top_pairs[0][1] < 0.7:
+        return None
+
+    career = history[history["season"] == 0]
+
+    # Weighted average of top-K similar pairs
+    total_w  = 0.0
+    agg: dict = {
+        "avg_runs": 0.0, "avg_balls": 0.0,
+        "broken_by_pace_pct": 0.0, "broken_by_spin_pct": 0.0,
+        "broken_by_bowling_change_pct": 0.0, "avg_over_when_broken": 0.0,
+        "occurrences": 0.0,
+    }
+
+    for (b1, b2), sim in top_pairs:
+        row = career[(career["batter1"] == b1) & (career["batter2"] == b2)]
+        if row.empty:
+            row = career[(career["batter1"] == b2) & (career["batter2"] == b1)]
+        if row.empty:
+            continue
+        r = row.iloc[0]
+        w = max(0.0, sim)
+        total_w += w
+        for key in agg:
+            agg[key] += float(r.get(key, 0) or 0) * w
+
+    if total_w < 1e-8:
+        return None
+
+    for key in agg:
+        agg[key] /= total_w
+    return pd.Series(agg)
 
 
 def _get_pair_history(
@@ -240,6 +345,7 @@ def assess_partnership(
     hist = _get_pair_history(batter1, batter2, history)
 
     T20_GENERIC_SR = 120.0   # fallback expected SR for unknown pairs
+    emb_source = "league_avg"
 
     if hist is not None:
         hist_avg_runs   = float(hist.get("avg_runs",   0) or 0)
@@ -249,14 +355,27 @@ def assess_partnership(
         spin_pct        = float(hist.get("broken_by_spin_pct",           0) or 0)
         change_pct      = float(hist.get("broken_by_bowling_change_pct", 0) or 0)
         avg_over_broken = float(hist.get("avg_over_when_broken",         0) or 0)
+        emb_source      = "historical"
     else:
-        hist_avg_runs   = _LEAGUE_AVG_PARTNERSHIP_RUNS
-        hist_avg_balls  = _LEAGUE_AVG_PARTNERSHIP_BALLS
-        occurrences     = 0
-        pace_pct        = _LEAGUE_AVG_PACE_PCT
-        spin_pct        = _LEAGUE_AVG_SPIN_PCT
-        change_pct      = _LEAGUE_AVG_CHANGE_PCT
-        avg_over_broken = _LEAGUE_AVG_OVER_BROKEN
+        # Upgrade 6: try embedding-based similar pair before falling back to league avg
+        emb_hist = _find_similar_pair(batter1, batter2, history)
+        if emb_hist is not None:
+            hist_avg_runs   = float(emb_hist.get("avg_runs",   0) or 0)
+            hist_avg_balls  = float(emb_hist.get("avg_balls",  0) or 0)
+            occurrences     = int(emb_hist.get("occurrences",  0) or 0)
+            pace_pct        = float(emb_hist.get("broken_by_pace_pct",           0) or 0)
+            spin_pct        = float(emb_hist.get("broken_by_spin_pct",           0) or 0)
+            change_pct      = float(emb_hist.get("broken_by_bowling_change_pct", 0) or 0)
+            avg_over_broken = float(emb_hist.get("avg_over_when_broken",         0) or 0)
+            emb_source      = "embedding"
+        else:
+            hist_avg_runs   = _LEAGUE_AVG_PARTNERSHIP_RUNS
+            hist_avg_balls  = _LEAGUE_AVG_PARTNERSHIP_BALLS
+            occurrences     = 0
+            pace_pct        = _LEAGUE_AVG_PACE_PCT
+            spin_pct        = _LEAGUE_AVG_SPIN_PCT
+            change_pct      = _LEAGUE_AVG_CHANGE_PCT
+            avg_over_broken = _LEAGUE_AVG_OVER_BROKEN
 
     # Small-sample SR blending: pairs with <MIN_OCCURRENCES have unreliable histories.
     # Blend observed SR toward T20 generic (120) weighted by data confidence.
@@ -343,6 +462,7 @@ def assess_partnership(
         danger_score           = danger_score,
         alert_message          = alert,
         is_historical          = hist is not None,
+        embedding_source       = emb_source,
     )
 
 
@@ -359,8 +479,11 @@ if __name__ == "__main__":
         ("Shaheen Shah Afridi", "Haris Rauf", 8, 12),  # bowlers tail
     ]
 
+    p_emb, _ = _load_embeddings()
+    emb_status = f"{len(p_emb)} players" if p_emb else "not loaded"
     print(f"\n{'='*65}")
     print(f"  partnership_engine.py -- self test")
+    print(f"  Embeddings: {emb_status}")
     print(f"{'='*65}")
 
     for b1, b2, runs, balls in test_cases:
@@ -375,5 +498,6 @@ if __name__ == "__main__":
               f"Change: {pa.break_with_change_pct:.0f}%")
         print(f"  Action:  {pa.recommended_action}")
         print(f"  Alert:   {pa.alert_message}")
+        print(f"  Source:  {pa.embedding_source}")
 
     print(f"\n{'='*65}\n")
