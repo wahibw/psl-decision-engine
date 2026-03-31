@@ -2380,10 +2380,10 @@ adTop.rotation.x=Math.PI/2; adTop.position.y=1.2; scene.add(adTop);
   const SEG_L=128, ROWS_L=14;
   // Premium alternating seat colors
   const seatCols=[
-    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 0-2
-    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 3-5
-    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 6-8
-    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 9-11
+    0x8B1A28, 0x0D2248, 0x0F3820,  // row 0-2  maroon/navy/green
+    0x0D2248, 0x8B1A28, 0x0F3820,  // row 3-5  navy/maroon/green
+    0x8B1A28, 0x0F3820, 0x0D2248,  // row 6-8  maroon/green/navy
+    0x0F3820, 0x8B1A28, 0x0D2248,  // row 9-11 green/maroon/navy
     0x8B1A28, 0x0D2248              // row 12-13
   ];
 
@@ -2398,8 +2398,8 @@ adTop.rotation.x=Math.PI/2; adTop.position.y=1.2; scene.add(adTop);
     const t=i/ROWS_L;
     const r  = 23.6 + t*9.6;   // r: 23.6 → 33.2
     const y  = 1.2  + t*3.8;   // y: 1.2  → 5.0
-    const rH = 0.44;            // riser height
-    const tD = 0.72;            // tread depth
+    const rH = 0.62;            // riser height — taller so seat color dominates
+    const tD = 0.46;            // tread depth — narrow so less concrete shows
     const col=seatCols[i];
 
     // Seat riser — coloured face visible from field
@@ -2407,16 +2407,16 @@ adTop.rotation.x=Math.PI/2; adTop.position.y=1.2; scene.add(adTop);
       new THREE.CylinderGeometry(r,r,rH,SEG_L,1,true),
       new THREE.MeshPhongMaterial({
         color:col, shininess:55, side:THREE.DoubleSide,
-        emissive:new THREE.Color(col).multiplyScalar(0.18),
+        emissive:new THREE.Color(col).multiplyScalar(0.22),
         specular:new THREE.Color(0x666688)
       })
     );
     riser.position.y=y+rH/2; scene.add(riser);
 
-    // Concrete tread step
+    // Concrete tread step — dark so it doesn't create white bands
     const tread=new THREE.Mesh(
       new THREE.RingGeometry(r,r+tD,SEG_L),
-      new THREE.MeshPhongMaterial({color:0x4A5060,shininess:10,side:THREE.DoubleSide})
+      new THREE.MeshPhongMaterial({color:0x252C38,shininess:6,side:THREE.DoubleSide})
     );
     tread.rotation.x=-Math.PI/2;
     tread.position.y=y+rH+0.01; scene.add(tread);
@@ -2425,7 +2425,7 @@ adTop.rotation.x=Math.PI/2; adTop.position.y=1.2; scene.add(adTop);
   // Concourse walkway ring between lower and upper tiers
   const concRing=new THREE.Mesh(
     new THREE.RingGeometry(33.2,33.9,SEG_L),
-    new THREE.MeshPhongMaterial({color:0x383E4A,shininess:12,side:THREE.DoubleSide})
+    new THREE.MeshPhongMaterial({color:0x1A1E28,shininess:8,side:THREE.DoubleSide})
   );
   concRing.rotation.x=-Math.PI/2;
   concRing.position.y=5.1; scene.add(concRing);
@@ -2551,24 +2551,24 @@ adTop.rotation.x=Math.PI/2; adTop.position.y=1.2; scene.add(adTop);
     const t0=i/UPPER_ROWS, t1=(i+1)/UPPER_ROWS;
     const r0=33.9+t0*8.5, r1=33.9+t1*8.5;
     const y0=4.8+t0*9.0,  y1=4.8+t1*9.0;
-    const riserH=(y1-y0)*0.88;
-    const treadD=(r1-r0)*0.55;
-    // Alternate: deep maroon / dark navy for upper premium tier
-    const col=i%3===0 ? 0x7A1522 : (i%3===1 ? 0x0E2240 : 0x7A1522);
+    const riserH=(y1-y0)*0.92;  // taller riser — seat color dominates
+    const treadD=(r1-r0)*0.35;  // narrow tread — less concrete visible
+    // Alternate: deep maroon / dark navy / deep green for upper tier
+    const col=i%3===0 ? 0x7A1522 : (i%3===1 ? 0x0E2240 : 0x0F3020);
 
-    // Riser — CylinderGeometry (same top/bottom radius = vertical wall ring)
+    // Riser
     const riser=new THREE.Mesh(
       new THREE.CylinderGeometry(r0+0.05, r0+0.05, riserH, SEG, 1, true),
       new THREE.MeshPhongMaterial({color:col, shininess:45, side:THREE.DoubleSide,
-        emissive:new THREE.Color(col).multiplyScalar(0.20), specular:new THREE.Color(0xAA8870)})
+        emissive:new THREE.Color(col).multiplyScalar(0.22), specular:new THREE.Color(0x886655)})
     );
     riser.position.y = y0 + riserH/2;
     scene.add(riser);
 
-    // Tread — flat concrete ring on top of riser
+    // Tread — dark concrete, not cream, so no bright banding
     const tread=new THREE.Mesh(
       new THREE.RingGeometry(r0, r0+treadD, SEG),
-      new THREE.MeshPhongMaterial({color:0xCCC4B4, shininess:6, side:THREE.DoubleSide})
+      new THREE.MeshPhongMaterial({color:0x1E2430, shininess:4, side:THREE.DoubleSide})
     );
     tread.rotation.x=-Math.PI/2;
     tread.position.y=y0+riserH+0.01;
