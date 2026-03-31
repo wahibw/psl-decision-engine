@@ -109,6 +109,35 @@ body::before{
   padding:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;
 }
 .rp::-webkit-scrollbar{width:3px}.rp::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+
+/* ── Panel toggle button strips ── */
+.ptstrip{
+  position:fixed;top:50%;transform:translateY(-50%);z-index:60;
+  display:flex;flex-direction:column;gap:5px;
+  pointer-events:auto;
+}
+.ptstrip-l{left:0}
+.ptstrip-r{right:0}
+.ptbtn{
+  display:flex;align-items:center;justify-content:center;
+  width:20px;min-height:44px;padding:10px 3px;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  font-family:Orbitron;font-size:5.5px;font-weight:700;letter-spacing:1.8px;
+  text-transform:uppercase;
+  cursor:pointer;outline:none;
+  background:rgba(7,12,28,0.82);
+  border:1px solid rgba(139,92,246,0.18);
+  color:rgba(135,158,215,0.38);
+  transition:all .2s;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  user-select:none;
+}
+.ptstrip-l .ptbtn{border-radius:0 7px 7px 0;border-left:none}
+.ptstrip-r .ptbtn{border-radius:7px 0 0 7px;border-right:none;direction:rtl}
+.ptbtn:hover{border-color:rgba(168,144,255,0.48);color:#B8A8FF;background:rgba(12,18,40,0.88)}
+.ptbtn.on{background:rgba(109,40,217,0.16);border-color:rgba(168,144,255,0.42);color:#C0B0FF}
+.ptbtn.on:hover{background:rgba(109,40,217,0.24)}
+
 .rp .rc{
   background:rgba(7,12,28,0.84);
   backdrop-filter:blur(22px) saturate(180%);
@@ -592,6 +621,18 @@ body::before{
     <div class="zl hidden" id="zl"></div>
   </div></div>
   <div class="rp" id="right-panel"></div>
+</div>
+
+<!-- Left panel toggle strip -->
+<div class="ptstrip ptstrip-l" id="ptstrip-l">
+  <button class="ptbtn on" id="ptbtn-left" onclick="toggleLeftPanel()" title="Toggle Info Panel">INFO</button>
+</div>
+<!-- Right panel section toggle strip -->
+<div class="ptstrip ptstrip-r" id="ptstrip-r">
+  <button class="ptbtn on" id="ptbtn-bp" onclick="toggleRightSection('bp')" title="Interactive Blueprint">WIND</button>
+  <button class="ptbtn on" id="ptbtn-wx" onclick="toggleRightSection('wx')" title="Weather Hub">WTHR</button>
+  <button class="ptbtn on" id="ptbtn-soil" onclick="toggleRightSection('soil')" title="Soil Health">SOIL</button>
+  <button class="ptbtn on" id="ptbtn-xi" onclick="toggleRightSection('xi')" title="Playing XI">XI</button>
 </div>
 
 <div class="main-full hidden" id="layout-full">
@@ -1366,6 +1407,32 @@ function renderSidebar(){
 }
 function toggleSquad(i,el){if(selectedSquad.has(i))selectedSquad.delete(i);else selectedSquad.add(i);el.classList.toggle('on');}
 
+// ═══ PANEL TOGGLE SYSTEM ═══
+const rightSectionVis={bp:true,wx:true,soil:true,xi:true};
+
+function toggleLeftPanel(){
+  const sb=document.getElementById('sidebar');
+  const btn=document.getElementById('ptbtn-left');
+  if(!sb||!btn)return;
+  const nowHidden=sb.style.display==='none';
+  sb.style.display=nowHidden?'':'none';
+  btn.classList.toggle('on',nowHidden);
+}
+
+function toggleRightSection(key){
+  rightSectionVis[key]=!rightSectionVis[key];
+  const btn=document.getElementById('ptbtn-'+key);
+  if(btn) btn.classList.toggle('on',rightSectionVis[key]);
+  applyRightSectionVis();
+}
+
+function applyRightSectionVis(){
+  ['bp','wx','soil','xi'].forEach(key=>{
+    const el=document.getElementById('rc-'+key);
+    if(el) el.style.display=rightSectionVis[key]?'':'none';
+  });
+}
+
 // ═══ RIGHT PANEL ═══
 function renderRight(){
   const el=document.getElementById('right-panel');
@@ -1382,6 +1449,10 @@ function renderRight(){
   if(curTab===0) el.innerHTML=renderXIRight();
   else if(curTab===1) el.innerHTML=renderBowlRight();
   else if(curTab===2) el.innerHTML=renderOppRight();
+  // Show section toggles only on XI tab (tab 0); hide for others
+  const ptR=document.getElementById('ptstrip-r');
+  if(ptR) ptR.style.display=curTab===0?'flex':'none';
+  if(curTab===0) applyRightSectionVis();
 }
 
 function renderXIRight(){
@@ -1421,7 +1492,7 @@ function renderXIRight(){
            <div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)">${wv.blueprint_note}</div>
          </div>`
       : (aiCoachLoading?`<div style="margin-top:6px;font-family:'Exo 2';font-size:9px;color:rgba(0,191,255,0.45);font-style:italic">AI reading wind & field placement…</div>`:'');
-    return `<div class="rc"><div class="rt"><span class="d"></span>Interactive Blueprint${bpChip}</div>
+    return `<div class="rc" id="rc-bp"><div class="rt"><span class="d"></span>Interactive Blueprint${bpChip}</div>
       <div class="wind-v">
         ${[15,38,62,82].map((t,i)=>`<div class="wa" style="top:${t}%;left:${5+i*15}%;animation-delay:${i*.4}s"><svg viewBox="0 0 35 10"><path d="M0,5 L25,5" stroke="#00BFFF" stroke-width="1.5" fill="none" opacity="${.3+i*.1}"/><polygon points="25,2 33,5 25,8" fill="#00BFFF" opacity="${.3+i*.1}"/></svg></div>`).join('')}
         <div style="position:absolute;bottom:3px;right:5px;font-family:Rajdhani;font-size:6px;color:rgba(0,191,255,0.5);font-weight:600">${windLabel}</div>
@@ -1463,7 +1534,7 @@ function renderXIRight(){
     const loadingBlock=aiCoachLoading&&!wv
       ? `<div style="margin-top:6px;font-family:'Exo 2';font-size:9px;color:rgba(109,40,217,0.45);font-style:italic">AI head coach is evaluating conditions for XI & bowling…</div>` : '';
 
-    return `<div class="rc"><div class="rt"><span class="d"></span>Weather Hub${wxChip}</div>
+    return `<div class="rc" id="rc-wx"><div class="rt"><span class="d"></span>Weather Hub${wxChip}</div>
       <div class="wm"><div class="wm-r"><svg viewBox="0 0 40 40"><circle class="tk" cx="20" cy="20" r="16"/><circle class="fl" cx="20" cy="20" r="16" stroke="#8B5CF6" stroke-dasharray="100" stroke-dashoffset="${humOff}"/></svg></div><div><div class="wm-v" style="color:#8B5CF6">${hum}</div><div class="wm-l">Humidity</div></div></div>
       <div class="wm"><div class="wm-r"><svg viewBox="0 0 40 40"><circle class="tk" cx="20" cy="20" r="16"/><circle class="fl" cx="20" cy="20" r="16" stroke="#FFD700" stroke-dasharray="100" stroke-dashoffset="${tmpOff}"/></svg></div><div><div class="wm-v" style="color:#FFD700">${tmp}</div><div class="wm-l">Temperature</div></div></div>
       <div class="wm"><div style="width:30px;height:30px;border-radius:50%;border:1.5px solid #4CAF50;background:rgba(76,175,80,0.06);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="wm-v" style="color:#4CAF50">${wind}</div><div class="wm-l">Wind</div></div></div>
@@ -1471,14 +1542,14 @@ function renderXIRight(){
       ${aiXiBlock}${aiBowlBlock}${alertBlock}${loadingBlock}
     </div>`;
   })()}
-  <div class="rc"><div class="rt"><span class="d"></span>Soil Health</div>
+  <div class="rc" id="rc-soil"><div class="rt"><span class="d"></span>Soil Health</div>
     <div style="text-align:center;padding:6px 0"><span class="soil-num">4.2</span><span class="soil-max">/5</span></div>
     <div class="soil-conds">
       <div class="soil-c"><div class="soil-ic"><img src="https://images.unsplash.com/photo-1580084256673-ed5f0dcb926e?w=100&h=100&fit=crop" alt="cracked"></div><div class="soil-lb">Cracked</div></div>
       <div class="soil-c"><div class="soil-ic"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=100&h=100&fit=crop" alt="grass"></div><div class="soil-lb">Dry Grass</div></div>
     </div>
   </div>
-  <div class="rc"><div class="rt"><span class="d"></span>Playing XI — ${xiOpts[curXI].name}</div>
+  <div class="rc" id="rc-xi"><div class="rt"><span class="d"></span>Playing XI — ${xiOpts[curXI].name}</div>
     ${xiListHTML}
   </div>`;
 }
