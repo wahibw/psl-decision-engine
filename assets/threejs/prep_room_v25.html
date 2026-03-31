@@ -2049,7 +2049,7 @@ const scene=new THREE.Scene();
   scene.add(new THREE.Points(sGeo,sMat));
 })();
 
-scene.fog=new THREE.Fog(0x0C1828, 115, 295);
+scene.fog=new THREE.Fog(0x0A1420, 140, 340);
 
 // Camera — broadcast angle: elevated, looking down into stadium bowl
 const camera=new THREE.PerspectiveCamera(50,W/H,0.1,400);
@@ -2080,13 +2080,7 @@ fillLight.position.set(25,40,25); scene.add(fillLight);
 // Warm overhead flood — simulates stadium floodlights
 const floodCenter=new THREE.PointLight(0xFFEEB0, 1.6, 130);
 floodCenter.position.set(0,42,0); scene.add(floodCenter);
-// Rim lights from tower positions — give specular pop on seats
-const rimColors=[0xFFD080,0xFFD080,0xFFD080,0xFFD080,0xFFD080,0xFFD080];
-for(let ri=0;ri<6;ri++){
-  const ra=(ri/6)*Math.PI*2;
-  const rl=new THREE.PointLight(rimColors[ri],0.45,90);
-  rl.position.set(Math.cos(ra)*50,28,Math.sin(ra)*50); scene.add(rl);
-}
+// Rim fill lights handled by tower SpotLights above
 
 // ══════════════════════════════════════════
 // GROUND PLANE — full flat base, page color
@@ -2781,122 +2775,127 @@ const trackOuter=new THREE.Mesh(
 );
 trackOuter.rotation.x=Math.PI/2; trackOuter.position.y=0.12; scene.add(trackOuter);
 
-// 6 floodlight towers — panels use canvas sprite for always-correct appearance
-// Build a canvas texture for the LED panel face
+// ── 6 Floodlight Towers — proper 3D geometry with SpotLights ──
 (()=>{
-  // Build LED panel texture — dark housing with bright white LEDs in grid
-  const panelCanvas = document.createElement('canvas');
-  panelCanvas.width = 512; panelCanvas.height = 256;
-  const pc = panelCanvas.getContext('2d');
-
-  // Dark steel housing
-  pc.fillStyle = '#0E151E';
-  pc.fillRect(0, 0, 512, 256);
-
-  // Subtle grid lines dividing cells
-  pc.strokeStyle = '#1A2530';
-  pc.lineWidth = 2;
-  const rows = 3, cols = 8;
-  const cellW = 512/cols, cellH = 256/rows;
-  for(let r=0;r<=rows;r++){ pc.beginPath(); pc.moveTo(0,r*cellH); pc.lineTo(512,r*cellH); pc.stroke(); }
-  for(let c=0;c<=cols;c++){ pc.beginPath(); pc.moveTo(c*cellW,0); pc.lineTo(c*cellW,256); pc.stroke(); }
-
-  // LEDs — centered in each cell
-  for(let r=0; r<rows; r++){
-    for(let c=0; c<cols; c++){
-      const lx = c*cellW + cellW/2;
-      const ly = r*cellH + cellH/2;
-      const radius = Math.min(cellW,cellH)*0.34;
-
-      // Big outer glow
-      const grd = pc.createRadialGradient(lx,ly,0,lx,ly,radius*2.2);
-      grd.addColorStop(0,'rgba(200,230,255,0.5)');
-      grd.addColorStop(1,'rgba(200,230,255,0)');
-      pc.fillStyle=grd; pc.beginPath(); pc.arc(lx,ly,radius*2.2,0,Math.PI*2); pc.fill();
-
-      // LED body
-      const led = pc.createRadialGradient(lx-radius*0.25,ly-radius*0.25,0,lx,ly,radius);
-      led.addColorStop(0,'#FFFFFF');
-      led.addColorStop(0.4,'#E8F4FF');
-      led.addColorStop(0.8,'#B0C8E8');
-      led.addColorStop(1,'#6080A0');
-      pc.fillStyle=led; pc.beginPath(); pc.arc(lx,ly,radius,0,Math.PI*2); pc.fill();
-
-      // Specular highlight
-      pc.fillStyle='rgba(255,255,255,0.9)';
-      pc.beginPath(); pc.arc(lx-radius*0.28,ly-radius*0.28,radius*0.22,0,Math.PI*2); pc.fill();
-    }
+  // LED panel face texture (warm white LEDs on dark housing)
+  const pc2 = document.createElement('canvas');
+  pc2.width = 256; pc2.height = 128;
+  const ctx = pc2.getContext('2d');
+  ctx.fillStyle = '#080E16'; ctx.fillRect(0,0,256,128);
+  const ROWS=4, COLS=8, CW=256/COLS, CH=128/ROWS;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const lx=c*CW+CW/2, ly=r*CH+CH/2, rad=Math.min(CW,CH)*0.30;
+    const halo=ctx.createRadialGradient(lx,ly,0,lx,ly,rad*3);
+    halo.addColorStop(0,'rgba(255,245,180,0.55)');
+    halo.addColorStop(1,'rgba(255,245,180,0)');
+    ctx.fillStyle=halo; ctx.beginPath(); ctx.arc(lx,ly,rad*3,0,Math.PI*2); ctx.fill();
+    const bulb=ctx.createRadialGradient(lx-rad*.2,ly-rad*.2,0,lx,ly,rad);
+    bulb.addColorStop(0,'#FFFFF8'); bulb.addColorStop(0.5,'#FFE878');
+    bulb.addColorStop(1,'#997720');
+    ctx.fillStyle=bulb; ctx.beginPath(); ctx.arc(lx,ly,rad,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.beginPath(); ctx.arc(lx-rad*.25,ly-rad*.25,rad*.18,0,Math.PI*2); ctx.fill();
   }
+  ctx.strokeStyle='#1E2E40'; ctx.lineWidth=4; ctx.strokeRect(2,2,252,124);
+  const panelTex = new THREE.CanvasTexture(pc2);
 
-  // Outer housing border
-  pc.strokeStyle='#334455'; pc.lineWidth=8;
-  pc.strokeRect(4,4,504,248);
+  // Glow halo texture (additive blend — simulates light spill around panel)
+  const gc2 = document.createElement('canvas'); gc2.width=128; gc2.height=128;
+  const gx = gc2.getContext('2d');
+  const gg = gx.createRadialGradient(64,64,0,64,64,64);
+  gg.addColorStop(0,'rgba(255,248,180,0.95)');
+  gg.addColorStop(0.25,'rgba(255,220,80,0.55)');
+  gg.addColorStop(0.6,'rgba(255,180,20,0.15)');
+  gg.addColorStop(1,'rgba(255,140,0,0)');
+  gx.fillStyle=gg; gx.fillRect(0,0,128,128);
+  const glowTex = new THREE.CanvasTexture(gc2);
 
-  const panelTex = new THREE.CanvasTexture(panelCanvas);
+  const steelMat = new THREE.MeshPhongMaterial({color:0x8090A8, shininess:60});
+  const darkMat  = new THREE.MeshPhongMaterial({color:0x0C1018, shininess:8});
 
-  for(let i=0; i<6; i++){
-    const a  = (i/6)*Math.PI*2;
-    const px = Math.cos(a)*52, pz = Math.sin(a)*52;
-    const tg = new THREE.Group();
-    tg.position.set(px, 0, pz);
-    scene.add(tg);
+  for(let i=0;i<6;i++){
+    const a = (i/6)*Math.PI*2;
+    const tR = 53;
+    const px = Math.cos(a)*tR, pz = Math.sin(a)*tR;
+    // Direction toward field center
+    const fdx = -Math.cos(a), fdz = -Math.sin(a);
+    // Perpendicular direction (for spacing panels along arm)
+    const fpx = -Math.sin(a), fpz =  Math.cos(a);
 
-    // ── Pole ──
-    const pole = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12,0.30,26,10),
-      new THREE.MeshPhongMaterial({color:0x7888A0,shininess:40})
-    );
-    pole.position.y = 13; tg.add(pole);
+    // ── Main mast ──
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.28,36,8), steelMat);
+    mast.position.set(px,18,pz); scene.add(mast);
 
-    // Cross braces
-    for(let lv=0; lv<4; lv++){
-      const br = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.04,0.04,2.6,5),
-        new THREE.MeshPhongMaterial({color:0x6878A0})
-      );
-      br.position.set(0, 6+lv*5, 0);
-      br.rotation.z = Math.PI/4; tg.add(br);
-      const br2 = br.clone(); br2.rotation.z = -Math.PI/4; tg.add(br2);
+    // Base collar
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.95,0.6,10), darkMat);
+    base.position.set(px,0.3,pz); scene.add(base);
+
+    // Ladder rungs (horizontal, not diagonal)
+    for(let lv=0;lv<5;lv++){
+      const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.9,5), steelMat);
+      rung.position.set(px, 6+lv*5.5, pz);
+      rung.rotation.z = Math.PI/2;
+      rung.rotation.y = a;
+      scene.add(rung);
     }
 
-    const fieldDir = new THREE.Vector3(-px, 0, -pz).normalize();
-    const armLen = 5.0;
-    // arm removed — was piercing through panel sprite
+    // ── Top cross-arm (extends toward field) ──
+    const armLen = 5.5;
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,armLen,6), steelMat);
+    arm.position.set(px + fdx*armLen/2, 35.5, pz + fdz*armLen/2);
+    arm.rotation.z = Math.PI/2; arm.rotation.y = a;
+    scene.add(arm);
 
-    // ── Panel — Sprite (always faces camera, correct orientation always) ──
-    const spriteMat = new THREE.SpriteMaterial({
-      map: panelTex,
-      transparent: true,
-      opacity: 0.97
+    // Tip cap
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.12,6,6), steelMat);
+    cap.position.set(px + fdx*armLen, 35.5, pz + fdz*armLen); scene.add(cap);
+
+    // ── 3 LED panel assemblies along arm ──
+    const panelY = 35.0;
+    const offsets = [-1.6, 0, 1.6];
+    offsets.forEach(off => {
+      const wx = px + fdx*4.0 + fpx*off;
+      const wz = pz + fdz*4.0 + fpz*off;
+
+      // Dark housing box
+      const hbox = new THREE.Mesh(new THREE.BoxGeometry(1.5,1.1,0.2), darkMat);
+      hbox.position.set(wx, panelY, wz);
+      hbox.lookAt(new THREE.Vector3(wx+fdx*5, panelY-10, wz+fdz*5)); // face field, tilt down
+      scene.add(hbox);
+
+      // LED face — PlaneGeometry with MeshBasicMaterial (always bright regardless of lighting)
+      const face = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.35, 0.95),
+        new THREE.MeshBasicMaterial({map: panelTex})
+      );
+      face.position.set(wx, panelY, wz);
+      face.lookAt(new THREE.Vector3(wx+fdx*5, panelY-10, wz+fdz*5));
+      // Nudge face 0.12 in front of housing
+      face.position.x += fdx*0.12; face.position.z += fdz*0.12;
+      scene.add(face);
+
+      // Additive glow halo around each panel
+      const glowS = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: glowTex, transparent:true, opacity:0.50,
+        blending:THREE.AdditiveBlending, depthWrite:false
+      }));
+      glowS.position.set(wx, panelY, wz);
+      glowS.scale.set(5.5, 5.5, 1);
+      scene.add(glowS);
     });
-    const panelSprite = new THREE.Sprite(spriteMat);
-    const panelPos = new THREE.Vector3(
-      px + fieldDir.x * armLen,
-      24.5,
-      pz + fieldDir.z * armLen
-    );
-    panelSprite.position.copy(panelPos);
-    panelSprite.scale.set(6.0, 3.5, 1);
-    scene.add(panelSprite);
 
-    // ── Dark housing box behind the sprite ──
-    const housing = new THREE.Mesh(
-      new THREE.BoxGeometry(5.0, 3.0, 0.4),
-      new THREE.MeshPhongMaterial({color:0x111820,shininess:10})
-    );
-    housing.position.copy(panelPos);
-    housing.position.y += 0.0;
-    // Face toward field
-    housing.lookAt(new THREE.Vector3(0, housing.position.y, 0));
-    scene.add(housing);
+    // ── SpotLight aimed at field from tower head ──
+    const spotX = px + fdx*3.5, spotZ = pz + fdz*3.5;
+    const spot = new THREE.SpotLight(0xFFECC0, 2.2, 115, Math.PI/5.5, 0.38, 1.4);
+    spot.position.set(spotX, 36, spotZ);
+    spot.target.position.set(spotX*0.12, 0, spotZ*0.12);
+    scene.add(spot); scene.add(spot.target);
 
-    // Stadium floodlight point lights — warm white, high range
-    const pl = new THREE.PointLight(0xFFEED0, 0.90, 110);
-    pl.position.copy(panelPos);
-    scene.add(pl);
-    const pl2 = new THREE.PointLight(0xFFE8B0, 0.40, 80);
-    pl2.position.set(px*0.4, 18, pz*0.4);
-    scene.add(pl2);
+    // Secondary fill spot — softer, wider angle
+    const spot2 = new THREE.SpotLight(0xFFE090, 0.9, 85, Math.PI/4, 0.5, 1.8);
+    spot2.position.set(px*0.55, 28, pz*0.55);
+    spot2.target.position.set(0,0,0);
+    scene.add(spot2); scene.add(spot2.target);
   }
 })();
 
