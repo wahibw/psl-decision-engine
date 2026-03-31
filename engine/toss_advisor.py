@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
 from utils.situation import WeatherImpact
 
@@ -31,13 +31,8 @@ from utils.situation import WeatherImpact
 
 _VENUE_STATS_PATH = Path(__file__).resolve().parent.parent / "data" / "processed" / "venue_stats.csv"
 
-_venue_stats_cache: Optional[dict] = None
-
-
+@lru_cache(maxsize=1)
 def _load_venue_stats() -> dict[str, dict]:
-    global _venue_stats_cache
-    if _venue_stats_cache is not None:
-        return _venue_stats_cache
     result: dict[str, dict] = {}
     if not _VENUE_STATS_PATH.exists():
         return result
@@ -49,7 +44,6 @@ def _load_venue_stats() -> dict[str, dict]:
                     result[venue] = row
     except Exception:
         pass
-    _venue_stats_cache = result
     return result
 
 

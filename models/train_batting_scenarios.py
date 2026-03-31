@@ -432,10 +432,10 @@ if __name__ == "__main__":
                 f"{r['scenario_score']:>5.1f}"
             )
 
-    # Demo: rank Lahore squad for a death chase
+    # Demo: rank Lahore 2026 squad for a death chase
     lahore_squad = [
         "Fakhar Zaman", "Abdullah Shafique", "Sikandar Raza",
-        "Shaheen Shah Afridi", "Liam Dawson", "Mohammad Hafeez",
+        "Shaheen Shah Afridi", "Hussain Talat", "Tayyab Tahir",
     ]
     print(f"\n  Demo: rank sample squad for death chase (Scenario C):")
     ranked = rank_players_for_scenario(lahore_squad, "C", payload)

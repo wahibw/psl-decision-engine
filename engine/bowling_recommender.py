@@ -190,8 +190,8 @@ if __name__ == "__main__":
     from datetime import datetime
 
     lahore_bowlers = [
-        "Shaheen Shah Afridi", "Haris Rauf", "Zaman Khan",
-        "Rashid Khan", "Liam Dawson",
+        "Shaheen Shah Afridi", "Haris Rauf", "Usama Mir",
+        "Mustafizur Rahman", "Sikandar Raza",
     ]
 
     weather = WeatherImpact(
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
     plan = generate_bowling_plan(lahore_bowlers, weather)
 
-    # Simulate over 14 — Rashid Khan (spinner) has been assigned, but dew is active
+    # Simulate over 14 — Usama Mir (spinner) has been assigned, but dew is active
     state = LiveMatchState(
         batting_team     = "Karachi Kings",
         bowling_team     = "Lahore Qalandars",
@@ -224,9 +224,9 @@ if __name__ == "__main__":
         overs_bowled_by  = {
             "Shaheen Shah Afridi": 2,
             "Haris Rauf":          2,
-            "Zaman Khan":          2,
-            "Rashid Khan":         2,
-            "Liam Dawson":         2,
+            "Usama Mir":           2,
+            "Mustafizur Rahman":   2,
+            "Sikandar Raza":       2,
         },
     )
 

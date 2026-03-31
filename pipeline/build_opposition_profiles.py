@@ -30,6 +30,11 @@ SCHEDULE_SPEC = PROJ_ROOT / "data" / "psl_schedule.csv"
 SCHEDULE_ACT  = PROJ_ROOT.parent / "psl_schedule.csv"
 OUTPUT_FILE   = PROCESSED_DIR / "opposition_profiles.csv"
 
+# Minimum deliveries required before reporting an economy / strike-rate figure.
+# Below this threshold functions return 0.0 (unknown) rather than a noisy stat.
+# 30 balls ≈ 5 overs — enough to produce a meaningful economy rate.
+MIN_BALLS = 30
+
 # ---------------------------------------------------------------------------
 # PLAYER STYLE LOOKUPS  (loaded once from player_index.csv)
 # ---------------------------------------------------------------------------
@@ -231,7 +236,7 @@ def _phase_sr(batting_df: pd.DataFrame, phase: str) -> float:
     sub = batting_df[batting_df["phase"] == phase & ~batting_df["is_wide"]] if isinstance(phase, str) else batting_df[~batting_df["is_wide"]]
     balls = len(sub)
     runs  = sub["runs_batter"].sum()
-    return round(runs * 100 / balls, 1) if balls > 0 else 0.0
+    return round(runs * 100 / balls, 1) if balls >= MIN_BALLS else 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -314,7 +319,7 @@ def _vs_type_economy(
 
     balls = len(filtered)
     runs  = filtered["runs_batter"].sum() + filtered["runs_extras"].sum()
-    return round(runs * 6 / balls, 2) if balls > 0 else 0.0
+    return round(runs * 6 / balls, 2) if balls >= MIN_BALLS else 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -349,7 +354,7 @@ def _vs_spintype_economy(
 
     balls = len(filtered)
     runs  = filtered["runs_batter"].sum() + filtered["runs_extras"].sum()
-    return round(runs * 6 / balls, 2) if balls > 0 else 0.0
+    return round(runs * 6 / balls, 2) if balls >= MIN_BALLS else 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -494,7 +499,7 @@ def run(
             def _sr(phase_label):
                 sub = legal_bat[legal_bat["phase"] == phase_label]
                 b, r = len(sub), sub["runs_batter"].sum()
-                return round(r * 100 / b, 1) if b > 0 else 0.0
+                return round(r * 100 / b, 1) if b >= MIN_BALLS else 0.0
 
             pp_sr  = _sr("powerplay")
             mid_sr = _sr("middle")
@@ -529,7 +534,7 @@ def run(
             def _eco(phase_label):
                 sub = legal_bow[legal_bow["phase"] == phase_label]
                 b, r = len(sub), sub["runs_total"].sum()
-                return round(r * 6 / b, 2) if b > 0 else 0.0
+                return round(r * 6 / b, 2) if b >= MIN_BALLS else 0.0
 
             pp_bowl_eco  = _eco("powerplay")
             dth_bowl_eco = _eco("death")

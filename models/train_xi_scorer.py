@@ -3,13 +3,13 @@
 # UPGRADE 2: Also trains a TabNetRegressor (models/saved/xi_tabnet.zip) as
 #            primary model; XGBoost xi_scorer.pkl becomes the fallback.
 #
-# The scorer produces a 0-100 "match impact score" for any player given
-# their stats and a match context (venue, weather, opposition).
+# The scorer produces a phase-weighted "match impact score" in real cricket
+# units for any player given their stats and a match context.
 #
 # Training:
-#   Row  = (player, match) where the player actually appeared in the XI
-#   Target = normalised match impact:
-#            batting_impact + bowling_impact, scaled 0-100 within each match
+#   Row    = (player, match, innings) where player appeared
+#   Target = phase-weighted absolute impact (batting + bowling, real-unit runs).
+#            Typical range: -30 to +120; median ~15-25 for a PSL innings.
 #   Features = career phase stats + role + weather-proxy flags
 #
 # Model: TabNetRegressor (primary)  +  XGBRegressor (fallback)
@@ -46,12 +46,23 @@ STATS_PATH   = PROCESSED_DIR / "player_stats.parquet"
 PLAYER_INDEX = PROCESSED_DIR / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 
-# Impact weights
-RUNS_WEIGHT     = 1.0    # each run
-BALL_BONUS      = 0.3    # bonus per ball faced above career SR (aggression)
-WICKET_WEIGHT   = 20.0   # each wicket
-ECONOMY_BONUS   = 5.0    # per run/over below 8.0 economy
-DOT_BONUS       = 0.2    # per dot ball bowled
+# PSL baseline constants for phase-weighted absolute impact (PSL 2019-2025 career averages).
+PSL_AVG_RUNS          = 22.0   # average runs scored per batting innings
+PSL_AVG_SR           = 128.0  # average strike rate across all PSL innings
+PSL_POWERPLAY_ECONOMY = 7.8   # average economy in powerplay overs (1-6)
+PSL_MIDDLE_ECONOMY    = 7.5   # average economy in middle overs (7-16)
+PSL_DEATH_ECONOMY     = 10.8  # average economy in death overs (17-20)
+PSL_WICKET_VALUE      = 18.0  # run-equivalent value of one wicket
+
+# Phase-level bowling weights: economy vs wicket importance shifts with over block.
+PHASE_WEIGHTS = {
+    "powerplay": {"economy": 0.55, "wicket": 0.45},
+    "middle":    {"economy": 0.45, "wicket": 0.55},
+    "death":     {"economy": 0.30, "wicket": 0.70},
+}
+
+# Batting phase multipliers: late overs are higher leverage.
+PHASE_BAT_MULT = {"powerplay": 1.0, "middle": 1.1, "death": 1.3}
 
 # Role codes
 ROLE_CODE = {
@@ -68,6 +79,10 @@ FEATURE_COLS = [
     "bat_pp_sr",
     "bat_death_sr",
     "bat_boundary_pct",
+    # Chase / set batting context
+    "bat_avg_chase",            # batting avg when chasing (innings 2)
+    "bat_avg_set",              # batting avg when setting (innings 1)
+    "innings_context_split",    # bat_avg_chase − bat_avg_set (positive = better chaser)
     # Career bowling
     "bowl_economy",
     "bowl_wkts_per_over",
@@ -120,12 +135,52 @@ def _load_player_meta(pi_path: Path) -> dict[str, dict]:
 def _build_player_features(
     stats:  pd.DataFrame,
     player_meta: dict[str, dict],
+    cutoff_seasons: list[int] | None = None,
 ) -> pd.DataFrame:
     """
-    Returns a DataFrame indexed by player_name with all scorer features
-    computed from career (season=0) stats.
+    Returns a DataFrame indexed by player_name with all scorer features.
+
+    Args:
+        cutoff_seasons: If given, compute career aggregates from ONLY these
+                        seasons (used for leakage-free test evaluation).
+                        If None, use the pre-computed season=0 career rows.
     """
-    career = stats[stats["season"] == 0].copy()
+    if cutoff_seasons is not None:
+        # Fix 2.3: Build career stats from restricted season set to avoid leakage.
+        # We re-aggregate from season-level rows rather than using season=0.
+        sub = stats[stats["season"].isin(cutoff_seasons)].copy()
+        # Aggregate phase-level rows across allowed seasons
+        num_cols = [c for c in sub.columns if c.startswith(("bat_", "bowl_")) and c not in ("bat_innings",)]
+        # We can't simply sum because averages/SRs need to be recomputed from raw counts.
+        # Use a weighted mean (weight = bat_balls or bowl_balls) as a reasonable proxy.
+        def _wavg(group: pd.DataFrame, val_col: str, wt_col: str) -> float:
+            w = group[wt_col].fillna(0)
+            v = group[val_col].fillna(0)
+            return float((v * w).sum() / w.sum()) if w.sum() > 0 else 0.0
+
+        records = []
+        for (player, phase), grp in sub.groupby(["player_name", "phase"]):
+            rec = {"player_name": player, "phase": phase}
+            for col in ["bat_avg", "bat_sr", "bat_boundary_pct", "bat_dot_pct"]:
+                rec[col] = _wavg(grp, col, "bat_balls") if "bat_balls" in grp else 0.0
+            for col in ["bowl_economy", "bowl_dot_pct", "bowl_boundary_pct"]:
+                rec[col] = _wavg(grp, col, "bowl_balls") if "bowl_balls" in grp else 0.0
+            # Chase/set context columns — weighted average when available, else fall
+            # back to career bat_avg (cutoff_seasons path is eval-only, not production).
+            for col in ["bat_avg_chase", "bat_avg_set", "innings_context_split"]:
+                if col in grp.columns:
+                    rec[col] = _wavg(grp, col, "bat_balls") if "bat_balls" in grp else 0.0
+                else:
+                    rec[col] = rec.get("bat_avg", 0.0) if col != "innings_context_split" else 0.0
+            bowl_overs  = grp["bowl_overs"].fillna(0).sum()
+            bowl_wickets= grp["bowl_wickets"].fillna(0).sum()
+            rec["bowl_overs"]   = float(bowl_overs)
+            rec["bowl_wickets"] = float(bowl_wickets)
+            rec["bowl_sr"]      = round(bowl_overs * 6 / bowl_wickets, 1) if bowl_wickets > 0 else 99.9
+            records.append(rec)
+        career = pd.DataFrame(records)
+    else:
+        career = stats[stats["season"] == 0].copy()
 
     def _phase_val(player: str, phase: str, col: str, default: float) -> float:
         row = career[(career["player_name"] == player) & (career["phase"] == phase)]
@@ -150,6 +205,11 @@ def _build_player_features(
         bowl_economy    = _phase_val(p, "overall", "bowl_economy",      9.0)
         bowl_dot        = _phase_val(p, "overall", "bowl_dot_pct",     35.0)
 
+        # Chase / set context — fall back to career bat_avg when column missing
+        bat_avg_chase = _phase_val(p, "overall", "bat_avg_chase", bat_avg)
+        bat_avg_set   = _phase_val(p, "overall", "bat_avg_set",   bat_avg)
+        innings_ctx   = bat_avg_chase - bat_avg_set   # positive = better chaser
+
         # Phase-specific
         bat_pp_sr    = _phase_val(p, "powerplay", "bat_sr",           120.0)
         bat_death_sr = _phase_val(p, "death",     "bat_sr",           120.0)
@@ -166,21 +226,24 @@ def _build_player_features(
             wkts_po = 0.0
 
         records.append({
-            "player_name":       p,
-            "bat_avg":           bat_avg,
-            "bat_sr":            bat_sr,
-            "bat_pp_sr":         bat_pp_sr,
-            "bat_death_sr":      bat_death_sr,
-            "bat_boundary_pct":  bat_boundary,
-            "bowl_economy":      bowl_economy,
-            "bowl_wkts_per_over":wkts_po,
-            "bowl_pp_economy":   bowl_pp_econ,
-            "bowl_death_economy":bowl_dth_econ,
-            "bowl_dot_pct":      bowl_dot,
-            "role_code":         meta["role_code"],
-            "is_overseas":       meta["is_overseas"],
-            "is_pace":           meta["is_pace"],
-            "is_spin":           meta["is_spin"],
+            "player_name":          p,
+            "bat_avg":              bat_avg,
+            "bat_sr":               bat_sr,
+            "bat_pp_sr":            bat_pp_sr,
+            "bat_death_sr":         bat_death_sr,
+            "bat_boundary_pct":     bat_boundary,
+            "bat_avg_chase":        bat_avg_chase,
+            "bat_avg_set":          bat_avg_set,
+            "innings_context_split":innings_ctx,
+            "bowl_economy":         bowl_economy,
+            "bowl_wkts_per_over":   wkts_po,
+            "bowl_pp_economy":      bowl_pp_econ,
+            "bowl_death_economy":   bowl_dth_econ,
+            "bowl_dot_pct":         bowl_dot,
+            "role_code":            meta["role_code"],
+            "is_overseas":          meta["is_overseas"],
+            "is_pace":              meta["is_pace"],
+            "is_spin":              meta["is_spin"],
         })
 
     return pd.DataFrame(records)
@@ -197,82 +260,132 @@ def _build_training_rows(
 ) -> pd.DataFrame:
     """
     One row per (player, match, innings) where player appeared.
-    Target = match_impact_score (0-100, normalised within match).
+    Target = phase-weighted absolute impact in real cricket units (no clipping).
+    Typical range: -30 to +120, median ~15-25 for a typical PSL innings.
     """
-    # Batting contribution per (match, innings, batter)
-    bat = (
-        bbb.groupby(["match_id", "season", "innings", "batter"], observed=True)
+    # -----------------------------------------------------------------------
+    # Phase assignment (0-indexed overs: 0-5 = PP, 6-15 = mid, 16-19 = death)
+    # -----------------------------------------------------------------------
+    bbb = bbb.copy()
+    bbb["_phase"] = np.select(
+        [bbb["over"] < 6, bbb["over"] >= 16],
+        ["powerplay", "death"],
+        default="middle",
+    )
+
+    # -----------------------------------------------------------------------
+    # BATTING — phase-level aggregation then sum with phase multiplier
+    # -----------------------------------------------------------------------
+    bat_phase = (
+        bbb.groupby(["match_id", "season", "innings", "batter", "_phase"], observed=True)
         .agg(
-            runs_scored   = ("runs_batter", "sum"),
-            balls_faced   = ("is_wide",     lambda x: (~x).sum()),
-            fours         = ("runs_batter", lambda x: (x == 4).sum()),
-            sixes         = ("runs_batter", lambda x: (x == 6).sum()),
-            venue         = ("venue",       "first"),
+            runs_scored = ("runs_batter", "sum"),
+            balls_faced = ("is_wide",     lambda x: (~x).sum()),
+            venue       = ("venue",       "first"),
         )
         .reset_index()
-        .rename(columns={"batter": "player_name"})
+        .rename(columns={"batter": "player_name", "_phase": "phase"})
     )
-    bat["bat_sr_match"] = np.where(
-        bat["balls_faced"] > 0,
-        bat["runs_scored"] / bat["balls_faced"] * 100,
+
+    bat_phase["sr"] = np.where(
+        bat_phase["balls_faced"] > 0,
+        bat_phase["runs_scored"] / bat_phase["balls_faced"] * 100,
         0.0,
     )
-    bat["batting_impact"] = (
-        bat["runs_scored"] * RUNS_WEIGHT
-        + (bat["bat_sr_match"] - 100).clip(lower=0) * bat["balls_faced"] / 100 * BALL_BONUS
-        + bat["fours"] * 0.5
-        + bat["sixes"] * 1.0
-    ).clip(lower=0)
+    bat_phase["runs_above_avg"] = bat_phase["runs_scored"] - PSL_AVG_RUNS
+    bat_phase["sr_component"]   = (
+        (bat_phase["sr"] - PSL_AVG_SR) / PSL_AVG_SR * bat_phase["runs_scored"]
+    )
+    bat_phase["raw_bat"]     = bat_phase["runs_above_avg"] * 1.5 + bat_phase["sr_component"] * 0.5
+    bat_phase["phase_mult"]  = bat_phase["phase"].map(PHASE_BAT_MULT).fillna(1.0)
+    bat_phase["bat_contrib"] = bat_phase["raw_bat"] * bat_phase["phase_mult"]
 
-    # Bowling contribution per (match, innings, bowler)
-    # Exclude run outs from wickets
-    bbb_bowl = bbb[~bbb["wicket_type"].isin(["run out", "obstructed the field", "retired hurt"])]
-    bowl = (
-        bbb_bowl.groupby(["match_id", "season", "innings", "bowler"], observed=True)
+    # Collapse to innings level
+    bat = (
+        bat_phase.groupby(["match_id", "season", "innings", "player_name"], observed=True)
         .agg(
-            bowl_runs_given = ("runs_total",  "sum"),
-            legal_balls     = ("is_wide",     lambda x: (~x).sum()),
-            wickets_taken   = ("is_wicket",   "sum"),
-            dot_balls       = ("runs_total",  lambda x: (x == 0).sum()),
-            venue           = ("venue",       "first"),
+            batting_impact = ("bat_contrib", "sum"),
+            venue          = ("venue",       "first"),
         )
         .reset_index()
-        .rename(columns={"bowler": "player_name"})
     )
-    bowl["bowl_overs_match"] = bowl["legal_balls"] / 6
-    bowl["economy_match"] = np.where(
-        bowl["bowl_overs_match"] > 0,
-        bowl["bowl_runs_given"] / bowl["bowl_overs_match"],
-        9.0,
-    )
-    bowl["bowling_impact"] = (
-        bowl["wickets_taken"] * WICKET_WEIGHT
-        + (8.0 - bowl["economy_match"]).clip(lower=0) * bowl["bowl_overs_match"] * ECONOMY_BONUS
-        + bowl["dot_balls"] * DOT_BONUS
-    ).clip(lower=0)
 
-    # Merge batting + bowling per player per match innings
+    # Not-out bonus: +5.0 per innings if the batter was not dismissed.
+    # Requires player_dismissed column (present in Cricsheet-parsed data).
+    if "player_dismissed" in bbb.columns:
+        _dismissed = (
+            bbb[bbb["is_wicket"].astype(bool) & bbb["player_dismissed"].notna()]
+            [["match_id", "innings", "player_dismissed"]]
+            .rename(columns={"player_dismissed": "player_name"})
+            .drop_duplicates()
+            .assign(was_dismissed=True)
+        )
+        bat = bat.merge(_dismissed, on=["match_id", "innings", "player_name"], how="left")
+        bat["batting_impact"] += np.where(bat["was_dismissed"].isna(), 5.0, 0.0)
+        bat = bat.drop(columns=["was_dismissed"])
+
+    # -----------------------------------------------------------------------
+    # BOWLING — phase-level aggregation with economy + wicket weights
+    # -----------------------------------------------------------------------
+    _PHASE_AVG_ECON = {
+        "powerplay": PSL_POWERPLAY_ECONOMY,
+        "middle":    PSL_MIDDLE_ECONOMY,
+        "death":     PSL_DEATH_ECONOMY,
+    }
+    _EW = {p: v["economy"] for p, v in PHASE_WEIGHTS.items()}
+    _WW = {p: v["wicket"]  for p, v in PHASE_WEIGHTS.items()}
+
+    bbb_bowl = bbb[~bbb["wicket_type"].isin(["run out", "obstructed the field", "retired hurt"])]
+    bowl_phase = (
+        bbb_bowl.groupby(["match_id", "season", "innings", "bowler", "_phase"], observed=True)
+        .agg(
+            bowl_runs   = ("runs_total", "sum"),
+            legal_balls = ("is_wide",    lambda x: (~x).sum()),
+            wickets     = ("is_wicket",  "sum"),
+            venue       = ("venue",      "first"),
+        )
+        .reset_index()
+        .rename(columns={"bowler": "player_name", "_phase": "phase"})
+    )
+
+    bowl_phase["overs"]          = bowl_phase["legal_balls"] / 6
+    bowl_phase["economy"]        = np.where(
+        bowl_phase["overs"] > 0,
+        bowl_phase["bowl_runs"] / bowl_phase["overs"],
+        0.0,
+    )
+    bowl_phase["phase_avg_econ"] = bowl_phase["phase"].map(_PHASE_AVG_ECON).fillna(PSL_MIDDLE_ECONOMY)
+    bowl_phase["economy_saved"]  = (bowl_phase["phase_avg_econ"] - bowl_phase["economy"]) * bowl_phase["overs"]
+    bowl_phase["wicket_value"]   = bowl_phase["wickets"] * PSL_WICKET_VALUE
+    bowl_phase["ew"]             = bowl_phase["phase"].map(_EW).fillna(0.45)
+    bowl_phase["ww"]             = bowl_phase["phase"].map(_WW).fillna(0.55)
+    bowl_phase["bowl_contrib"]   = (
+        bowl_phase["economy_saved"] * bowl_phase["ew"] * 10
+        + bowl_phase["wicket_value"] * bowl_phase["ww"]
+    )
+
+    bowl = (
+        bowl_phase.groupby(["match_id", "season", "innings", "player_name"], observed=True)
+        .agg(bowling_impact=("bowl_contrib", "sum"))
+        .reset_index()
+    )
+
+    # -----------------------------------------------------------------------
+    # Merge batting + bowling; final impact in real cricket units
+    # -----------------------------------------------------------------------
     combined = bat[["match_id", "season", "innings", "player_name", "venue", "batting_impact"]].merge(
         bowl[["match_id", "innings", "player_name", "bowling_impact"]],
         on=["match_id", "innings", "player_name"],
         how="outer",
     )
-    combined["batting_impact"]  = combined["batting_impact"].fillna(0.0)
-    combined["bowling_impact"]  = combined["bowling_impact"].fillna(0.0)
-    combined["raw_impact"]      = combined["batting_impact"] + combined["bowling_impact"]
-
-    # Normalise impact within each (match, innings) to 0-100
-    match_max = combined.groupby(["match_id", "innings"], observed=True)["raw_impact"].transform("max")
-    combined["impact_score"] = np.where(
-        match_max > 0,
-        (combined["raw_impact"] / match_max * 100).clip(0, 100),
-        50.0,
-    )
+    combined["batting_impact"] = combined["batting_impact"].fillna(0.0)
+    combined["bowling_impact"] = combined["bowling_impact"].fillna(0.0)
+    combined["impact_score"]   = combined["batting_impact"] + combined["bowling_impact"]
 
     # Join player features
     df = combined.merge(player_feat, on="player_name", how="inner")
 
-    # Join venue stats (pace/spin economy) as context proxy
+    # Join venue stats (pace/spin economy) as match-context proxy
     venue_eco = venue_stats[["venue", "pace_economy", "spin_economy"]].copy()
     venue_eco.columns = ["venue", "venue_pace_economy", "venue_spin_economy"]
     df = df.merge(venue_eco, on="venue", how="left")
@@ -318,6 +431,13 @@ def train(
     # Build features + training rows
     if verbose:
         print("[train_xi_scorer] Building player feature lookup...")
+
+    # Season split (needed before building features for leakage-free test eval)
+    all_seasons   = sorted(bbb["season"].unique())
+    test_seasons  = all_seasons[-2:] if len(all_seasons) >= 2 else all_seasons[-1:]
+    train_seasons = [s for s in all_seasons if s not in test_seasons]
+
+    # Full career features — used for production model and train-set training
     player_feat = _build_player_features(stats, player_meta)
 
     if verbose:
@@ -327,22 +447,32 @@ def train(
     if verbose:
         print(f"[train_xi_scorer] Training set: {len(train_df):,} rows x {len(FEATURE_COLS)} features")
 
-    # Train/test split by season
-    all_seasons  = sorted(train_df["season"].unique())
-    test_seasons = all_seasons[-2:] if len(all_seasons) >= 2 else all_seasons[-1:]
-    train_seasons= [s for s in all_seasons if s not in test_seasons]
-
     tr_mask = train_df["season"].isin(train_seasons)
     te_mask = train_df["season"].isin(test_seasons)
 
     X_train = train_df.loc[tr_mask, FEATURE_COLS].astype(float)
     y_train = train_df.loc[tr_mask, "impact_score"].astype(float)
-    X_test  = train_df.loc[te_mask, FEATURE_COLS].astype(float)
-    y_test  = train_df.loc[te_mask, "impact_score"].astype(float)
+
+    # Fix 2.3: Build test features using only pre-test-season stats to avoid leakage.
+    # Career features include test-season data, so test RMSE was artificially low.
+    if verbose:
+        print("[train_xi_scorer] Building leakage-free features for test evaluation...")
+    player_feat_prettest = _build_player_features(stats, player_meta, cutoff_seasons=train_seasons)
+    train_df_test = _build_training_rows(
+        bbb[bbb["season"].isin(test_seasons)], player_feat_prettest, venue_stats
+    )
+    X_test = train_df_test[FEATURE_COLS].astype(float)
+    y_test = train_df_test["impact_score"].astype(float)
 
     if verbose:
         print(f"[train_xi_scorer] Train: {len(X_train):,}  |  Test: {len(X_test):,}")
-        print(f"[train_xi_scorer]   Target mean={y_train.mean():.1f}  std={y_train.std():.1f}")
+        _sc = train_df["impact_score"]
+        print(
+            f"[train_xi_scorer] Impact score distribution (all rows, real cricket units):\n"
+            f"  mean={_sc.mean():.1f}  std={_sc.std():.1f}"
+            f"  p10={_sc.quantile(0.10):.1f}  p50={_sc.quantile(0.50):.1f}  p90={_sc.quantile(0.90):.1f}"
+            f"  min={_sc.min():.1f}  max={_sc.max():.1f}"
+        )
 
     model = XGBRegressor(
         n_estimators     = 400,

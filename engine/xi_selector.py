@@ -46,7 +46,28 @@ MAX_OVERSEAS     = 4
 MIN_KEEPERS      = 1
 MIN_BOWLERS      = 4    # genuine (role = Bowler or All-rounder with bowling)
 MIN_BATTERS      = 5    # pure batters + keeper
-MIN_SPINNERS     = 1    # PSL pitches deteriorate; a spinner is always needed
+MIN_SPINNERS     = 1    # PSL pitches deteriorate; a spinner is almost always needed
+MIN_EMERGING     = 1    # PSL rule: exactly 1 U23 uncapped Pakistani emerging player
+MAX_EMERGING     = 1
+
+# Fix 4.4: Venues where pace dominates — spinner minimum relaxed to 0.
+# Rawalpindi and Peshawar produce the most seam movement in the PSL.
+# At these venues the "must include a spinner" constraint can be waived
+# when there is no spinner in the squad worth picking ahead of a pacer.
+_PACE_DOMINANT_VENUES = {
+    "Rawalpindi Cricket Stadium",
+    "Arbab Niaz Stadium, Peshawar",
+    "Arbab Niaz Stadium",
+}
+
+# Module-level cache so TabNet/XGBoost model is loaded only once per process.
+_CACHED_MODEL_PAYLOAD: dict | None = None
+_CACHED_MODEL_KEY: str | None = None
+
+
+def _min_spinners_for_venue(venue: str) -> int:
+    """Return minimum spinners required at this venue (1 everywhere; 0 at seam tracks)."""
+    return 0 if venue in _PACE_DOMINANT_VENUES else MIN_SPINNERS
 
 ROLE_KEEPER   = {"Wicketkeeper", "WK-Batsman"}
 ROLE_BOWLER   = {"Bowler"}
@@ -72,6 +93,7 @@ class ScoredPlayer:
     form_coefficient: float = 1.0   # 0.80–1.20 based on recent PSL season trends
     form_tag:         str   = ""    # "In form" | "Out of form" | "Good form" | ""
     model_source:     str   = ""    # "tabnet" | "transfer" | "analytical" | "standard"
+    is_emerging:      bool  = False # PSL rule: U23 uncapped Pakistani player
 
 
 @dataclass
@@ -121,6 +143,7 @@ def _load_meta(path: str) -> dict[str, dict]:
                 "batting_style":      row.get("batting_style", "Right-hand bat").strip(),
                 "bowling_style":      row.get("bowling_style", "").strip(),
                 "is_overseas":        row.get("is_overseas", "False").strip().lower() == "true",
+                "is_emerging":        row.get("is_emerging", "False").strip().lower() == "true",
                 "is_pace":  any(w in style for w in ("fast","medium","seam","swing","pace")),
                 "is_spin":  any(w in style for w in ("spin","off","leg","googly","chinaman","slow")),
                 # T20 career stats — proxy for players with no/limited PSL history
@@ -445,6 +468,93 @@ def _recent_form_lookup(
 
 
 # ---------------------------------------------------------------------------
+# INNINGS CONTEXT (CHASE / SET) SCORING
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=4)
+def _load_innings_context(stats_path: str) -> dict[str, dict]:
+    """
+    Cache {player_name: {bat_avg_chase, bat_avg_set, bat_sr_chase, bat_sr_set,
+                          bat_innings_chase, bat_innings_set, innings_context_split}}
+    from the career (season=0) overall row in player_stats.parquet.
+    Returns {} if the parquet is missing or the columns haven't been built yet.
+    """
+    try:
+        df = pd.read_parquet(stats_path)
+    except Exception:
+        return {}
+
+    career_overall = df[
+        (df["season"] == 0) & (df["phase"] == "overall")
+    ].copy()
+
+    required = {"bat_avg_chase", "bat_avg_set", "innings_context_split"}
+    if not required.issubset(career_overall.columns):
+        return {}   # pipeline not yet rebuilt with the new columns
+
+    result: dict[str, dict] = {}
+    for _, row in career_overall.iterrows():
+        name = row.get("player_name")
+        if not name:
+            continue
+        def _flt(val, default=0.0):
+            try:
+                v = float(val)
+                return default if pd.isna(v) else v
+            except (TypeError, ValueError):
+                return default
+
+        result[name] = {
+            "bat_avg_chase":        _flt(row.get("bat_avg_chase")),
+            "bat_avg_set":          _flt(row.get("bat_avg_set")),
+            "bat_sr_chase":         _flt(row.get("bat_sr_chase")),
+            "bat_sr_set":           _flt(row.get("bat_sr_set")),
+            "bat_innings_chase":    int(_flt(row.get("bat_innings_chase"))),
+            "bat_innings_set":      int(_flt(row.get("bat_innings_set"))),
+            "innings_context_split":_flt(row.get("innings_context_split")),
+        }
+    return result
+
+
+_MIN_CONTEXT_INNINGS = 5   # fewer innings → fall back to career bat_avg
+
+
+def _innings_context_bonus(
+    player:   str,
+    innings:  int,
+    ctx_map:  dict[str, dict],
+) -> tuple[float, str]:
+    """
+    Return (score_adjustment, metadata_note) based on the player's chase/set split.
+
+    Adjustment is applied for batters/allrounders only (bowlers: 0.0).
+    Scale: each 5-run difference in avg → ±1 point, capped at ±5.
+    Falls back to 0.0 when:
+      - no context data loaded (pipeline not rebuilt yet)
+      - fewer than _MIN_CONTEXT_INNINGS in the relevant context
+    """
+    data = ctx_map.get(player)
+    if not data:
+        return 0.0, "ctx:no_data"
+
+    if innings == 2:     # chasing
+        n      = data["bat_innings_chase"]
+        split  = data["innings_context_split"]   # positive = better chaser
+        label  = "ctx:chase"
+    else:                # setting (innings == 1)
+        n      = data["bat_innings_set"]
+        split  = -data["innings_context_split"]  # invert so positive = better setter
+        label  = "ctx:set"
+
+    if n < _MIN_CONTEXT_INNINGS:
+        return 0.0, f"ctx:fallback(<{_MIN_CONTEXT_INNINGS}inn)"
+
+    adjustment = round(max(-5.0, min(5.0, split / 5.0)), 2)
+    note = f"{label}:{adjustment:+.1f}"
+    return adjustment, note
+
+
+# ---------------------------------------------------------------------------
 # PLAYER SCORING
 # ---------------------------------------------------------------------------
 
@@ -554,6 +664,10 @@ def _score_squad(
     opp_bat  = opp_batters or []
     rf_path  = str(RECENT_FORM_PATH)
 
+    # Chase / set context — load once per squad evaluation
+    _ctx_stats_path = str(stats_path) if stats_path else str(STATS_PATH)
+    _ctx_map        = _load_innings_context(_ctx_stats_path)
+
     # Phase-aware spinner penalty:
     # Dew builds up during the innings and is WORST when it arrives early (many overs affected).
     # Late dew (onset over 16+) only affects 4 overs — spinner value is mostly preserved.
@@ -635,7 +749,20 @@ def _score_squad(
             form_tag = _legacy_tag   # fall back to season-based tag when recent form is neutral
 
         matchup_b = _matchup_bonus(p, role, meta, opp_lh_pct, opp_bat, opp_spin_economies)
-        sc = round(blended + matchup_b, 2)
+
+        # Innings context bonus: reward players who historically excel in this
+        # specific innings context (chasing vs setting).
+        # Only meaningful for batters/allrounders; bowlers get 0.0.
+        _is_batting_role = role not in ("Bowler",)
+        if _is_batting_role:
+            ctx_adj, ctx_note = _innings_context_bonus(p, innings, _ctx_map)
+        else:
+            ctx_adj, ctx_note = 0.0, ""
+
+        sc = round(blended + matchup_b + ctx_adj, 2)
+
+        _base_src = _src[0] if _src else ""
+        _model_src = f"{_base_src}|{ctx_note}" if ctx_note else _base_src
 
         scored.append(ScoredPlayer(
             player_name      = p,
@@ -649,7 +776,8 @@ def _score_squad(
             bowling_style    = m.get("bowling_style", ""),
             form_coefficient = form_coeff,
             form_tag         = form_tag,
-            model_source     = _src[0] if _src else "",
+            model_source     = _model_src,
+            is_emerging      = m.get("is_emerging",  False),
         ))
 
     return sorted(scored, key=lambda x: x.score, reverse=True)
@@ -666,13 +794,13 @@ def _is_spinner(p: ScoredPlayer) -> bool:
     return any(w in style for w in _SPIN_KEYWORDS) and (p.is_bowler or p.is_allrounder)
 
 
-def _validate(selected: list[ScoredPlayer]) -> tuple[bool, str]:
+def _validate(selected: list[ScoredPlayer], venue: str = "") -> tuple[bool, str]:
     """Check PSL constraints. Returns (is_valid, reason_if_invalid)."""
     overseas = sum(1 for p in selected if p.is_overseas)
     keepers  = sum(1 for p in selected if p.is_keeper)
     bowlers  = sum(1 for p in selected if p.is_bowler or p.is_allrounder)
     spinners = sum(1 for p in selected if _is_spinner(p))
-    batters  = sum(1 for p in selected if not p.is_bowler)
+    emerging = sum(1 for p in selected if p.is_emerging)
 
     if overseas > MAX_OVERSEAS:
         return False, f"Too many overseas: {overseas} > {MAX_OVERSEAS}"
@@ -680,8 +808,14 @@ def _validate(selected: list[ScoredPlayer]) -> tuple[bool, str]:
         return False, f"No wicketkeeper in XI"
     if bowlers < MIN_BOWLERS:
         return False, f"Insufficient bowlers: {bowlers} < {MIN_BOWLERS}"
-    if spinners < MIN_SPINNERS:
-        return False, f"No spinner in XI — PSL pitches require at least one spinner"
+    # Spinner minimum is venue-dependent (0 at seam-dominant venues like Rawalpindi/Peshawar)
+    min_spin = _min_spinners_for_venue(venue)
+    if spinners < min_spin:
+        return False, f"No spinner in XI — PSL pitches typically require at least one spinner"
+    if emerging < MIN_EMERGING:
+        return False, f"No emerging player in XI — PSL rule requires exactly 1 U23 uncapped Pakistani"
+    if emerging > MAX_EMERGING:
+        return False, f"Too many emerging players: {emerging} > {MAX_EMERGING}"
     return True, ""
 
 
@@ -694,6 +828,7 @@ def _greedy_select(
     prefer_spin:    bool = False,
     prefer_pace:    bool = False,
     forced_players: Optional[list[str]] = None,
+    venue:          str = "",
 ) -> list[ScoredPlayer]:
     """
     Greedy selection: pick highest-scoring players satisfying constraints.
@@ -772,14 +907,20 @@ def _greedy_select(
         keeper_added = True
 
     # Step 2: fill greedily
+    emerging_used = sum(1 for p in selected if p.is_emerging)  # count forced emerging already
     for p in remaining[:]:
         if len(selected) >= XI_SIZE:
             break
         if not _can_add(p):
             continue
+        # Cap emerging at MAX_EMERGING during greedy fill; Step 6 ensures exactly 1 is present
+        if p.is_emerging and emerging_used >= MAX_EMERGING:
+            continue
         selected.append(p)
         if p.is_overseas:
             overseas_used += 1
+        if p.is_emerging:
+            emerging_used += 1
         if p.is_bowler or p.is_allrounder:
             bowlers_added += 1
         remaining.remove(p)
@@ -804,9 +945,10 @@ def _greedy_select(
             if available_bowlers[i].is_overseas:
                 overseas_used += 1
 
-    # Step 4: enforce minimum spinner — if no spinner in XI, swap in best available spinner
+    # Step 4: enforce minimum spinner — venue-conditional (Fix 4.4)
+    # At seam-dominant venues (Rawalpindi, Peshawar) the spinner minimum is 0.
     current_spinners = sum(1 for p in selected if _is_spinner(p))
-    if current_spinners < MIN_SPINNERS:
+    if current_spinners < _min_spinners_for_venue(venue):
         available_spinners = sorted(
             [p for p in remaining if _is_spinner(p) and _can_add(p)],
             key=lambda x: x.score,
@@ -822,6 +964,97 @@ def _greedy_select(
                 selected.remove(swap_out_candidates[0])
                 selected.append(available_spinners[0])
                 if available_spinners[0].is_overseas:
+                    overseas_used += 1
+
+    # Step 5: Enforce EXACTLY 4 overseas players.
+    # Must run BEFORE emerging enforcement so the overseas swap cannot accidentally
+    # remove the only emerging player (the emerging guard below then re-inserts if needed).
+    MIN_OVERSEAS = 4
+    current_overseas = [p for p in selected if p.is_overseas]
+    if len(current_overseas) < MIN_OVERSEAS:
+        need_overseas = MIN_OVERSEAS - len(current_overseas)
+        available_overseas = sorted(
+            [p for p in remaining if p.is_overseas],
+            key=lambda x: x.score,
+            reverse=True,
+        )
+        is_bowl = lambda x: x.is_bowler or x.is_allrounder
+        for i in range(min(need_overseas, len(available_overseas))):
+            locals_in_xi = sorted(
+                [p for p in selected if not p.is_overseas], key=lambda x: x.score
+            )
+            for local_p in locals_in_xi:
+                # Do not drop below keeper minimum
+                if local_p.is_keeper and sum(1 for x in selected if x.is_keeper) <= MIN_KEEPERS:
+                    if not available_overseas[i].is_keeper:
+                        continue
+                # Do not drop below bowler minimum
+                if is_bowl(local_p) and sum(1 for x in selected if is_bowl(x)) <= MIN_BOWLERS:
+                    if not is_bowl(available_overseas[i]):
+                        continue
+                # Safe to swap (emerging guard runs afterwards in Step 6)
+                selected.remove(local_p)
+                selected.append(available_overseas[i])
+                # Update overseas_used so _can_add rejects further overseas in Step 6
+                overseas_used += 1
+                # Remove from remaining so Step 6 cannot pick the same player again
+                if available_overseas[i] in remaining:
+                    remaining.remove(available_overseas[i])
+                break
+
+    # Step 6: enforce exactly 1 emerging player (PSL rule: 1 U23 uncapped Pakistani).
+    # Runs AFTER overseas enforcement so overseas count is already locked.
+    # 6a. If none selected → force best-scoring emerging player from remaining.
+    # 6b. If 2+ selected → keep only the best, replace extras with non-emerging players.
+    current_emerging = [p for p in selected if p.is_emerging]
+    emerging_count   = len(current_emerging)
+
+    if emerging_count == 0:
+        available_emerging = sorted(
+            [p for p in remaining if p.is_emerging],
+            key=lambda x: x.score,
+            reverse=True,
+        )
+        if available_emerging:
+            # Prefer swapping out lowest-scoring non-essential batter
+            swap_out = sorted(
+                [p for p in selected
+                 if not p.is_keeper and not p.is_bowler and not p.is_allrounder
+                 and not p.is_emerging and not p.is_overseas],
+                key=lambda x: x.score,
+            )
+            if swap_out:
+                selected.remove(swap_out[0])
+                selected.append(available_emerging[0])
+            else:
+                # Last resort — swap lowest non-keeper, non-emerging (may be overseas)
+                swap_out_any = sorted(
+                    [p for p in selected if not p.is_keeper and not p.is_emerging],
+                    key=lambda x: x.score,
+                )
+                if swap_out_any and len(selected) == XI_SIZE:
+                    removed = swap_out_any[0]
+                    selected.remove(removed)
+                    if removed.is_overseas:
+                        overseas_used -= 1
+                    selected.append(available_emerging[0])
+                elif len(selected) < XI_SIZE:
+                    selected.append(available_emerging[0])
+
+    elif emerging_count > MAX_EMERGING:
+        # Keep only the best-scoring emerging player; replace extras
+        current_emerging_sorted = sorted(current_emerging, key=lambda x: x.score, reverse=True)
+        for excess in current_emerging_sorted[MAX_EMERGING:]:
+            replacements = sorted(
+                [p for p in remaining if not p.is_emerging and _can_add(p)],
+                key=lambda x: x.score,
+                reverse=True,
+            )
+            if replacements:
+                selected.remove(excess)
+                remaining.remove(replacements[0])
+                selected.append(replacements[0])
+                if replacements[0].is_overseas:
                     overseas_used += 1
 
     return selected[:XI_SIZE]
@@ -1167,6 +1400,84 @@ def _assign_batting_order(
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# SQUAD VALIDATION HELPER
+# ---------------------------------------------------------------------------
+
+def validate_squad(
+    squad:      list[str],
+    team:       str = "",
+    meta_path:  str | None = None,
+) -> dict:
+    """
+    Validate a squad list against the player index before engine processing.
+    Catches ghost players (names not in index) at the entry point so they
+    cannot silently corrupt downstream results.
+
+    Returns a dict:
+      {
+        "valid":       bool,
+        "known":       list[str],   # names found in player index
+        "unknown":     list[str],   # names NOT in player index
+        "warnings":    list[str],   # non-fatal issues (e.g. no emerging player)
+        "errors":      list[str],   # fatal issues (< 11 players, no keeper, etc.)
+      }
+    """
+    path      = meta_path or str(PLAYER_INDEX)
+    meta      = _load_meta(path)
+    known     = [p for p in squad if p in meta]
+    unknown   = [p for p in squad if p not in meta]
+
+    warnings: list[str] = []
+    errors:   list[str] = []
+
+    if unknown:
+        errors.append(
+            f"{len(unknown)} player(s) not found in player index: {unknown}. "
+            "Check spelling or add them to player_index_2026_enriched.csv."
+        )
+
+    if len(known) < XI_SIZE:
+        errors.append(
+            f"Only {len(known)} recognised players — need at least {XI_SIZE} to select a valid XI."
+        )
+
+    overseas = sum(1 for p in known if meta[p].get("is_overseas", False))
+    if overseas > MAX_OVERSEAS:
+        errors.append(f"Squad has {overseas} overseas players — PSL cap is {MAX_OVERSEAS}.")
+
+    emerging = sum(1 for p in known if meta[p].get("is_emerging", False))
+    if emerging == 0:
+        warnings.append(
+            "No emerging (U23 uncapped) player in squad — PSL rules require exactly 1 in the XI."
+        )
+
+    keepers = sum(
+        1 for p in known
+        if meta[p].get("primary_role", "") in ROLE_KEEPER
+    )
+    if keepers == 0:
+        errors.append("No wicketkeeper in squad.")
+
+    bowlers = sum(
+        1 for p in known
+        if meta[p].get("primary_role", "") in ROLE_BOWLER | ROLE_ALLROUND
+    )
+    if bowlers < MIN_BOWLERS:
+        warnings.append(
+            f"Only {bowlers} genuine bowlers/all-rounders — may struggle to cover 20 overs."
+        )
+
+    return {
+        "valid":   len(errors) == 0,
+        "known":   known,
+        "unknown": unknown,
+        "warnings": warnings,
+        "errors":   errors,
+    }
+
+
+# ---------------------------------------------------------------------------
 # MAIN FUNCTION
 # ---------------------------------------------------------------------------
 
@@ -1196,6 +1507,16 @@ def select_xi(
     Returns:
         [OptionA (primary), OptionB (spin-heavy), OptionC (pace-heavy)]
     """
+    # Validate squad against player index — surface unknown names early
+    _vr = validate_squad(squad)
+    if _vr["unknown"]:
+        import warnings as _warnings
+        _warnings.warn(
+            f"select_xi: {len(_vr['unknown'])} player(s) not in index — "
+            f"they will be scored with defaults: {_vr['unknown']}",
+            stacklevel=2,
+        )
+
     if len(squad) < 11:
         raise ValueError(
             f"select_xi() requires at least 11 players in the squad, got {len(squad)}. "
@@ -1207,7 +1528,14 @@ def select_xi(
     sp  = Path(stats_path) if stats_path else STATS_PATH
 
     from models.train_xi_scorer import load_model
-    payload      = load_model(mp)
+    # Cache the loaded model payload in the module — loading TabNet + XGBoost
+    # takes 3-4s on first call; subsequent calls are instant.
+    global _CACHED_MODEL_PAYLOAD, _CACHED_MODEL_KEY
+    _cache_key = mp
+    if _CACHED_MODEL_PAYLOAD is None or _CACHED_MODEL_KEY != _cache_key:
+        _CACHED_MODEL_PAYLOAD = load_model(mp)
+        _CACHED_MODEL_KEY = _cache_key
+    payload      = _CACHED_MODEL_PAYLOAD
     meta         = _load_meta(pi)
     partnerships = _load_partnerships()
 
@@ -1239,12 +1567,13 @@ def select_xi(
 
     for label, desc, prefer_spin, prefer_pace in configs:
         selected = _greedy_select(scored, prefer_spin=prefer_spin, prefer_pace=prefer_pace,
-                                  forced_players=forced_players)
+                                  forced_players=forced_players, venue=venue)
         xi       = _assign_batting_order(selected, partnership_lookup=partnerships,
                                          finisher_flags=finisher_flags)
 
         overseas = sum(1 for p in selected if p.is_overseas)
         bowlers  = sum(1 for p in selected if p.is_bowler or p.is_allrounder)
+        emerging = sum(1 for p in selected if p.is_emerging)
         # Max overs coverage (each bowler 4, allrounder 2)
         coverage = sum(
             4 if p.is_bowler else 2
@@ -1253,6 +1582,7 @@ def select_xi(
         )
         constraint_note = (
             f"{overseas} overseas / {XI_SIZE - overseas} local  |  "
+            f"{emerging} emerging  |  "
             f"{bowlers} bowlers  |  ~{coverage} overs coverage"
         )
         total_score = sum(p.score for p in selected)
@@ -1277,12 +1607,15 @@ def select_xi(
 if __name__ == "__main__":
     from utils.situation import WeatherImpact
 
+    # PSL 2026 Lahore Qalandars — 14-player subset of verified 20-man squad
+    # 4 overseas (Sikandar Raza, Mustafizur Rahman, Dasun Shanaka, Dunith Wellalage)
+    # 2 emerging (Ubaid Shah, Shahab Khan)
     lahore_squad = [
-        "Fakhar Zaman", "Abdullah Shafique", "Sikandar Raza",
-        "Shaheen Shah Afridi", "Liam Dawson", "Mohammad Hafeez",
-        "Rashid Khan", "Haris Rauf", "Zaman Khan",
-        "Agha Salman", "Mohammad Nawaz", "Sahibzada Farhan",
-        "Salman Agha", "Usman Shinwari",
+        "Fakhar Zaman", "Abdullah Shafique", "Tayyab Tahir",
+        "Sikandar Raza", "Hussain Talat", "Haris Rauf",
+        "Usama Mir", "Shaheen Shah Afridi", "Mustafizur Rahman",
+        "Dasun Shanaka", "Dunith Wellalage", "Haseebullah",
+        "Ubaid Shah", "Shahab Khan",
     ]
 
     weather = WeatherImpact(

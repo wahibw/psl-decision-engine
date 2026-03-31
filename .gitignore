@@ -26,3 +26,19 @@ models/saved/
 # OS
 .DS_Store
 Thumbs.db
+~$*
+
+# IDE / tooling
+.vscode/
+.pyre_configuration
+pyrightconfig.json
+pyproject.toml
+
+# Claude memory (local only)
+.claude/
+
+# Backup files
+*.bak
+
+# Scratch / temp outputs
+out.json

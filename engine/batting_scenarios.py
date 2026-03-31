@@ -24,6 +24,91 @@ from utils.situation import WeatherImpact
 PROJ_ROOT    = Path(__file__).resolve().parent.parent
 PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
+VENUE_STATS  = PROJ_ROOT / "data" / "processed" / "venue_stats.csv"
+
+
+# ---------------------------------------------------------------------------
+# VENUE STATS
+# ---------------------------------------------------------------------------
+
+def _load_venue_stats(venue: str) -> dict:
+    """
+    Load scoring context for a specific venue from venue_stats.csv.
+
+    Returns dict with:
+        avg_first_score, avg_pp_score, avg_death_runs_added,
+        chase_win_pct, avg_runs_per_over
+    Falls back to PSL-wide averages when venue not found.
+    """
+    defaults = {
+        "avg_first_score":    168.0,
+        "avg_pp_score":        48.0,
+        "avg_death_runs_added": 48.0,
+        "chase_win_pct":       52.0,
+        "avg_runs_per_over":    8.4,
+    }
+    if not VENUE_STATS.exists() or not venue:
+        return defaults
+    try:
+        with open(VENUE_STATS, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if row.get("venue", "").strip().lower() == venue.strip().lower():
+                    def _f(k: str, d: float, _r: dict = row) -> float:
+                        try:
+                            v = _r.get(k, "")
+                            return float(v) if v and str(v).strip() not in ("", "nan") else d
+                        except (ValueError, TypeError):
+                            return d
+                    return {
+                        "avg_first_score":    _f("avg_first_score",    defaults["avg_first_score"]),
+                        "avg_pp_score":       _f("avg_pp_score",       defaults["avg_pp_score"]),
+                        "avg_death_runs_added": _f("avg_death_runs_added", defaults["avg_death_runs_added"]),
+                        "chase_win_pct":      _f("chase_win_pct",      defaults["chase_win_pct"]),
+                        "avg_runs_per_over":  _f("avg_runs_per_over",  defaults["avg_runs_per_over"]),
+                    }
+    except Exception:
+        pass
+    return defaults
+
+
+def _venue_scenario_targets(vstats: dict) -> dict:
+    """
+    Derive per-venue scenario thresholds from venue stats.
+
+    Returns:
+        ideal_pp_target:  PP score that constitutes a "good start" (~10% above par)
+        collapse_pp_max:  PP score below which we're in collapse territory (~65% of par)
+        par_total:        Expected first-innings total
+        low_score_total:  Total below which the match is a low-scoring affair (~85% of par)
+        chase_pct:        Historical chase win percentage at this venue
+        venue_tag:        Short context string for use in messages
+    """
+    par_pp    = vstats["avg_pp_score"]
+    par_total = vstats["avg_first_score"]
+    chase_pct = vstats["chase_win_pct"]
+
+    ideal_pp_target  = round(par_pp * 1.10)
+    collapse_pp_max  = round(par_pp * 0.65)
+    low_score_total  = round(par_total * 0.85)
+    par_total_r      = round(par_total)
+
+    # Characterise the ground for human-readable notes
+    if par_total >= 180:
+        venue_tag = f"high-scoring ground (par ~{par_total_r})"
+    elif par_total <= 158:
+        venue_tag = f"low-scoring ground (par ~{par_total_r})"
+    else:
+        venue_tag = f"par ~{par_total_r} at this venue"
+
+    return {
+        "ideal_pp_target":  ideal_pp_target,
+        "collapse_pp_max":  collapse_pp_max,
+        "par_total":        par_total_r,
+        "low_score_total":  low_score_total,
+        "chase_pct":        round(chase_pct),
+        "defend_pct":       round(100 - chase_pct),
+        "venue_tag":        venue_tag,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -270,32 +355,67 @@ def generate_batting_scenarios(
     pi   = str(player_index_path or (PLAYER_INDEX if PLAYER_INDEX.exists() else PLAYER_INDEX_FALLBACK))
     meta = _load_meta(pi)
 
+    # --- Venue-aware scenario targets ---
+    vstats  = _load_venue_stats(venue)
+    vt      = _venue_scenario_targets(vstats)
+    ipt     = vt["ideal_pp_target"]       # e.g. 56 for Lahore
+    cpp     = vt["collapse_pp_max"]       # e.g. 33 for Lahore
+    par     = vt["par_total"]             # e.g. 175
+    lst     = vt["low_score_total"]       # e.g. 148
+    cp      = vt["chase_pct"]             # e.g. 42
+    vtag    = vt["venue_tag"]
+    target_total = round(par * 1.05)      # 5% above par = a good total
+
     scenarios: list[BattingScenario] = []
 
     scenario_configs = {
         "A": {
             "name":        "Ideal Start",
-            "description": "Platform set — 60+ at over 10, <=2 wickets",
-            "trigger":     "60+ on board after 10 overs with 2 or fewer wickets down",
-            "key_message": "Platform set — batters 3-6 to accelerate immediately and target 190+.",
+            "description": f"Platform set — {ipt}+ in PP, ≤2 wickets down",
+            "trigger":     (
+                f"{ipt}+ on board after 6 overs with 2 or fewer wickets down "
+                f"(PP par at this venue is {round(vstats['avg_pp_score'])})"
+            ),
+            "key_message": (
+                f"Platform set at a {vtag}. "
+                f"Batters 3-6 to accelerate immediately — target {target_total}+."
+            ),
         },
         "B": {
             "name":        "Tough Start (Collapse)",
-            "description": "Under pressure — 3+ wickets by over 6, score <=35",
-            "trigger":     "3 or more wickets lost by the end of the powerplay with under 35 on the board",
-            "key_message": "Rebuild first, accelerate later — get to over 15 with 4 wickets in hand.",
+            "description": f"Under pressure — 3+ wickets by over 6, score ≤{cpp}",
+            "trigger":     (
+                f"3 or more wickets lost in the powerplay with under {cpp} on the board "
+                f"({vtag})"
+            ),
+            "key_message": (
+                f"Rebuild first — {lst}+ is a competitive total here. "
+                f"Get to over 15 with 4 wickets in hand then release."
+            ),
         },
         "C": {
             "name":        "Death Chase",
-            "description": "60+ needed off last 5 overs in second innings",
-            "trigger":     "Innings 2, over 15+, required rate above 12 per over",
-            "key_message": "Clear the boundary from ball 1 — this is all or nothing.",
+            "description": f"60+ needed off last 5 overs in second innings",
+            "trigger":     (
+                f"Innings 2, over 15+, required rate above 12 per over. "
+                f"Chasing teams win {cp}% of matches at this venue."
+            ),
+            "key_message": (
+                f"{'Chase-friendly' if cp >= 55 else 'Tough chase'} venue ({cp}% chase win rate) — "
+                f"clear the boundary from ball 1. Every dot kills the chase."
+            ),
         },
         "D": {
             "name":        "Conservative Build",
-            "description": "Low-scoring match — pitch doing something, target likely under 150",
-            "trigger":     "Low pitch score (CRR under 7.5 at over 12) — wickets in hand matter more than SR",
-            "key_message": "Wickets in hand are the asset — build to over 15 then release.",
+            "description": f"Low-scoring match — pitch doing something, target likely under {lst}",
+            "trigger":     (
+                f"Pitch doing something — CRR under {round(par / 20 * 0.78, 1)} at over 12. "
+                f"Par at this venue is {par}; anything under {lst} is a low-scoring game."
+            ),
+            "key_message": (
+                f"{lst}+ is a defendable total at this {vtag}. "
+                f"Wickets in hand are the asset — build to over 15 then release."
+            ),
         },
     }
 
@@ -360,8 +480,8 @@ if __name__ == "__main__":
 
     lahore_batters = [
         "Fakhar Zaman", "Abdullah Shafique", "Sikandar Raza",
-        "Shaheen Shah Afridi", "Liam Dawson", "Mohammad Hafeez",
-        "Rashid Khan", "Haris Rauf",
+        "Shaheen Shah Afridi", "Hussain Talat", "Tayyab Tahir",
+        "Usama Mir", "Haris Rauf",
     ]
 
     opp_bowling = {

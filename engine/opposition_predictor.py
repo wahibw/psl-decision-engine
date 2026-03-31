@@ -21,6 +21,10 @@ import pandas as pd
 
 PROJ_ROOT    = Path(__file__).resolve().parent.parent
 PROFILES_PATH = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
+
+# Franchises with no PSL franchise history — batting order built entirely from
+# individual player career data, all positions flagged Low confidence.
+NEW_FRANCHISES = {"Rawalpindiz", "Hyderabad Kingsmen"}
 PLAYER_INDEX  = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 MATCHUP_PATH       = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
@@ -273,10 +277,10 @@ def _arrival_over(position: int) -> str:
     return windows.get(position, f"arrives over {max(0, position*2 - 4)}-{min(20, position*2)}")
 
 
-def _phase_strength(position: int, profile: pd.Series) -> str:
+def _phase_strength(position: int, profile) -> str:
     """Classify batter phase role based on position and team profile."""
-    pp_sr  = float(profile.get("powerplay_sr", 120) or 120)
-    dth_sr = float(profile.get("death_sr",     130) or 130)
+    pp_sr  = float(profile.get("powerplay_sr", 120) or 120) if profile is not None else 120.0
+    dth_sr = float(profile.get("death_sr",     130) or 130) if profile is not None else 130.0
 
     if position <= 2:
         if pp_sr >= 135:
@@ -373,8 +377,9 @@ def _danger_rating(
 
     # Lower-order batters face limited balls outside death overs — reduce top-order
     # position advantage to avoid inflating danger for batters who rarely score in mid.
-    if position >= 6 and score > 0:
-        score -= 1   # partial offset: lower-order is phase-limited
+    # Exception: genuine death finishers (death SR ≥ 165) are a real threat — no penalty.
+    if position >= 6 and score > 0 and death_sr < 165:
+        score -= 1   # partial offset: lower-order is phase-limited (not finishers)
 
     # vs-spin vulnerability adds danger (they will be aggressive against our spinners)
     if vs_spin_sr >= 145: score += 1
@@ -386,13 +391,16 @@ def _danger_rating(
     else:
         base_rating = "Low"
 
-    # Recent form adjustment
-    _UPGRADE = {"Low": "Medium", "Medium": "High", "High": "High"}
-    _DOWNGRADE = {"High": "Medium", "Medium": "Low", "Low": "Low"}
-    if bat_form_score >= 70:
-        return _UPGRADE[base_rating]
-    if bat_form_score < 35:
-        return _DOWNGRADE[base_rating]
+    # Fix 3.2: Recent form adjustment — only for recognized batting positions (1-6).
+    # Tail-enders (7-11) rarely face enough balls outside the death to warrant a
+    # full danger-level shift; their form is too volatile over small samples.
+    if position <= 6:
+        _UPGRADE   = {"Low": "Medium", "Medium": "High", "High": "High"}
+        _DOWNGRADE = {"High": "Medium", "Medium": "Low", "Low": "Low"}
+        if bat_form_score >= 70:
+            return _UPGRADE[base_rating]
+        if bat_form_score < 35:
+            return _DOWNGRADE[base_rating]
     return base_rating
 
 
@@ -411,7 +419,7 @@ def _build_key_note(
     batting_style = _batting_style(player, meta)
     notes = []
 
-    if position <= 2 and profile.get("aggressive_opener_pct", 0) >= 50:
+    if position <= 2 and profile is not None and profile.get("aggressive_opener_pct", 0) >= 50:
         notes.append(f"aggressive opener (PP SR > 130 in {profile.get('aggressive_opener_pct', 0):.0f}% of innings)")
     if death_sr >= 165:
         notes.append(f"elite death hitter (SR {death_sr:.0f} in death overs)")
@@ -472,9 +480,15 @@ def predict_batting_order(
     matrix   = _load_matchup_matrix(mp)
     team_squads, player_roles = _load_squad_data(pi)
 
-    # Get team profile
-    profile = _get_profile(profiles, team, season)
-    if profile is None:
+    # New franchises: skip team-level history lookup entirely — build from
+    # individual player career positions with universal Low confidence.
+    is_new_franchise = team in NEW_FRANCHISES
+    if is_new_franchise:
+        profile = None
+    else:
+        profile = _get_profile(profiles, team, season)
+
+    if profile is None and not is_new_franchise:
         # Unknown team — return a minimal placeholder
         return OppositionBattingPrediction(
             team                 = team,
@@ -491,12 +505,13 @@ def predict_batting_order(
             is_estimated         = False,
         )
 
-    # Parse batting order JSON
+    # Parse batting order JSON (skipped for new franchises — no history exists)
     batting_order_raw: dict[str, str] = {}
-    try:
-        batting_order_raw = json.loads(str(profile.get("typical_batting_order") or "{}"))
-    except (json.JSONDecodeError, TypeError):
-        pass
+    if profile is not None:
+        try:
+            batting_order_raw = json.loads(str(profile.get("typical_batting_order") or "{}"))
+        except (json.JSONDecodeError, TypeError):
+            pass
 
     # Sort by position key — guard against non-integer keys from malformed JSON
     try:
@@ -504,34 +519,45 @@ def predict_batting_order(
     except (ValueError, TypeError):
         order_items = []   # malformed batting order — squad filter below will fill gaps
 
-    # --- Squad filter: remove players not in the team's 2026 squad ---
-    valid_players = set(team_squads.get(team, []))
+    # --- Dynamic Squad Prediction: Use the ML Engine ---
+    # Generate a fresh XI using the ML engine instead of purely historic JSON,
+    # ensuring the 4-overseas rule and partnership algorithms are enforced equally for opponents.
+    valid_players = list(team_squads.get(team, []))
+    gap_filled_set: set[int] = set()
     if valid_players:
-        order_items = [(pos, p) for pos, p in order_items if p in valid_players]
-
-        # Fill gaps from remaining squad members not yet placed
-        placed = {p for _, p in order_items}
-        remaining = [p for p in team_squads.get(team, []) if p not in placed]
-        # Sort remaining: Batsman/WK first, All-rounder next, Bowler last
-        _role_order = {"Batsman": 0, "WK-Batsman": 0, "All-rounder": 1, "Bowler": 2}
-        remaining.sort(key=lambda p: _role_order.get(player_roles.get(p, "Batsman"), 1))
-        filled_positions = {int(pos) for pos, _ in order_items}
-        gap_positions = sorted(p for p in range(1, 12) if p not in filled_positions)
-        for gap_pos in gap_positions:
-            if not remaining:
-                break
-            order_items.append((str(gap_pos), remaining.pop(0)))
+        from engine.xi_selector import select_xi
+        from utils.situation import WeatherImpact
+        # Assume a neutral weather state to just get the base best-XI
+        base_weather = WeatherImpact(0.0, 1.0, 1.0, 1.0, False, 20, [])
+        try:
+            options = select_xi(squad=valid_players, venue=venue, weather=base_weather, innings=1)
+            if options and options[0].players:
+                # Rebuild order_items completely from the optimal ML generated XI
+                order_items = [
+                    (str(p.batting_position), p.player_name) 
+                    for p in options[0].players
+                ]
+            else:
+                order_items = []
+        except Exception:
+            # Fallback to historic order items if the engine errors
+            order_items = [(pos, p) for pos, p in order_items if p in set(valid_players)]
+        
         order_items.sort(key=lambda x: int(x[0]))
         order_items = order_items[:8]   # limit to top-8 batting positions
 
     # Determine confidence based on how recent the season data is
-    profile_season = int(profile.get("season", 0))
-    if profile_season == 0:
-        base_confidence = "Medium"   # career data
-    elif profile_season >= 2023:
-        base_confidence = "High"
+    if is_new_franchise or profile is None:
+        profile_season  = 0
+        base_confidence = "Low"   # no franchise history
     else:
-        base_confidence = "Low"
+        profile_season = int(profile.get("season", 0))
+        if profile_season == 0:
+            base_confidence = "Medium"   # career data
+        elif profile_season >= 2023:
+            base_confidence = "High"
+        else:
+            base_confidence = "Low"
 
     def _position_confidence(pos: int, base: str) -> str:
         """
@@ -605,7 +631,7 @@ def predict_batting_order(
         bat_sty  = _batting_style(player, meta)
         career_sr = _player_sr(player, "overall")
         death_sr  = _player_sr(player, "death")
-        if death_sr == 120.0:  # fallback: use profile death_sr proxy
+        if death_sr == 120.0 and profile is not None:  # fallback: use profile death_sr proxy
             death_sr = float(profile.get("death_sr", 130) or 130)
 
         vs_spin_sr = _vs_bowler_sr(player, our_bowlers, "spin", matrix, meta)
@@ -631,6 +657,19 @@ def predict_batting_order(
         if not _pos_conf:
             _pos_conf = "Low"
             _pos_range = "unknown"
+
+        # Fix 3.6: mark gap-filled positions so analysts know this is an estimate,
+        # not a data-backed position.
+        if pos in gap_filled_set:
+            _pos_conf  = "Low"
+            _pos_range = "estimated"
+            note = f"[Position estimated — no PSL data at #{pos}] " + note
+
+        # New-franchise override: all positions are Low confidence; prepend notice.
+        if is_new_franchise:
+            _pos_conf  = "Low"
+            _pos_range = "estimated"
+            note = "[New PSL franchise — position based on T20 career data only] " + note
 
         predicted.append(PredictedBatter(
             position             = pos,
@@ -668,10 +707,10 @@ def predict_batting_order(
     # Bowling implications
     implications: list[str] = []
 
-    pp_sr     = float(profile.get("powerplay_sr",    120) or 120)
-    dth_sr    = float(profile.get("death_sr",        130) or 130)
-    vs_spin   = float(profile.get("vs_spin_economy",   8) or 8)
-    vs_pace   = float(profile.get("vs_pace_economy",   8) or 8)
+    pp_sr     = float(profile.get("powerplay_sr",    120) or 120) if profile is not None else 120.0
+    dth_sr    = float(profile.get("death_sr",        130) or 130) if profile is not None else 130.0
+    vs_spin   = float(profile.get("vs_spin_economy",   8) or 8)  if profile is not None else 8.0
+    vs_pace   = float(profile.get("vs_pace_economy",   8) or 8)  if profile is not None else 8.0
 
     if pp_sr >= 135:
         implications.append(
@@ -696,12 +735,17 @@ def predict_batting_order(
             f"Struggles vs spin (economy {vs_spin:.1f} conceded) — use spin aggressively in middle overs."
         )
 
-    left_hand_pct = float(profile.get("left_hand_top6_pct", 0) or 0)
+    left_hand_pct = float(profile.get("left_hand_top6_pct", 0) or 0) if profile is not None else 0.0
     if left_hand_pct >= 40:
         implications.append(
             f"{left_hand_pct:.0f}% left-handers in top 6 — left-arm options are a key weapon."
         )
 
+    if is_new_franchise:
+        implications.insert(0,
+            "New PSL franchise — position based on T20 career data only. "
+            "No franchise-level historical batting order available."
+        )
     if not implications:
         implications.append("Balanced batting lineup — no specific bowling adjustments needed.")
 
@@ -710,14 +754,14 @@ def predict_batting_order(
         season              = profile_season,
         predicted_order     = predicted,
         left_hand_count     = left_hand_count,
-        aggressive_opener   = bool(profile.get("aggressive_opener_pct", 0) >= 50),
+        aggressive_opener   = bool(profile.get("aggressive_opener_pct", 0) >= 50) if profile is not None else False,
         danger_window       = danger_window,
         bowling_implications= implications,
         powerplay_sr        = pp_sr,
         death_sr            = dth_sr,
         vs_spin_economy     = vs_spin,
         vs_pace_economy     = vs_pace,
-        is_estimated        = bool(profile.get("is_estimated", False)),
+        is_estimated        = True if is_new_franchise else bool(profile.get("is_estimated", False)),
     )
 
 
@@ -727,8 +771,8 @@ def predict_batting_order(
 
 if __name__ == "__main__":
     lahore_bowlers = [
-        "Shaheen Shah Afridi", "Haris Rauf", "Zaman Khan",
-        "Liam Dawson", "Rashid Khan",
+        "Shaheen Shah Afridi", "Haris Rauf", "Usama Mir",
+        "Mustafizur Rahman", "Sikandar Raza",
     ]
 
     pred = predict_batting_order(

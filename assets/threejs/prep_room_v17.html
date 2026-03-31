@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSL Prep Room — TALAASH Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:#080114;color:#fff}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 15% 10%,rgba(139,92,246,0.12) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 85% 90%,rgba(255,140,0,0.06) 0%,transparent 50%);pointer-events:none;z-index:0}
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:48px;background:rgba(8,1,20,0.92);backdrop-filter:blur(30px);border-bottom:1px solid rgba(255,255,255,0.04)}
+.nav-brand{display:flex;align-items:center;gap:8px}
+.psl-b{font-family:Orbitron;font-size:8px;font-weight:800;letter-spacing:2px;background:linear-gradient(135deg,#FFD700,#FF8C00);color:#080114;padding:3px 8px;border-radius:3px}
+.nav-t{font-family:Orbitron;font-size:12px;font-weight:800;letter-spacing:3px;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:2px}
+.nl{font-family:Rajdhani;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:4px 14px;border-radius:16px;cursor:pointer;transition:all .2s;border:1px solid transparent;text-decoration:none;display:inline-block}
+.nl:hover{color:rgba(255,255,255,0.5)}
+.nl.active{color:#FFD700;background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.15)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.live-d{width:7px;height:7px;border-radius:50%;background:#555}
+.live-l{font-family:Rajdhani;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+.team-b{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#23074F,#8B5CF6);border:1px solid rgba(255,215,0,0.3);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:7px;font-weight:900;color:#FFD700}
+.main-3col{display:grid;grid-template-columns:220px 1fr 260px;height:calc(100vh - 48px);margin-top:48px;position:relative;z-index:1}
+.main-full{display:grid;grid-template-columns:1fr;height:calc(100vh - 48px);margin-top:48px;position:relative;z-index:1;overflow-y:auto;padding:16px 24px}
+.hidden{display:none!important}
+.side{background:rgba(255,255,255,0.02);backdrop-filter:blur(16px);border-right:1px solid rgba(255,255,255,0.04);padding:12px 10px;display:flex;flex-direction:column;overflow-y:auto}
+.side::-webkit-scrollbar{width:3px}.side::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.st{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:10px}
+.sl{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:3px;display:block}
+.ss{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:7px;padding:6px 9px;color:#fff;font-family:'Exo 2';font-size:10px;outline:none;appearance:none;cursor:pointer;margin-bottom:8px}
+.ss option{background:#140536;color:#fff}
+.sp{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0 10px}
+.spl{font-family:Rajdhani;font-size:9px;font-weight:600;padding:3px 8px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.3);cursor:pointer;transition:all .2s;user-select:none}
+.spl:hover{border-color:rgba(255,215,0,0.2);color:rgba(255,255,255,0.6)}
+.spl.on{background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.3);color:#FFD700}
+.sbtn{font-family:Rajdhani;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 16px;border-radius:7px;border:none;cursor:pointer;width:100%;margin-top:6px}
+.sbtn.gold{background:linear-gradient(135deg,#FF8C00,#FFD700);color:#080114;box-shadow:0 3px 12px rgba(255,140,0,0.3)}
+.sbtn.gold:disabled{opacity:0.5;cursor:not-allowed}
+.sbtn.ghost{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.06);margin-top:4px}
+.opi{padding:7px 8px;border-radius:7px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);margin-bottom:4px;cursor:pointer}
+.opi.act{border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.03)}
+.opi-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.opi-o{font-family:Orbitron;font-size:8px;font-weight:700;color:#FFD700}
+.opi-ph{font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.opi-ph.pp{background:rgba(0,229,255,0.12);color:#00E5FF}
+.opi-ph.mid{background:rgba(255,215,0,0.1);color:#FFD700}
+.opi-ph.death{background:rgba(244,67,54,0.12);color:#F44336}
+.opi-b{font-family:Rajdhani;font-size:10px;font-weight:600;color:rgba(255,255,255,0.6)}
+.opi-n{font-family:'Exo 2';font-size:8px;color:rgba(255,255,255,0.25);margin-top:2px;font-style:italic}
+.bat-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;border:1px solid rgba(255,255,255,0.04);margin-bottom:4px;cursor:pointer}
+.bat-item:hover{border-color:rgba(255,215,0,0.15);background:rgba(255,255,255,0.02)}
+.bat-num{font-family:Orbitron;font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);width:16px}
+.bat-name{font-family:Rajdhani;font-size:11px;font-weight:600;color:rgba(255,255,255,0.7)}
+.bat-danger{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 5px;border-radius:3px;margin-left:auto}
+.bat-danger.high{background:rgba(244,67,54,0.15);color:#F44336}
+.bat-danger.med{background:rgba(255,193,7,0.15);color:#FFC107}
+.bat-danger.low{background:rgba(76,175,80,0.15);color:#4CAF50}
+.center{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 60%,rgba(45,139,45,0.06),#080114 70%);height:100%}
+#cc{width:100%;height:100%;position:relative;overflow:hidden}
+#cc canvas{display:block;position:absolute;top:0;left:0;width:100%!important;height:100%!important}
+.tabs{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tab-row{display:flex;gap:2px;background:rgba(8,1,20,0.75);backdrop-filter:blur(12px);padding:3px;border-radius:18px;border:1px solid rgba(255,255,255,0.06)}
+.tbtn{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:14px;border:none;background:transparent;color:rgba(255,255,255,0.35);cursor:pointer;transition:all .2s;white-space:nowrap}
+.tbtn:hover{color:rgba(255,255,255,0.6)}
+.tbtn.active{background:rgba(255,215,0,0.1);color:#FFD700;border:1px solid rgba(255,215,0,0.2)}
+.xi-dot-row{display:flex;gap:8px;align-items:center}
+.xi-dot{width:10px;height:10px;border-radius:50%;cursor:pointer;transition:all .2s;border:2px solid transparent;position:relative}
+.xi-dot:hover{transform:scale(1.3)}
+.xi-dot.act{border-color:#fff;transform:scale(1.4)}
+.xi-dot .tip{display:none;position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:Rajdhani;font-size:7px;color:#fff;background:rgba(8,1,20,0.9);padding:2px 6px;border-radius:3px;white-space:nowrap;border:1px solid rgba(255,255,255,0.1)}
+.xi-dot:hover .tip{display:block}
+.vbar{position:absolute;top:8px;left:10px;z-index:19;display:flex;gap:3px}
+.vb{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(8,1,20,0.7);color:rgba(255,255,255,0.35);cursor:pointer;backdrop-filter:blur(8px)}
+.vb:hover{border-color:rgba(255,215,0,0.2);color:#FFD700}
+.vb.act{background:rgba(139,92,246,0.12);color:#8B5CF6;border-color:rgba(139,92,246,0.25)}
+.toss-card{position:absolute;bottom:12px;left:12px;z-index:18;padding:14px 16px;max-width:210px;background:rgba(255,255,255,0.04);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,140,0,0.18);border-radius:14px}
+.toss-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,#FF8C00,#FFD700,transparent);opacity:.5;border-radius:14px 14px 0 0}
+.toss-t{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;color:#FFD700;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.toss-t .d{width:4px;height:4px;border-radius:50%;background:#FFD700}
+.toss-rec{font-family:Orbitron;font-size:16px;font-weight:900;color:#4CAF50;margin-bottom:4px}
+.toss-why{font-family:'Exo 2';font-size:9px;color:rgba(255,255,255,0.35);line-height:1.5}
+.cont-card{position:absolute;bottom:12px;left:12px;right:12px;z-index:18;padding:10px 14px;background:rgba(255,255,255,0.04);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(139,92,246,0.18);border-radius:12px}
+.cont-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,#8B5CF6,#FFD700,transparent);opacity:.5}
+.cont-t{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;color:#8B5CF6;margin-bottom:6px}
+.cont-item{display:flex;gap:8px;margin-bottom:4px;align-items:flex-start}
+.cont-text{font-family:'Exo 2';font-size:9px;color:rgba(255,255,255,0.45);line-height:1.4}
+.alert-card{position:absolute;top:48px;right:10px;z-index:19;padding:8px 12px;max-width:240px;background:rgba(244,67,54,0.08);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(244,67,54,0.28);border-radius:10px}
+.alert-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,#F44336,transparent);opacity:.6;border-radius:10px 10px 0 0}
+.alert-t{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1.5px;color:#F44336;margin-bottom:4px}
+.alert-txt{font-family:'Exo 2';font-size:9px;color:rgba(244,67,54,0.75);line-height:1.4}
+.matchup-overlay{position:absolute;bottom:12px;left:12px;right:12px;z-index:18;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.matchup-overlay::-webkit-scrollbar{height:3px}
+.matchup-overlay::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.mn-card{flex-shrink:0;width:260px;padding:10px 12px;background:rgba(255,255,255,0.04);backdrop-filter:blur(20px) saturate(180%);border-radius:12px;border:1px solid rgba(255,255,255,0.06);position:relative}
+.mn-card.high{border-left:3px solid #F44336}
+.mn-card.med{border-left:3px solid #FFC107}
+.mn-lvl{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.mn-lvl.high{background:rgba(244,67,54,0.15);color:#F44336}
+.mn-lvl.med{background:rgba(255,193,7,0.15);color:#FFC107}
+.mn-lvl.low{background:rgba(76,175,80,0.15);color:#4CAF50}
+.mn-balls{font-family:Rajdhani;font-size:8px;color:rgba(255,255,255,0.2);margin-left:6px}
+.mn-txt{font-family:'Exo 2';font-size:9px;color:rgba(255,255,255,0.45);line-height:1.4;margin-top:3px}
+.pl{position:absolute;z-index:18;text-align:center;pointer-events:none;transition:opacity .3s}
+.pl .nf{font-family:Rajdhani;font-size:8px;font-weight:600;color:#fff;background:rgba(8,1,20,0.5);backdrop-filter:blur(8px);padding:1px 6px;border-radius:5px;margin-top:2px;display:inline-block;border:1px solid rgba(255,215,0,0.15)}
+.pl .db{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:1px 5px;border-radius:3px;display:block;margin-top:2px}
+.db.high{background:rgba(244,67,54,0.2);color:#F44336}
+.db.med{background:rgba(255,193,7,0.2);color:#FFC107}
+.db.low{background:rgba(76,175,80,0.2);color:#4CAF50}
+.zl{position:absolute;bottom:12px;left:12px;right:12px;z-index:15;display:flex;flex-wrap:wrap;gap:3px 8px;background:rgba(8,1,20,0.6);backdrop-filter:blur(10px);padding:5px 8px;border-radius:7px}
+.zl span{display:flex;align-items:center;gap:3px;font-family:Rajdhani;font-size:7px;color:rgba(255,255,255,0.35)}
+.zl .zd{width:5px;height:5px;border-radius:50%}
+.rp{background:rgba(255,255,255,0.015);backdrop-filter:blur(16px);border-left:1px solid rgba(255,255,255,0.04);padding:12px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.rp::-webkit-scrollbar{width:3px}.rp::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.rc{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:12px}
+.rt{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFD700;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.rt .d{width:4px;height:4px;border-radius:50%;background:#FFD700}
+.wind-v{height:70px;position:relative;overflow:hidden;border-radius:7px;background:rgba(0,191,255,0.03);border:1px solid rgba(0,191,255,0.08);margin-top:6px}
+.wa{position:absolute;opacity:.4;animation:wd 3s ease-in-out infinite}
+.wa svg{width:35px;height:10px}
+@keyframes wd{0%{transform:translateX(-15px)}50%{transform:translateX(15px)}100%{transform:translateX(-15px)}}
+.wm{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.wm-r{width:30px;height:30px;position:relative}
+.wm-r svg{width:100%;height:100%;transform:rotate(-90deg)}
+.wm-r .tk{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:4}
+.wm-r .fl{fill:none;stroke-width:4;stroke-linecap:round}
+.wm-v{font-family:Orbitron;font-size:10px;font-weight:800}
+.wm-l{font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.25)}
+.ba-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.ba-name{font-family:Rajdhani;font-size:10px;font-weight:600;color:rgba(255,255,255,0.6);width:80px;flex-shrink:0}
+.ba-overs{display:flex;gap:3px;flex-wrap:wrap}
+.ba-ov{font-family:Orbitron;font-size:8px;font-weight:700;color:#080114;background:#FFC107;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.ba-total{font-family:Rajdhani;font-size:9px;color:rgba(255,255,255,0.3);margin-left:auto;white-space:nowrap}
+.kn{padding:8px;border-radius:8px;margin-bottom:6px;border-left:3px solid}
+.kn.high{background:rgba(244,67,54,0.04);border-color:#F44336}
+.kn.med{background:rgba(255,193,7,0.04);border-color:#FFC107}
+.kn.low{background:rgba(76,175,80,0.04);border-color:#4CAF50}
+.kn-conf{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px}
+.kn-conf.high{color:#F44336}.kn-conf.med{color:#FFC107}.kn-conf.low{color:#4CAF50}
+.kn-text{font-family:'Exo 2';font-size:9px;color:rgba(255,255,255,0.45);line-height:1.4;margin-top:3px}
+.arr-badge{font-family:Rajdhani;font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.35)}
+.soil-num{font-family:Orbitron;font-size:28px;font-weight:900;background:linear-gradient(135deg,#FFD700,#66BB6A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.soil-max{font-family:Rajdhani;font-size:14px;color:rgba(255,255,255,0.2)}
+.soil-conds{display:flex;justify-content:center;gap:14px;margin-top:8px}
+.soil-c{text-align:center}
+.soil-ic{width:40px;height:40px;border-radius:6px;margin:0 auto 3px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px}
+.soil-lb{font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.2)}
+.gbc{display:flex;align-items:flex-end;gap:3px;height:100px;padding:4px 6px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.gbc-g{display:flex;gap:1px;align-items:flex-end;flex:1}
+.gbc-b{border-radius:2px 2px 0 0;min-height:4px}
+.gbc-labels{display:flex;justify-content:space-between;padding:2px 6px;margin-top:2px}
+.gbc-labels span{font-family:Rajdhani;font-size:6px;color:rgba(255,255,255,0.2)}
+.scenarios-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.sc-card{background:rgba(255,255,255,0.04);backdrop-filter:blur(20px) saturate(180%);border-radius:14px;padding:16px;position:relative;overflow:hidden;border:1.5px solid}
+.sc-card.a{border-color:rgba(76,175,80,0.3)}.sc-card.b{border-color:rgba(255,193,7,0.3)}.sc-card.c{border-color:rgba(244,67,54,0.3)}.sc-card.d{border-color:rgba(0,229,255,0.3)}
+.sc-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;opacity:.6}
+.sc-card.a::before{background:linear-gradient(90deg,transparent,#4CAF50,transparent)}
+.sc-card.b::before{background:linear-gradient(90deg,transparent,#FFC107,transparent)}
+.sc-card.c::before{background:linear-gradient(90deg,transparent,#F44336,transparent)}
+.sc-card.d::before{background:linear-gradient(90deg,transparent,#00E5FF,transparent)}
+.sc-title{font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px;display:flex;justify-content:space-between}
+.sc-tag{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(255,255,255,0.3)}
+.sc-desc{font-family:'Exo 2';font-size:10px;color:rgba(255,255,255,0.5);line-height:1.5;margin-bottom:6px;font-style:italic}
+.sc-trigger{font-family:Rajdhani;font-size:9px;font-weight:600;color:rgba(255,255,255,0.3);margin-bottom:8px}
+.sc-player{display:flex;gap:6px;padding:6px 0;border-top:1px solid rgba(255,255,255,0.04)}
+.sc-pnum{font-family:Orbitron;font-size:9px;font-weight:700;color:rgba(255,255,255,0.2)}
+.sc-pname{font-family:Rajdhani;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7)}
+.sc-prole{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px;display:inline-block;margin-left:4px}
+.sc-prole.agg{background:rgba(244,67,54,0.15);color:#F44336}
+.sc-prole.anc{background:rgba(0,229,255,0.12);color:#00E5FF}
+.sc-prole.sup{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)}
+.sc-prole.fin{background:rgba(255,193,7,0.15);color:#FFC107}
+.sc-pnote{font-family:'Exo 2';font-size:9px;color:rgba(255,255,255,0.3);line-height:1.4;margin-top:2px}
+.matchup-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.mn{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.mn.high{border-left:3px solid #F44336}.mn.med{border-left:3px solid #FFC107}
+.mn-level{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px}
+.mn-level.high{background:rgba(244,67,54,0.15);color:#F44336}
+.mn-level.med{background:rgba(255,193,7,0.15);color:#FFC107}
+.mn-text{font-family:'Exo 2';font-size:10px;color:rgba(255,255,255,0.5);line-height:1.5;margin-top:4px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#loading-screen{position:fixed;inset:0;z-index:999;background:rgba(8,1,20,0.97);backdrop-filter:blur(20px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.ls-teams{display:flex;align-items:center;gap:28px}
+.ls-logo{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,215,0,0.3);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:13px;font-weight:900;color:#FFD700;background:rgba(35,7,79,0.7);box-shadow:0 0 24px rgba(139,92,246,0.3)}
+.ls-vs{font-family:Orbitron;font-size:10px;font-weight:800;color:rgba(255,255,255,0.2);letter-spacing:3px}
+.ls-bar{width:220px;height:3px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.ls-fill{height:100%;background:linear-gradient(90deg,#FF8C00,#FFD700);border-radius:3px;animation:lsfill 2.5s ease-in-out forwards}
+@keyframes lsfill{0%{width:0%}100%{width:100%}}
+.ls-txt{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.ls-sub{font-family:Rajdhani;font-size:10px;color:rgba(255,215,0,0.5);letter-spacing:2px}
+.phm-wrap{display:flex;gap:8px;align-items:stretch;margin-top:6px}
+.phm-pitch{position:relative;width:80px;flex-shrink:0}
+.phm-pitch svg{width:100%;display:block}
+.phm-zones{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:2px}
+.phm-zone{border-radius:5px;padding:3px 6px;display:flex;align-items:center;justify-content:space-between;gap:4px;position:relative;overflow:hidden}
+.phm-zone-label{font-family:Orbitron;font-size:5.5px;font-weight:700;letter-spacing:0.8px;color:rgba(255,255,255,0.9);white-space:nowrap}
+.phm-zone-count{font-family:Orbitron;font-size:8px;font-weight:900;color:#fff}
+.phm-dots{display:flex;gap:2px;flex-wrap:wrap;align-items:center}
+.phm-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.75);flex-shrink:0}
+.xi-list-row{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);margin-bottom:2px;background:rgba(255,255,255,0.015)}
+.xi-list-num{font-family:Orbitron;font-size:7px;font-weight:700;color:rgba(255,255,255,0.2);width:12px;flex-shrink:0}
+.xi-list-name{font-family:Rajdhani;font-size:10px;font-weight:600;color:rgba(255,255,255,0.75);flex:1}
+.xi-list-role{font-family:Orbitron;font-size:5.5px;font-weight:700;letter-spacing:0.8px;padding:1px 4px;border-radius:3px;flex-shrink:0}
+.xi-list-role.bat{background:rgba(0,229,255,0.12);color:#00E5FF}
+.xi-list-role.bowl{background:rgba(244,67,54,0.12);color:#F44336}
+.xi-list-role.all{background:rgba(255,193,7,0.12);color:#FFC107}
+.xi-list-role.wk{background:rgba(139,92,246,0.12);color:#8B5CF6}
+.brief-panel{display:flex;flex-direction:column;gap:0;height:100%}
+.bp-header{padding:10px 10px 6px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.bp-teams{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.bp-logo{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:7px;font-weight:900;color:#FFD700;background:linear-gradient(135deg,#23074F,#8B5CF6);border:1px solid rgba(255,215,0,0.25);flex-shrink:0}
+.bp-vs{font-family:Rajdhani;font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:2px}
+.bp-venue{font-family:'Exo 2';font-size:8px;color:rgba(255,255,255,0.25);margin-top:2px}
+.bp-tabs{display:flex;gap:2px;margin-top:6px}
+.bp-tab{flex:1;font-family:Rajdhani;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.3);cursor:pointer;text-align:center;transition:all .2s}
+.bp-tab.act{background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.2);color:#FFD700}
+.bp-body{flex:1;overflow-y:auto;padding:8px 10px}
+.bp-body::-webkit-scrollbar{width:3px}.bp-body::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.bp-section{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:8px 0 4px;padding-left:2px}
+.bp-player{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:7px;border:1px solid rgba(255,255,255,0.04);margin-bottom:3px;background:rgba(255,255,255,0.015)}
+.bp-player.xi-on{border-color:rgba(255,215,0,0.18);background:rgba(255,215,0,0.03)}
+.bp-num{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(255,255,255,0.2);width:14px;flex-shrink:0}
+.bp-pname{font-family:Rajdhani;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);flex:1}
+.bp-role{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:1px 5px;border-radius:3px}
+.bp-role.bat{background:rgba(0,229,255,0.12);color:#00E5FF}
+.bp-role.bowl{background:rgba(244,67,54,0.12);color:#F44336}
+.bp-role.all{background:rgba(255,193,7,0.12);color:#FFC107}
+.bp-role.wk{background:rgba(139,92,246,0.12);color:#8B5CF6}
+.zoom-ctrl{position:absolute;top:8px;right:10px;z-index:19;display:flex;flex-direction:column;gap:3px;align-items:center}
+.zoom-btn{width:26px;height:26px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(8,1,20,0.75);backdrop-filter:blur(10px);color:rgba(255,255,255,0.55);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1;font-family:monospace}
+.zoom-btn:hover{border-color:rgba(255,215,0,0.3);color:#FFD700;background:rgba(8,1,20,0.9)}
+.zoom-pct{font-family:Orbitron;font-size:7px;font-weight:700;color:rgba(255,255,255,0.25);letter-spacing:1px;text-align:center;min-width:26px}
+.zoom-reset{font-family:Rajdhani;font-size:7px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(8,1,20,0.7);color:rgba(255,255,255,0.2);cursor:pointer;backdrop-filter:blur(8px);white-space:nowrap;transition:all .15s}
+.zoom-reset:hover{border-color:rgba(255,215,0,0.2);color:#FFD700}
+.zoom-hint{position:absolute;bottom:8px;right:12px;z-index:15;font-family:Rajdhani;font-size:7px;color:rgba(255,255,255,0.12);letter-spacing:1px;pointer-events:none;transition:opacity .5s}
+#ball-ring-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;display:none}
+</style>
+</head>
+<body>
+<div id="loading-screen">
+  <div class="ls-teams">
+    <div class="ls-logo" id="ls-our">—</div>
+    <div class="ls-vs">VS</div>
+    <div class="ls-logo" id="ls-opp" style="background:linear-gradient(135deg,#1a0a3a,#6D28D9)">—</div>
+  </div>
+  <div class="ls-sub" id="ls-sub">Generating Match Brief</div>
+  <div class="ls-bar"><div class="ls-fill" id="ls-fill"></div></div>
+  <div class="ls-txt" id="ls-txt">Analysing squad · loading engine</div>
+</div>
+
+<nav class="nav" id="main-nav">
+  <div class="nav-brand"><span class="psl-b">PSL</span><span class="nav-t">DECISION INTELLIGENCE</span></div>
+  <div class="nav-links">
+    <a href="/" class="nl">TALAASH</a>
+    <a href="/prep" class="nl active">Prep Room</a>
+    <a href="/dugout" class="nl">Dugout</a>
+    <a href="/players" class="nl">Players</a>
+  </div>
+  <div class="nav-right">
+    <div class="live-d" id="live-dot"></div>
+    <span class="live-l" id="live-label">Standby</span>
+    <div class="team-b" id="team-badge">—</div>
+  </div>
+</nav>
+
+<div class="main-3col" id="layout-3col">
+  <div class="side" id="sidebar"></div>
+  <div class="center"><div id="cc">
+    <div class="tabs" id="tab-area"></div>
+    <div class="vbar" id="vbar">
+      <button class="vb act" onclick="setView('3d',this)">3D-Perspective</button>
+      <button class="vb" onclick="setView('top',this)">Top Down</button>
+    </div>
+    <div class="zoom-ctrl" id="zoom-ctrl">
+      <button class="zoom-btn" onclick="zoomStep(-1)">+</button>
+      <div class="zoom-pct" id="zoom-pct">100%</div>
+      <button class="zoom-btn" onclick="zoomStep(1)">−</button>
+      <button class="zoom-reset" onclick="zoomReset()">Reset</button>
+    </div>
+    <div class="zoom-hint" id="zoom-hint">Scroll to zoom</div>
+    <div id="overlays"></div>
+    <div id="player-labels"></div>
+    <div class="zl hidden" id="zl"></div>
+  </div></div>
+  <div class="rp" id="right-panel"></div>
+</div>
+
+<div class="main-full hidden" id="layout-full">
+  <div id="tab-area-full" style="display:flex;justify-content:center;margin-bottom:16px"></div>
+  <div id="scenarios-content"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── IFRAME DETECTION ───────────────────────────────────────────────────────
+if(window.self!==window.top){
+  document.addEventListener('DOMContentLoaded',()=>{
+    const nav=document.getElementById('main-nav');
+    if(nav)nav.style.display='none';
+    ['layout-3col','layout-full'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.style.height='100vh';el.style.marginTop='0';}
+    });
+    // Force renderer resize after layout settles
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(typeof renderer!=='undefined'&&renderer){
+        const c=document.getElementById('cc');
+        const w=c?c.clientWidth:window.innerWidth-480;
+        const h=c?c.clientHeight:window.innerHeight;
+        if(w>10&&h>10){
+          camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
+        }
+      }
+    }));
+  });
+}
+
+// ─── CONSTANTS ──────────────────────────────────────────────────────────────
+const TABS=['Final Playing XI','Bowling Attack','Opposition Batting','Batting Scenarios'];
+
+const TEAM_DATA={
+  'Quetta Gladiators':{abbr:'QG',color:'#8B5CF6',bg:'linear-gradient(135deg,#23074F,#8B5CF6)'},
+  'Lahore Qalandars':{abbr:'LQ',color:'#00C853',bg:'linear-gradient(135deg,#003300,#00C853)'},
+  'Islamabad United':{abbr:'IU',color:'#F44336',bg:'linear-gradient(135deg,#4a0000,#F44336)'},
+  'Karachi Kings':{abbr:'KK',color:'#00E5FF',bg:'linear-gradient(135deg,#003344,#00E5FF)'},
+  'Peshawar Zalmi':{abbr:'PZ',color:'#FF8C00',bg:'linear-gradient(135deg,#3a1a00,#FF8C00)'},
+  'Multan Sultans':{abbr:'MS',color:'#FFD700',bg:'linear-gradient(135deg,#2a1a00,#FFD700)'},
+  'Rawalpindiz':{abbr:'RW',color:'#1565C0',bg:'linear-gradient(135deg,#001a4a,#1565C0)'},
+  'Hyderabad Kingsmen':{abbr:'HK',color:'#F57F17',bg:'linear-gradient(135deg,#3a1a00,#F57F17)'},
+};
+
+const playerPos=[
+  {x:0,z:-15},{x:-10,z:-12},{x:10,z:-12},{x:-16,z:-5},{x:16,z:-5},
+  {x:-17,z:4},{x:17,z:4},{x:-10,z:12},{x:10,z:12},{x:0,z:16},{x:0,z:0},
+];
+
+// ─── MUTABLE STATE ──────────────────────────────────────────────────────────
+let metaData={teams:[],venues:[],squad_by_team:{}};
+let briefData=null;
+let briefGenerated=false;
+let curTab=0,curXI=0,curOver=1,curBriefFormation=0;
+let curTeam='',curOppTeam='',curVenue='';
+
+let fullSquad=[],selectedSquad=new Set();
+let xiOpts=[],overPlan=[],bowlerAlloc=[],oppBat=[];
+let matchupNotes=[],contingency=[],scenarios=[],formations=[];
+// Change 1: live toss rec and squad-by-team cache
+let tossRec={decision:'BAT FIRST',reason:'Dew factor significant in 2nd innings at this venue. Set a target and defend.'};
+let _squadByTeam={};
+let keyDecisions=[];
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+function getTeamData(name){
+  return TEAM_DATA[name]||{
+    abbr:(name||'??').split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase(),
+    color:'#FFD700',bg:'linear-gradient(135deg,#23074F,#8B5CF6)'
+  };
+}
+function dangerCls(d){
+  const l=(d||'').toLowerCase();
+  return l==='high'?'high':(l==='medium'||l==='med')?'med':'low';
+}
+function roleCls(r){
+  const l=(r||'').toLowerCase();
+  return l.includes('aggr')?'agg':l.includes('anch')?'anc':l.includes('fin')?'fin':'sup';
+}
+function normPhase(p){
+  const l=(p||'').toLowerCase();
+  return(l.includes('power')||l==='pp')?'pp':l.includes('death')?'death':'mid';
+}
+function mapRoleClass(r){
+  const u=(r||'').toUpperCase();
+  if(u.includes('WK')||u.includes('KEEPER'))return 'wk';
+  if(u.includes('ALL')||u==='AR')return 'all';
+  if(u.includes('BOWL')||u==='BWL')return 'bowl';
+  return 'bat';
+}
+function mapRoleLabel(r){return{bat:'BAT',bowl:'BOWL',all:'ALL',wk:'WK'}[mapRoleClass(r)]||'BAT';}
+function playerAvatar(name,color,photo){
+  const ini=(name||'??').split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase();
+  const src=photo?(photo.startsWith('assets/')?'/'+photo:photo):'';
+  const imgHtml=src?`<img src="${src}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;border-radius:4px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'' ;
+  return `<div style="width:62px;height:82px;border-radius:6px;background:${color||'#23074F'};border:2px solid rgba(255,215,0,0.5);font-family:Orbitron;font-size:14px;font-weight:900;color:#FFD700;box-shadow:0 6px 20px rgba(0,0,0,0.7);flex-shrink:0;position:relative;overflow:hidden">${imgHtml}<span style="position:absolute;top:0;left:0;width:100%;height:100%;display:${src?'none':'flex'};align-items:center;justify-content:center">${ini}</span></div>`;
+}
+function getPitchData(venue,opp){
+  const seed=((venue||'')+(opp||'')).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rng=n=>((seed*9301+49297*n)%233280)/233280;
+  return{fullToss:Math.round(rng(1)*8+1),yorker:Math.round(rng(2)*12+3),
+    goodLen:Math.round(rng(3)*22+8),shortOfGood:Math.round(rng(4)*18+5),
+    short:Math.round(rng(5)*10+1),wideOut:Math.round(rng(6)*14+2),wideIn:Math.round(rng(7)*10+1)};
+}
+
+// ─── API: LOAD META ──────────────────────────────────────────────────────────
+async function loadMeta(){
+  try{
+    const r=await fetch('/api/prep-meta');
+    metaData=await r.json();
+    if(metaData.teams?.length){
+      curTeam=metaData.teams[0];
+      curOppTeam=metaData.teams.length>1?metaData.teams[1]:metaData.teams[0];
+    }
+    if(metaData.venues?.length)curVenue=metaData.venues[0];
+    const sq=metaData.squad_by_team?.[curTeam]||[];
+    fullSquad=sq;selectedSquad=new Set(sq.map((_,i)=>i));
+    const tb=document.getElementById('team-badge');
+    if(tb)tb.textContent=getTeamData(curTeam).abbr;
+    renderSidebar();
+  }catch(e){console.warn('Meta load failed:',e);}
+}
+
+// ─── API: MAP BRIEF DATA (Change 3 — new function, placed before generateBrief) ───
+function mapBriefData(data,ourTeam){
+  briefData=data;
+  if(data.toss)tossRec={decision:data.toss.recommendation||'—',reason:data.toss.reasoning||''};
+  const optColors=['#4CAF50','#FFD700','#F44336'];
+  const _tw=(ourTeam||'Quetta Gladiators').split(' ');
+  const _tf=_tw.length>=2?_tw[0]+'-'+_tw[1].toLowerCase():ourTeam.toLowerCase().replace(/ /g,'-');
+  if(data.xi_options&&data.xi_options.length){
+    xiOpts.length=0;formations.length=0;
+    data.xi_options.forEach((opt,i)=>{
+      const plrs=opt.players?opt.players.slice(0,11).map(p=>{
+        const nm=p.name||'';
+        return{n:nm,role:p.role||'BAT',p:`assets/players/${_tf}/${nm.toLowerCase().replace(/ /g,'-')}.png`};
+      }):[];
+      const fplrs=opt.players?opt.players.slice(0,11).map(p=>({n:p.name||'',role:p.role||'BAT'})):[];
+      xiOpts.push({name:opt.label||'Option '+(i+1),color:optColors[i]||'#FFD700',players:plrs});
+      formations.push({name:opt.label||'Option '+(i+1),color:optColors[i]||'#FFD700',players:fplrs});
+    });
+  }
+  if(data.over_plan&&data.over_plan.length){overPlan.length=0;data.over_plan.forEach(o=>overPlan.push({over:o.over,bowler:o.bowler,backup:o.backup,phase:o.phase,note:o.note||''}));}
+  if(data.opposition&&data.opposition.length){oppBat.length=0;data.opposition.forEach(b=>oppBat.push({name:b.name,danger:b.danger||'low',arrival:b.arrival||'—',notes:b.note||'',careerSR:b.career_sr,deathSR:b.death_sr}));}
+  if(data.matchup_notes&&data.matchup_notes.length){matchupNotes.length=0;data.matchup_notes.forEach(mn=>matchupNotes.push({conf:mn.conf,balls:mn.balls,text:mn.note||mn.text||''}));}
+  if(data.contingencies&&data.contingencies.length){contingency.length=0;data.contingencies.forEach(c=>contingency.push(c));}
+  window._liveTacticalAlert=data.key_decisions&&data.key_decisions[0]||null;
+  if(data.scenarios&&data.scenarios.length){
+    const _SC_COLORS={A:'#4CAF50',B:'#FFC107',C:'#F44336',D:'#00E5FF'};
+    scenarios.length=0;
+    data.scenarios.forEach(sc=>scenarios.push({id:sc.id,title:sc.title,color:_SC_COLORS[sc.id]||'#FFD700',cls:(sc.id||'a').toLowerCase(),desc:sc.desc||'',trigger:sc.trigger||'',players:(sc.players||[]).map(p=>({name:p.name,role:p.role||'',cls:p.cls||'anc',note:p.note||''}))}));
+  }
+}
+
+// ─── API: INIT PREP META (Change 3 — second new function) ───────────────────
+function initPrepMeta(){
+  fetch('/api/prep-meta')
+  .then(r=>r.json())
+  .then(data=>{
+    _squadByTeam=data.squad_by_team||{};
+    const tl=data.teams||[];const vl=data.venues||[];
+    if(curTab===0&&!briefGenerated)renderSidebar(tl,vl);
+    const defTeam=tl[0]||'Quetta Gladiators';
+    if(_squadByTeam[defTeam]){fullSquad.length=0;_squadByTeam[defTeam].forEach(n=>fullSquad.push(n));selectedSquad.clear();for(let i=0;i<fullSquad.length;i++)selectedSquad.add(i);}
+    if(curTab===0&&!briefGenerated)renderSidebar(tl,vl);
+  })
+  .catch(err=>console.warn('prep-meta failed:',err));
+}
+
+// ─── API: GENERATE BRIEF (Change 2 — real fetch call) ───────────────────────
+function generateBrief(){
+  const ourSel=document.querySelector('#sidebar select.ss');
+  const ourTeam=ourSel?ourSel.value:'Quetta Gladiators';
+  const selects=document.querySelectorAll('#sidebar select.ss');
+  const oppSel=selects[1];
+  const venSel=selects[2];
+  curOppTeam=oppSel?oppSel.value:curOppTeam;
+  curVenue=venSel?venSel.value:curVenue;
+
+  const ourData=getTeamData(ourTeam),oppData=getTeamData(curOppTeam);
+  const lsOur=document.getElementById('ls-our');
+  const lsOpp=document.getElementById('ls-opp');
+  if(lsOur){lsOur.textContent=ourData.abbr;lsOur.style.background=ourData.bg;lsOur.style.borderColor=ourData.color+'55';}
+  if(lsOpp){lsOpp.textContent=oppData.abbr;lsOpp.style.background=oppData.bg;lsOpp.style.borderColor=oppData.color+'55';}
+  const lsSub=document.getElementById('ls-sub');
+  if(lsSub)lsSub.textContent=`${ourData.abbr} vs ${oppData.abbr} — Match Brief`;
+
+  const ls=document.getElementById('loading-screen');
+  const fill=document.getElementById('ls-fill');
+  if(ls)ls.style.display='flex';
+  if(fill){fill.style.animation='none';fill.offsetHeight;fill.style.animation='lsfill 2.5s ease-in-out forwards';}
+
+  const squad=Array.from(selectedSquad).map(i=>fullSquad[i]).filter(Boolean);
+  const dtInput=document.querySelector('#sidebar .ss[type="datetime-local"]');
+  const matchDt=dtInput?dtInput.value:'2026-03-25T19:00';
+  const _ourTeam=ourSel?ourSel.value:'Quetta Gladiators';
+  fetch('/api/prep-brief',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({our_team:_ourTeam,opposition:curOppTeam,venue:curVenue,squad,match_datetime:matchDt})
+  })
+  .then(r=>{if(!r.ok)return r.json().then(e=>{throw new Error(e.error||'API '+r.status);});return r.json();})
+  .then(data=>{mapBriefData(data,_ourTeam);})
+  .catch(err=>console.warn('Brief API failed, using defaults:',err))
+  .finally(()=>{
+    ls.style.display='none';
+    briefGenerated=true;curBriefFormation=0;curXI=0;
+    renderSidebar();renderRight();renderOverlays();switchTab(0);
+  });
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function renderTabs(){
+  let subRow='';
+  if(curTab===0&&briefGenerated&&xiOpts.length){
+    const dotLabels=['Primary XI','Spin Heavy','Pace Heavy'];
+    subRow=`<div class="xi-dot-row">${xiOpts.map((o,i)=>`<div class="xi-dot ${i===curXI?'act':''}" style="background:${o.color}" onclick="curXI=${i};curBriefFormation=${i};renderTabs();renderSidebar();renderOverlays();renderPL()"><div class="tip">${dotLabels[i]||o.name}</div></div>`).join('')}</div><div style="font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-top:2px">${['🟢 Primary XI','🟡 Spin Heavy','🔴 Pace Heavy'][curXI]||'Playing XI Options'}</div>`;
+  }else if(curTab===1){
+    subRow=`<div class="xi-dot-row"><button class="vb act" onclick="setView('3d',this)">3D-Perspective</button><button class="vb" onclick="setView('top',this)">Top Down</button></div>`;
+  }
+  const tabHTML=`<div class="tab-row">${TABS.map((t,i)=>`<button class="tbtn ${i===curTab?'active':''}" onclick="switchTab(${i})">${t}</button>`).join('')}</div>${subRow}`;
+  document.getElementById('tab-area').innerHTML=tabHTML;
+  document.getElementById('tab-area-full').innerHTML=`<div class="tab-row">${TABS.map((t,i)=>`<button class="tbtn ${i===curTab?'active':''}" onclick="switchTab(${i})">${t}</button>`).join('')}</div>`;
+  const vbar=document.getElementById('vbar');
+  if(vbar)vbar.classList.toggle('hidden',curTab!==0);
+}
+
+function switchTab(idx){
+  curTab=idx;renderTabs();
+  const is3=idx<3;
+  document.getElementById('layout-3col').classList.toggle('hidden',!is3);
+  document.getElementById('layout-full').classList.toggle('hidden',is3);
+  const zc=document.getElementById('zoom-ctrl'),zh=document.getElementById('zoom-hint');
+  if(zc)zc.style.display=(idx===1)?'flex':'none';
+  if(zh)zh.style.display=(idx===1)?'block':'none';
+  if(is3){renderSidebar();renderRight();renderOverlays();updateScene();}
+  else renderScenarios();
+}
+
+// ─── SIDEBAR (Change 4 — accepts teamList/venueList params) ──────────────────
+function renderSidebar(teamList,venueList){
+  const el=document.getElementById('sidebar');
+  if(curTab===0){
+    if(briefGenerated){renderBriefSidebar();return;}
+    el.innerHTML=`<div class="st">Match Setup</div>
+    <span class="sl">Our Team</span><select class="ss" onchange="onTeamChange(this.value)">${(teamList||['Quetta Gladiators','Lahore Qalandars','Islamabad United','Karachi Kings','Peshawar Zalmi','Multan Sultans','Hyderabad Kingsmen','Rawalpindiz']).map(t=>`<option>${t}</option>`).join('')}</select>
+    <span class="sl">Opposition</span><select class="ss">${(teamList||['Quetta Gladiators','Lahore Qalandars','Islamabad United','Karachi Kings','Peshawar Zalmi','Multan Sultans','Hyderabad Kingsmen','Rawalpindiz']).map(t=>`<option>${t}</option>`).join('')}</select>
+    <span class="sl">Venue</span><select class="ss">${(venueList||['National Stadium, Karachi','Gaddafi Stadium, Lahore','Rawalpindi Cricket Stadium','Multan Cricket Stadium']).map(v=>`<option>${v}</option>`).join('')}</select>
+    <span class="sl">Date &amp; Time</span><input class="ss" type="datetime-local" value="2026-03-25T19:00" style="font-size:9px">
+    <span class="sl">Squad (tap to toggle)</span>
+    <div class="sp">${fullSquad.length?fullSquad.map((n,i)=>`<span class="spl ${selectedSquad.has(i)?'on':''}" onclick="toggleSquad(${i},this)">${n}</span>`).join(''):'<span style="font-family:Rajdhani;font-size:9px;color:rgba(255,255,255,0.2)">Loading squad...</span>'}</div>
+    <button class="sbtn gold" onclick="generateBrief()">Generate Brief</button>`;
+  }else if(curTab===1){
+    el.innerHTML=overPlan.length?
+      `<div class="st">Over-by-Over Plan</div>${overPlan.map(o=>`<div class="opi ${o.over===curOver?'act':''}" onclick="curOver=${o.over};renderSidebar();updateBars()"><div class="opi-h"><span class="opi-o">Over ${o.over}</span><span class="opi-ph ${o.phase}">${o.phase==='pp'?'PP':o.phase==='death'?'DEATH':'MID'}</span></div><div class="opi-b">${o.bowler}</div><div class="opi-n">${o.note}</div></div>`).join('')}`:
+      `<div class="st">Over-by-Over Plan</div><div style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.25);padding:20px;text-align:center;line-height:1.6">Generate a match brief<br>to see the bowling plan.</div>`;
+  }else if(curTab===2){
+    el.innerHTML=oppBat.length?
+      `<div class="st">Opposition Batting Order</div><div style="font-family:Rajdhani;font-size:9px;color:rgba(255,255,255,0.2);margin-bottom:8px">${(curOppTeam||'OPPOSITION').toUpperCase()}</div>${oppBat.map((b,i)=>`<div class="bat-item"><span class="bat-num">${i+1}</span><span class="bat-name">${b.name}</span><span class="bat-danger ${b.danger}">${b.danger.toUpperCase()}</span></div>`).join('')}`:
+      `<div class="st">Opposition Batting Order</div><div style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.25);padding:20px;text-align:center;line-height:1.6">Generate a match brief<br>to see the opposition order.</div>`;
+  }
+}
+
+function renderBriefSidebar(){
+  const el=document.getElementById('sidebar');
+  const ourData=getTeamData(curTeam),oppData=getTeamData(curOppTeam);
+  const f=formations[curBriefFormation]||formations[0]||{name:'XI',color:'#FFD700',players:[]};
+  el.innerHTML=`<div class="brief-panel">
+    <div class="bp-header">
+      <div class="bp-teams">
+        <div class="bp-logo" style="background:${ourData.bg}">${ourData.abbr}</div>
+        <div><div class="bp-vs">${ourData.abbr} vs ${oppData.abbr}</div><div class="bp-venue">${(curVenue||'').split(',')[0]}</div></div>
+        <div class="bp-logo" style="background:${oppData.bg}">${oppData.abbr}</div>
+      </div>
+    </div>
+    <div class="bp-body">
+      <div class="bp-section" style="color:${f.color}88">&#x25B8; ${['Primary XI','Spin Heavy','Pace Heavy'][curBriefFormation]||f.name} Formation</div>
+      ${(f.players||[]).map((p,i)=>`<div class="bp-player xi-on"><span class="bp-num">${i+1}</span><span class="bp-pname">${p.n}</span><span class="bp-role ${p.role||'bat'}">${mapRoleLabel(p.role)}</span></div>`).join('')}
+      <div class="bp-section" style="margin-top:12px">Opposition — ${oppData.abbr}</div>
+      ${oppBat.map((b,i)=>`<div class="bp-player"><span class="bp-num">${i+1}</span><span class="bp-pname">${b.name}</span><span class="bat-danger ${b.danger}" style="font-size:5px;padding:1px 4px;margin-left:auto">${b.danger.toUpperCase()}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function toggleSquad(i,el){if(selectedSquad.has(i))selectedSquad.delete(i);else selectedSquad.add(i);el.classList.toggle('on');}
+function onTeamChange(team){
+  curTeam=team;
+  fullSquad=metaData.squad_by_team?.[team]||_squadByTeam[team]||[];
+  selectedSquad=new Set(fullSquad.map((_,i)=>i));
+  renderSidebar();
+}
+
+// ─── RIGHT PANEL ─────────────────────────────────────────────────────────────
+function renderRight(){
+  const el=document.getElementById('right-panel');
+  if(curTab===0)el.innerHTML=renderXIRight();
+  else if(curTab===1)el.innerHTML=renderBowlRight();
+  else if(curTab===2)el.innerHTML=renderOppRight();
+}
+
+function renderXIRight(){
+  const curPlayers=xiOpts[curXI]?.players||[];
+  const xiListHTML=curPlayers.length?
+    curPlayers.map((p,i)=>`<div class="xi-list-row"><span class="xi-list-num">${i+1}</span><span class="xi-list-name">${p.n}</span><span class="xi-list-role ${mapRoleClass(p.role)}">${mapRoleLabel(p.role)}</span></div>`).join(''):
+    '<div style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.25);padding:12px;text-align:center">Generate a brief to see the Playing XI.</div>';
+  const w=briefData?.weather||{};
+  const hum=w.humidity?Math.round(w.humidity)+'%':'—';
+  const tmp=w.temp?Math.round(w.temp)+'°C':'—';
+  const wind=w.wind_kph?Math.round(w.wind_kph)+' km/h'+(w.wind_dir?' '+w.wind_dir:''):'—';
+  const humOff=w.humidity?Math.max(0,100-Math.round(w.humidity)):68;
+  const tmpOff=w.temp?Math.max(0,100-Math.round(Math.min(w.temp,50)/50*100)):46;
+  return`<div class="rc"><div class="rt"><span class="d"></span>Wind &amp; Conditions</div>
+    <div class="wind-v">
+      ${[15,38,62,82].map((t,i)=>`<div class="wa" style="top:${t}%;left:${5+i*15}%;animation-delay:${i*.4}s"><svg viewBox="0 0 35 10"><path d="M0,5 L25,5" stroke="#00BFFF" stroke-width="1.5" fill="none" opacity="${.3+i*.1}"/><polygon points="25,2 33,5 25,8" fill="#00BFFF" opacity="${.3+i*.1}"/></svg></div>`).join('')}
+      <div style="position:absolute;bottom:3px;right:5px;font-family:Rajdhani;font-size:6px;color:rgba(0,191,255,0.4)">${w.wind_kph?wind:'Wind assists swing'}</div>
+    </div>
+  </div>
+  <div class="rc"><div class="rt"><span class="d"></span>Weather Hub</div>
+    <div class="wm"><div class="wm-r"><svg viewBox="0 0 40 40"><circle class="tk" cx="20" cy="20" r="16"/><circle class="fl" cx="20" cy="20" r="16" stroke="#8B5CF6" stroke-dasharray="100" stroke-dashoffset="${humOff}"/></svg></div><div><div class="wm-v" style="color:#8B5CF6">${hum}</div><div class="wm-l">Humidity</div></div></div>
+    <div class="wm"><div class="wm-r"><svg viewBox="0 0 40 40"><circle class="tk" cx="20" cy="20" r="16"/><circle class="fl" cx="20" cy="20" r="16" stroke="#FFD700" stroke-dasharray="100" stroke-dashoffset="${tmpOff}"/></svg></div><div><div class="wm-v" style="color:#FFD700">${tmp}</div><div class="wm-l">Temperature</div></div></div>
+    ${w.dew_onset_over?`<div style="font-family:Rajdhani;font-size:8px;color:rgba(0,229,255,0.6);margin-top:4px">⚠ Dew expected from over ${w.dew_onset_over}</div>`:''}
+    ${w.warnings&&w.warnings.length?`<div style="font-family:Rajdhani;font-size:8px;color:rgba(244,67,54,0.6);margin-top:3px">⚠ ${w.warnings[0]}</div>`:''}
+  </div>
+  <div class="rc"><div class="rt"><span class="d"></span>Soil Health</div>
+    <div style="text-align:center;padding:6px 0"><span class="soil-num">4.2</span><span class="soil-max">/5</span></div>
+    <div class="soil-conds">
+      <div class="soil-c"><div class="soil-ic" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2)">🏏</div><div class="soil-lb">Cracked</div></div>
+      <div class="soil-c"><div class="soil-ic" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.2)">🌿</div><div class="soil-lb">Dry Grass</div></div>
+    </div>
+  </div>
+  <div class="rc"><div class="rt"><span class="d"></span>Playing XI${briefGenerated?' — '+(xiOpts[curXI]?.name||'Option'):' (Generate Brief)'}</div>
+    ${xiListHTML}
+  </div>`;
+}
+
+function renderBowlRight(){
+  const barHTML=Array.from({length:20},(_,i)=>{
+    const p=20+Math.random()*70,s=10+Math.random()*50,d=5+Math.random()*35;
+    return`<div class="gbc-g"><div class="gbc-b" style="width:6px;height:${p}%;background:linear-gradient(180deg,#8B5CF6,#6D28D9)"></div><div class="gbc-b" style="width:6px;height:${s}%;background:linear-gradient(180deg,#FFD700,#FF8C00)"></div><div class="gbc-b" style="width:6px;height:${d}%;background:linear-gradient(180deg,#F44336,#C62828)"></div></div>`;
+  }).join('');
+  const ppOvs=overPlan.filter(o=>o.phase==='pp').length||6;
+  const midOvs=overPlan.filter(o=>o.phase==='mid').length||10;
+  const dthOvs=overPlan.filter(o=>o.phase==='death').length||4;
+  const allocHTML=bowlerAlloc.length?
+    bowlerAlloc.map(b=>`<div class="ba-row"><span class="ba-name">${b.name}</span><div class="ba-overs">${b.overs.map(o=>`<span class="ba-ov">${o}</span>`).join('')}</div><span class="ba-total">${b.total} overs</span></div>`).join(''):
+    '<div style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.25);padding:12px;text-align:center">Generate a brief to see bowler allocation.</div>';
+  return`
+  <div class="rc"><div class="rt"><span class="d"></span>Wicket Heatmap</div>${buildPitchHeatmapHTML(curVenue,curOppTeam)}</div>
+  <div class="rc"><div class="rt"><span class="d"></span>Bowling Phase Summary</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center">
+      <div style="padding:6px;background:rgba(0,229,255,0.04);border-radius:6px;border:1px solid rgba(0,229,255,0.08)"><div style="font-family:Orbitron;font-size:12px;font-weight:800;color:#00E5FF">${ppOvs}</div><div style="font-family:Rajdhani;font-size:6px;letter-spacing:1.5px;color:rgba(255,255,255,0.25)">POWERPLAY</div></div>
+      <div style="padding:6px;background:rgba(255,215,0,0.03);border-radius:6px;border:1px solid rgba(255,215,0,0.06)"><div style="font-family:Orbitron;font-size:12px;font-weight:800;color:#FFD700">${midOvs}</div><div style="font-family:Rajdhani;font-size:6px;letter-spacing:1.5px;color:rgba(255,255,255,0.25)">MIDDLE</div></div>
+      <div style="padding:6px;background:rgba(244,67,54,0.04);border-radius:6px;border:1px solid rgba(244,67,54,0.06)"><div style="font-family:Orbitron;font-size:12px;font-weight:800;color:#F44336">${dthOvs}</div><div style="font-family:Rajdhani;font-size:6px;letter-spacing:1.5px;color:rgba(255,255,255,0.25)">DEATH</div></div>
+    </div>
+  </div>
+  <div class="rc"><div class="rt"><span class="d"></span>Bowler Allocation</div>${allocHTML}</div>
+  <div class="rc"><div class="rt"><span class="d"></span>Attack Chart</div>
+    <div class="gbc">${barHTML}</div>
+    <div class="gbc-labels"><span>1</span><span>5</span><span>10</span><span>15</span><span>20</span></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <span style="display:flex;align-items:center;gap:3px;font-size:7px;color:rgba(255,255,255,0.3)"><span style="width:6px;height:6px;border-radius:1px;background:#8B5CF6"></span>Pace</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:7px;color:rgba(255,255,255,0.3)"><span style="width:6px;height:6px;border-radius:1px;background:#FFD700"></span>Spin</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:7px;color:rgba(255,255,255,0.3)"><span style="width:6px;height:6px;border-radius:1px;background:#F44336"></span>Danger</span>
+    </div>
+  </div>`;
+}
+
+function renderOppRight(){
+  if(!oppBat.length)return`<div class="rc"><div class="rt"><span class="d"></span>Key Notes &amp; Arrival</div><div style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.25);padding:20px;text-align:center">Generate a brief to see opposition analysis.</div></div>`;
+  return`<div class="rc"><div class="rt"><span class="d"></span>Key Notes &amp; Arrival</div>
+    ${oppBat.map(b=>`<div class="kn ${b.danger}"><div style="display:flex;justify-content:space-between;align-items:center"><div class="kn-conf ${b.danger}">${b.name}</div><span class="arr-badge">Arrives: ${b.arrival}</span></div><div class="kn-text">${b.notes||'No notes available.'}</div>${b.careerSR?`<div style="font-family:Rajdhani;font-size:7px;color:rgba(255,255,255,0.2);margin-top:2px">Career SR: ${b.careerSR} · Death SR: ${b.deathSR}</div>`:''}</div>`).join('')}
+  </div>`;
+}
+
+// ─── OVERLAYS (Changes 5 & 6) ────────────────────────────────────────────────
+function renderOverlays(){
+  const el=document.getElementById('overlays');
+  const plEl=document.getElementById('player-labels');
+  const zlEl=document.getElementById('zl');
+  if(curTab===0){
+    // Change 5: use live tossRec object
+    el.innerHTML=`<div class="toss-card"><div class="toss-t"><span class="d"></span>Toss Recommendation</div><div class="toss-rec">${tossRec.decision}</div><div class="toss-why">${tossRec.reason}</div></div>`+
+    (briefGenerated?`<button onclick="window.print()" style="position:absolute;bottom:12px;right:12px;z-index:20;font-family:Rajdhani;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 18px;border-radius:7px;border:1px solid rgba(255,215,0,0.25);background:rgba(255,215,0,0.08);color:rgba(255,215,0,0.7);cursor:pointer;backdrop-filter:blur(10px)">⬇ DOWNLOAD PDF</button>`:'');
+    plEl.style.display='block';zlEl.classList.add('hidden');renderPL();
+  }else if(curTab===1){
+    // Change 6: use live tactical alert
+    const contItems=(contingency.length?contingency:['Generate a brief to see contingency notes.']).map(n=>`<div class="cont-item"><span style="color:#FFC107">⚡</span><span class="cont-text">${n}</span></div>`).join('');
+    el.innerHTML=`<div class="alert-card"><div class="alert-t">⚠ TACTICAL ALERT</div><div class="alert-txt">${window._liveTacticalAlert||'Monitor opening bowler costs — escalate to backup if 15+ in first over with new ball.'}</div></div><div class="cont-card"><div class="cont-t">Contingency Notes</div>${contItems}</div>`;
+    plEl.style.display='none';zlEl.classList.remove('hidden');
+    zlEl.innerHTML='<span><span class="zd" style="background:#F44336"></span>Fine Leg 7%</span><span><span class="zd" style="background:#FF8C00"></span>Square Leg 10%</span><span><span class="zd" style="background:#00E5FF"></span>Mid Wicket 15%</span><span><span class="zd" style="background:#4CAF50"></span>Long On 13%</span><span><span class="zd" style="background:#FFD700"></span>Long Off 22%</span><span><span class="zd" style="background:#8B5CF6"></span>Cover 12%</span>';
+  }else if(curTab===2){
+    const mnHTML=matchupNotes.length?
+      matchupNotes.map(n=>`<div class="mn-card ${n.conf}"><span class="mn-lvl ${n.conf}">${n.conf==='high'?'High':n.conf==='med'?'Medium':'Low'}</span><span class="mn-balls">${n.balls} balls</span><div class="mn-txt">${n.text}</div></div>`).join(''):
+      '<div class="mn-card" style="color:rgba(255,255,255,0.25);font-family:Rajdhani;font-size:10px;padding:8px">Generate a brief to see matchup notes.</div>';
+    el.innerHTML=`<div class="matchup-overlay">${mnHTML}</div>`;
+    plEl.style.display='block';zlEl.classList.add('hidden');renderOppPL();
+  }
+}
+
+function renderPL(){
+  const el=document.getElementById('player-labels');
+  const ps=xiOpts[curXI]?.players||[];
+  const colors=['#FFD700','#8B5CF6','#F44336','#00E5FF','#4CAF50','#FF8C00','#00BFFF'];
+  console.log('[renderPL] curTeam=',curTeam,'curXI=',curXI,'players=',ps.map(p=>({n:p.n,photo:p.p})));
+  el.innerHTML=ps.map((p,i)=>`<div class="pl" id="pl-${i}">${playerAvatar(p.n,colors[i%colors.length],p.p)}<div class="nf">${(p.n||'').split(' ').pop()}</div></div>`).join('');
+}
+function renderOppPL(){
+  const el=document.getElementById('player-labels');
+  el.innerHTML=oppBat.map((b,i)=>{
+    const dc=b.danger==='high'?'#F44336':b.danger==='med'?'#FFC107':'#4CAF50';
+    return`<div class="pl" id="pl-${i}">${playerAvatar(b.name,dc)}<div class="nf">${(b.name||'').split(' ').pop()}</div><div class="db ${b.danger}">${b.danger.toUpperCase()}</div></div>`;
+  }).join('');
+}
+
+function renderScenarios(){
+  const scHTML=scenarios.length?
+    `<div class="scenarios-grid">${scenarios.map(s=>`<div class="sc-card ${s.cls}"><div class="sc-title" style="color:${s.color}">${s.title}<span class="sc-tag">[${s.id}]</span></div><div class="sc-desc">${s.desc}</div><div class="sc-trigger"><strong>Trigger:</strong> ${s.trigger}</div>${s.players.map((p,i)=>`<div class="sc-player"><span class="sc-pnum">${i+1}</span><div><span class="sc-pname">${p.name}</span><span class="sc-prole ${p.cls}">${p.role}</span><div class="sc-pnote">${p.note}</div></div></div>`).join('')}</div>`).join('')}</div>`:
+    '<div style="font-family:Rajdhani;font-size:12px;color:rgba(255,255,255,0.25);padding:40px;text-align:center">Generate a match brief to see batting scenarios.</div>';
+  const mnHTML=matchupNotes.length?
+    `<div class="matchup-bar">${matchupNotes.map(n=>`<div class="mn ${n.conf}"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="mn-level ${n.conf}">${n.conf==='high'?'High':'Medium'}</span><span class="mn-balls">${n.balls} balls</span></div><div class="mn-text">${n.text}</div></div>`).join('')}</div>`:
+    '<div style="font-family:Rajdhani;font-size:11px;color:rgba(255,255,255,0.2);padding:20px;text-align:center">Generate a brief for matchup notes.</div>';
+  document.getElementById('scenarios-content').innerHTML=`${scHTML}<div style="font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#FFD700;margin:16px 0 12px;display:flex;align-items:center;gap:6px"><span style="width:5px;height:5px;border-radius:50%;background:#FFD700"></span>Key Matchup Notes</div>${mnHTML}`;
+}
+
+// ─── PITCH HEATMAP ───────────────────────────────────────────────────────────
+function buildPitchHeatmapHTML(venue,opp){
+  const data=getPitchData(venue||curVenue,opp||curOppTeam);
+  const zones=[
+    {label:'FULL TOSS',key:'fullToss',color:'#4CAF50'},{label:'YORKER',key:'yorker',color:'#8BC34A'},
+    {label:'GOOD LEN',key:'goodLen',color:'#F44336'},{label:'SHORT/GD',key:'shortOfGood',color:'#FF5722'},
+    {label:'SHORT',key:'short',color:'#FF9800'},
+  ];
+  const maxCount=Math.max(...zones.map(z=>data[z.key]),1);
+  const zonesHTML=zones.map(z=>{
+    const cnt=data[z.key],intensity=cnt/maxCount;
+    let bg=intensity<0.35?'rgba(76,175,80,':intensity<0.65?'rgba(255,152,0,':intensity<0.85?'rgba(255,87,34,':'rgba(244,67,54,';
+    const alpha=(0.25+intensity*0.65).toFixed(2);
+    const dots=Array.from({length:Math.min(cnt,10)},()=>`<div class="phm-dot"></div>`).join('');
+    return`<div class="phm-zone" style="background:${bg}${alpha});flex:${0.8+intensity*1.2}"><div><div class="phm-zone-label">${z.label}</div><div class="phm-dots">${dots}</div></div><div class="phm-zone-count">${cnt}W</div></div>`;
+  }).join('');
+  const ph=200,pw=60;const total=zones.reduce((a,z)=>a+data[z.key],0)||1;
+  let svgZones='';let yy=18;
+  zones.forEach(z=>{
+    const cnt=data[z.key],intensity=cnt/maxCount;
+    const zh=Math.max(18,Math.round((cnt/total)*(ph-36))+14);
+    let fill=intensity<0.35?'rgba(76,175,80,0.55)':intensity<0.65?'rgba(255,152,0,0.65)':intensity<0.85?'rgba(255,87,34,0.72)':'rgba(244,67,54,0.80)';
+    svgZones+=`<rect x="4" y="${yy}" width="${pw-8}" height="${zh}" fill="${fill}" rx="2"/>`;
+    for(let d=0;d<Math.min(cnt,6);d++){const dx=8+d*7;const dy=yy+zh/2;svgZones+=`<circle cx="${dx}" cy="${dy}" r="2.2" fill="rgba(255,255,255,0.72)"/>`;}
+    yy+=zh;
+  });
+  const pitchSVG=`<svg viewBox="0 0 ${pw} ${ph}" xmlns="http://www.w3.org/2000/svg" style="border-radius:4px;overflow:hidden"><defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#B8934A"/><stop offset="50%" stop-color="#D4B882"/><stop offset="100%" stop-color="#B8934A"/></linearGradient></defs><rect width="${pw}" height="${ph}" fill="url(#pg)" rx="3"/>${svgZones}<line x1="4" y1="16" x2="${pw-4}" y2="16" stroke="rgba(255,255,255,0.8)" stroke-width="1.2"/><line x1="4" y1="${ph-16}" x2="${pw-4}" y2="${ph-16}" stroke="rgba(255,255,255,0.8)" stroke-width="1.2"/><line x1="${pw/2-5}" y1="12" x2="${pw/2-5}" y2="20" stroke="white" stroke-width="1.5"/><line x1="${pw/2}" y1="12" x2="${pw/2}" y2="20" stroke="white" stroke-width="1.5"/><line x1="${pw/2+5}" y1="12" x2="${pw/2+5}" y2="20" stroke="white" stroke-width="1.5"/><line x1="${pw/2-5}" y1="${ph-20}" x2="${pw/2-5}" y2="${ph-12}" stroke="white" stroke-width="1.5"/><line x1="${pw/2}" y1="${ph-20}" x2="${pw/2}" y2="${ph-12}" stroke="white" stroke-width="1.5"/><line x1="${pw/2+5}" y1="${ph-20}" x2="${pw/2+5}" y2="${ph-12}" stroke="white" stroke-width="1.5"/><rect width="${pw}" height="${ph}" fill="none" stroke="rgba(255,215,0,0.3)" stroke-width="1" rx="3"/></svg>`;
+  return`<div style="margin-bottom:4px"><div style="font-family:Rajdhani;font-size:7px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-bottom:4px">WICKET HEATMAP · LAST 10 MATCHES · ${(venue||curVenue).split(',')[0].toUpperCase()}</div><div class="phm-wrap"><div class="phm-pitch">${pitchSVG}</div><div class="phm-zones">${zonesHTML}</div></div><div style="display:flex;gap:8px;margin-top:5px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:3px;font-family:Rajdhani;font-size:6px;color:rgba(255,255,255,0.3)"><span style="width:6px;height:6px;border-radius:50%;background:#4CAF50;display:inline-block"></span>Low Risk</span><span style="display:flex;align-items:center;gap:3px;font-family:Rajdhani;font-size:6px;color:rgba(255,255,255,0.3)"><span style="width:6px;height:6px;border-radius:50%;background:#FF9800;display:inline-block"></span>Moderate</span><span style="display:flex;align-items:center;gap:3px;font-family:Rajdhani;font-size:6px;color:rgba(255,255,255,0.3)"><span style="width:6px;height:6px;border-radius:50%;background:#F44336;display:inline-block"></span>High Danger</span></div></div>`;
+}
+
+// ─── 120-BALL BOUNDARY PROBABILITY ──────────────────────────────────────────
+function genBallProbs(){
+  const probs=[];
+  for(let b=0;b<120;b++){
+    const ov=Math.floor(b/6);let base,noise;
+    if(ov<6){if(ov===0)base=0.45+Math.sin(b*0.9)*0.12;else if(ov<3)base=0.35+Math.sin(b*0.7+1)*0.1;else base=0.28+Math.sin(b*0.6)*0.09;noise=0.06;}
+    else if(ov<10){base=0.18+Math.sin(b*0.4+2)*0.07;noise=0.05;}
+    else if(ov<14){const prog=(ov-10)/4;base=0.20+prog*0.14+Math.sin(b*0.5)*0.06;noise=0.06;}
+    else if(ov===14||ov===15){base=0.38+Math.sin(b*0.8)*0.08;noise=0.07;}
+    else{const prog=(ov-15)/5;base=0.52+prog*0.28+Math.sin(b*1.2)*0.1;if(ov>=18)base=Math.min(0.92,base+0.12);noise=0.08;}
+    probs.push(Math.max(0.05,Math.min(0.97,base+(Math.random()*2-1)*noise)));
+  }
+  return probs;
+}
+const ballProbs=genBallProbs();
+
+// ─── STUBS (allow switchTab/renderRight to run before THREE.js init) ─────────
+function updateScene(){}
+function updateBars(){}
+function setView(v,el){document.querySelectorAll('.vb').forEach(b=>b.classList.remove('act'));if(el)el.classList.add('act');}
+function zoomStep(){}function zoomReset(){}function applyZoom(){}
+
+// ─── PRE-THREE INIT (UI renders even if THREE.js fails) ──────────────────────
+renderTabs();switchTab(0);loadMeta();initPrepMeta();
+const _zc=document.getElementById('zoom-ctrl'),_zh=document.getElementById('zoom-hint');
+if(_zc)_zc.style.display='none';if(_zh)_zh.style.display='none';
+
+// ─── THREE.JS SCENE ──────────────────────────────────────────────────────────
+try{
+const container=document.getElementById('cc');
+let W=container.clientWidth||window.innerWidth-480,H=container.clientHeight||window.innerHeight-48;
+if(W<100)W=window.innerWidth-480;if(H<100)H=window.innerHeight-48;
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x080114,0.012);
+const camera=new THREE.PerspectiveCamera(42,W/H,0.1,200);camera.position.set(0,42,52);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setSize(W,H);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.domElement.style.position='absolute';renderer.domElement.style.top='0';renderer.domElement.style.left='0';
+container.appendChild(renderer.domElement);
+window.addEventListener('resize',()=>{const w=container.clientWidth||window.innerWidth-480,h=container.clientHeight||window.innerHeight-48;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);});
+
+scene.add(new THREE.AmbientLight(0xD4E8C2,0.42));
+const dl=new THREE.DirectionalLight(0xFFFDE7,1.05);dl.position.set(15,35,15);scene.add(dl);
+const dl2=new THREE.DirectionalLight(0xC8E6C9,0.28);dl2.position.set(-12,20,-12);scene.add(dl2);
+const dl3=new THREE.DirectionalLight(0xE8F5E9,0.16);dl3.position.set(0,30,-20);scene.add(dl3);
+
+const gnd=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshPhongMaterial({color:0x050010}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.22;scene.add(gnd);
+const outfield=new THREE.Mesh(new THREE.CylinderGeometry(20,20,0.28,128),new THREE.MeshPhongMaterial({color:0x3A7D35,emissive:0x1C4A18,emissiveIntensity:0.10,shininess:6}));scene.add(outfield);
+
+(()=>{
+  const size=512,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d'),cx=size/2,cy=size/2,R=size/2;
+  ctx.fillStyle='#3A7D35';ctx.fillRect(0,0,size,size);
+  const numBands=16;
+  for(let i=numBands;i>=0;i--){const r1=((i+1)/numBands)*R;ctx.beginPath();ctx.arc(cx,cy,r1,0,Math.PI*2);ctx.fillStyle=(i%2===0)?'#4A9643':'#2D6B28';ctx.fill();}
+  const stripeW=size/20;
+  for(let s=0;s<20;s++){if(s%2===0){ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.clip();ctx.fillStyle='rgba(80,160,70,0.13)';ctx.fillRect(s*stripeW,0,stripeW,size);ctx.restore();}}
+  for(let n=0;n<1200;n++){const nx=Math.random()*size,ny=Math.random()*size;if(Math.hypot(nx-cx,ny-cy)<R){ctx.fillStyle=`rgba(${Math.random()>.5?90:30},${Math.random()>.5?140:80},${Math.random()>.5?60:30},0.06)`;ctx.fillRect(nx,ny,2,2);}}
+  const vg=ctx.createRadialGradient(cx,cy,R*0.5,cx,cy,R);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.35)');ctx.fillStyle=vg;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
+  const tex=new THREE.CanvasTexture(canvas);tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;
+  outfield.material=new THREE.MeshPhongMaterial({map:tex,shininess:5,specular:new THREE.Color(0x1A3A18)});outfield.material.needsUpdate=true;
+})();
+
+const infield=new THREE.Mesh(new THREE.CylinderGeometry(11,11,0.31,96),new THREE.MeshPhongMaterial({color:0x428C3C,emissive:0x1E4F1A,emissiveIntensity:0.09,shininess:5}));scene.add(infield);
+const bR=new THREE.Mesh(new THREE.TorusGeometry(20.3,0.09,10,128),new THREE.MeshBasicMaterial({color:0xFFFFFF}));bR.rotation.x=Math.PI/2;bR.position.y=0.2;scene.add(bR);
+const iR=new THREE.Mesh(new THREE.TorusGeometry(11,0.05,8,96),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.25}));iR.rotation.x=Math.PI/2;iR.position.y=0.22;scene.add(iR);
+
+const pitchM=new THREE.Mesh(new THREE.BoxGeometry(2,0.05,6.5),new THREE.MeshPhongMaterial({color:0xC5A87D,emissive:0x8B7355,emissiveIntensity:0.2}));pitchM.position.y=0.2;scene.add(pitchM);
+const cM=new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.5});
+[-2.4,2.4].forEach(z=>{const c=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.02,0.06),cM);c.position.set(0,0.25,z);scene.add(c);});
+
+for(let i=0;i<16;i++){
+  const a=(i/16)*Math.PI*2,d=24;
+  const s=new THREE.Mesh(new THREE.BoxGeometry(8,4,3),new THREE.MeshPhongMaterial({color:0x140536,emissive:0x0E0226,emissiveIntensity:0.3,transparent:true,opacity:0.7}));
+  s.position.set(Math.cos(a)*d,2,Math.sin(a)*d);s.lookAt(0,2,0);scene.add(s);
+  const e=new THREE.Mesh(new THREE.BoxGeometry(8.2,0.1,0.1),new THREE.MeshBasicMaterial({color:0x8B5CF6,transparent:true,opacity:0.35}));
+  e.position.set(Math.cos(a)*d,4.1,Math.sin(a)*d);e.lookAt(0,4.1,0);scene.add(e);
+}
+
+for(let i=0;i<6;i++){
+  const a=(i/6)*Math.PI*2,d=30,px=Math.cos(a)*d,pz=Math.sin(a)*d;
+  const tg=new THREE.Group();
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.22,22,10),new THREE.MeshPhongMaterial({color:0x8899AA,specular:0x444444,shininess:40}));pole.position.set(0,11,0);tg.add(pole);
+  for(let lvl=0;lvl<3;lvl++){const y=5+lvl*5;const br=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,2.2,4),new THREE.MeshPhongMaterial({color:0x778899}));br.position.set(0,y,0);br.rotation.z=Math.PI/4;tg.add(br);const br2=br.clone();br2.rotation.z=-Math.PI/4;tg.add(br2);}
+  const armAngle=Math.atan2(-pz,-px);
+  for(let f=0;f<8;f++){
+    const frac=(f/7)-0.5;
+    const fix=new THREE.Group();
+    fix.add(new THREE.Mesh(new THREE.BoxGeometry(0.28,0.2,0.12),new THREE.MeshPhongMaterial({color:0x223344})));
+    const lens=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.14,0.06),new THREE.MeshBasicMaterial({color:0xFFF8E1,transparent:true,opacity:0.95}));lens.position.z=0.08;fix.add(lens);
+    fix.position.set(Math.cos(armAngle)*frac*2.4+Math.cos(armAngle)*5,21.6,Math.sin(armAngle)*frac*2.4+Math.sin(armAngle)*5);
+    fix.rotation.x=Math.PI/6;fix.rotation.y=armAngle;tg.add(fix);
+  }
+  const pl1=new THREE.PointLight(0xFFFDE0,0.55,70);pl1.position.set(Math.cos(armAngle)*4,21,Math.sin(armAngle)*4);tg.add(pl1);
+  const pl2=new THREE.PointLight(0xFFF8D0,0.3,55);pl2.position.set(Math.cos(armAngle)*2,19,Math.sin(armAngle)*2);tg.add(pl2);
+  const gs=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,8),new THREE.MeshBasicMaterial({color:0xFFFBCC,transparent:true,opacity:0.55}));gs.position.set(Math.cos(armAngle)*5,21.8,Math.sin(armAngle)*5);tg.add(gs);
+  tg.position.set(px,0,pz);scene.add(tg);
+}
+
+const gR=new THREE.Mesh(new THREE.TorusGeometry(20.5,0.4,8,64),new THREE.MeshBasicMaterial({color:0x4CAF50,transparent:true,opacity:0.08}));gR.rotation.x=Math.PI/2;gR.position.y=0.15;scene.add(gR);
+
+const windG=new THREE.Group();scene.add(windG);const windDots=[];const windDir=new THREE.Vector3(1,0,0.3).normalize();
+const windStreams=[];
+for(let i=0;i<12;i++){
+  const sx=-16+Math.random()*32,sz=-14+Math.random()*28,y=1.5+Math.random()*7;
+  const pts=[];for(let j=0;j<8;j++)pts.push(new THREE.Vector3(sx+j*2.8*windDir.x,y+Math.sin(j*0.7)*0.5,sz+j*2.8*windDir.z));
+  const geo=new THREE.BufferGeometry().setFromPoints(pts);
+  const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xAADDFF,transparent:true,opacity:0.18+Math.random()*0.14}));windG.add(line);
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.7,6),new THREE.MeshBasicMaterial({color:0xCCEEFF,transparent:true,opacity:0.55}));
+  cone.rotation.z=-Math.PI/2;cone.position.copy(pts[pts.length-1]);windG.add(cone);
+  windStreams.push({line,cone,pts,baseY:y,phase:Math.random()*Math.PI*2});
+}
+for(let i=0;i<500;i++){
+  const si=Math.floor(Math.random()*12),st=windStreams[si],pi=Math.floor(Math.random()*st.pts.length),ref=st.pts[pi];
+  const ox=(Math.random()-.5)*6,oy=(Math.random()-.5)*3,oz=(Math.random()-.5)*5;
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(0.06+Math.random()*0.1,5,5),new THREE.MeshBasicMaterial({color:0xDDEEFF,transparent:true,opacity:0.18+Math.random()*0.28}));
+  const bx=ref.x+ox,by=ref.y+oy,bz=ref.z+oz;dot.position.set(bx,by,bz);windG.add(dot);
+  windDots.push({mesh:dot,baseX:bx,baseY:by,baseZ:bz,speed:0.4+Math.random()*1.8,drift:3+Math.random()*5,phase:Math.random()*Math.PI*2});
+}
+
+const barG=new THREE.Group();barG.visible=false;scene.add(barG);
+const bars=[];const BAR_RADIUS=21,BAR_MAX_H=7;
+for(let b=0;b<120;b++){
+  const a=(b/120)*Math.PI*2,prob=ballProbs[b],h=0.3+prob*BAR_MAX_H;
+  let col=prob<0.25?0x4CAF50:prob<0.50?0xFFD700:prob<0.75?0xFF8C00:0xF44336;
+  const bx=Math.cos(a)*BAR_RADIUS,bz=Math.sin(a)*BAR_RADIUS;
+  const mesh=new THREE.Mesh(new THREE.BoxGeometry(0.28,h,0.28),new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:0.35,transparent:true,opacity:0.88}));
+  mesh.position.set(bx,0.15+h/2,bz);barG.add(mesh);bars.push({mesh,baseH:h,prob,angle:a,ball:b});
+}
+
+const bzG=new THREE.Group();bzG.visible=false;scene.add(bzG);
+[{z:-2,c:0x8B5CF6,o:.12},{z:.5,c:0xFF8C00,o:.1},{z:2.8,c:0xF44336,o:.15}].forEach(d=>{
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(1.8,2),new THREE.MeshBasicMaterial({color:d.c,transparent:true,opacity:d.o,side:THREE.DoubleSide}));
+  p.rotation.x=-Math.PI/2;p.position.set(0,0.22,d.z);bzG.add(p);
+});
+[{x:-.3,z:-1.8,c:0x8B5CF6},{x:.2,z:-1.2,c:0x8B5CF6},{x:.5,z:.3,c:0xFF8C00},{x:-.3,z:.8,c:0xFF8C00},{x:.1,z:2.5,c:0xF44336},{x:-.4,z:2.8,c:0xF44336},{x:.3,z:-.5,c:0x8B5CF6},{x:-.5,z:1.5,c:0xFF8C00}].forEach(d=>{
+  const m=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),new THREE.MeshBasicMaterial({color:d.c}));m.position.set(d.x,0.35,d.z);bzG.add(m);
+});
+
+// ─── SCENE CONTROL ───────────────────────────────────────────────────────────
+function updateScene(){
+  barG.visible=curTab===1;bzG.visible=curTab===1;
+  const ps=curTab===1?2.5:1;pitchM.scale.set(ps,1,ps);
+}
+function updateBars(){
+  bars.forEach(b=>{
+    const ballOver=Math.floor(b.ball/6)+1;
+    const boost=(ballOver===curOver)?0.4:0;
+    b.mesh.scale.y=1+boost;b.mesh.material.emissiveIntensity=0.35+boost;
+  });
+}
+
+const DEF_Y=42,DEF_ORBIT=52;
+let targetY=DEF_Y,orbitRadius=DEF_ORBIT;
+function setView(v,el){
+  document.querySelectorAll('.vb').forEach(b=>b.classList.remove('act'));el.classList.add('act');
+  if(v==='top'){targetY=60;orbitRadius=1;}else{targetY=DEF_Y;orbitRadius=DEF_ORBIT;}
+}
+function zoomStep(){}function zoomReset(){}function applyZoom(){}
+container.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
+
+// ─── PLAYER LABEL UPDATE ─────────────────────────────────────────────────────
+function updatePL(){
+  if(curTab>2)return;
+  const rect=container.getBoundingClientRect();
+  const ps=curTab===2?oppBat:xiOpts[curXI]?.players||[];
+  ps.forEach((p,i)=>{
+    if(i>=playerPos.length)return;
+    const pos=playerPos[i];
+    const v=new THREE.Vector3(pos.x,1.5,pos.z);v.project(camera);
+    const x=(v.x*.5+.5)*rect.width,y=(-v.y*.5+.5)*rect.height;
+    const el=document.getElementById(`pl-${i}`);
+    if(el){el.style.left=(x-31)+'px';el.style.top=(y-41)+'px';el.style.opacity=v.z<1?1:0;}
+  });
+}
+
+// ─── ANIMATION ───────────────────────────────────────────────────────────────
+function animate(){
+  requestAnimationFrame(animate);
+  const t=Date.now()*.001;
+  camera.position.y+=(targetY-camera.position.y)*0.03;
+  camera.position.x=Math.sin(t*0.06)*orbitRadius;
+  camera.position.z=Math.cos(t*0.06)*orbitRadius;
+  camera.lookAt(0,0,0);
+  gR.material.opacity=.06+Math.sin(t)*.03;
+  windDots.forEach(d=>{
+    const travel=((t*d.speed+d.phase)%d.drift)/d.drift;
+    d.mesh.position.x=d.baseX+travel*d.drift*windDir.x;
+    d.mesh.position.z=d.baseZ+travel*d.drift*windDir.z;
+    d.mesh.position.y=d.baseY+Math.sin(t*0.8+d.phase)*0.3;
+    const fade=travel<0.1?travel/0.1:travel>0.85?(1-travel)/0.15:1;
+    d.mesh.material.opacity=(0.06+Math.sin(t*2+d.phase)*0.04)*fade;
+  });
+  windStreams.forEach(s=>{s.line.position.y=Math.sin(t*0.4+s.phase)*0.3;s.cone.position.y=s.pts[s.pts.length-1].y+Math.sin(t*0.4+s.phase)*0.3;});
+  if(curTab===1){
+    bars.forEach(b=>{
+      const ballOver=Math.floor(b.ball/6)+1;
+      const isSelected=(ballOver===curOver);
+      const breath=isSelected?1+Math.sin(t*2.5+b.angle)*0.25:1+Math.sin(t*1.2+b.angle*2)*0.06;
+      b.mesh.scale.y=breath;
+    });
+  }
+  renderer.render(scene,camera);updatePL();
+}
+
+// ─── INIT THREE ──────────────────────────────────────────────────────────────
+animate();
+setTimeout(()=>{const h=document.getElementById('zoom-hint');if(h&&curTab===1)h.style.opacity='0';},4000);
+applyZoom();
+}catch(e){
+  console.error('THREE.js scene failed:',e);
+  const cc=document.getElementById('cc');
+  if(cc)cc.insertAdjacentHTML('afterbegin','<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Orbitron;font-size:9px;color:rgba(244,67,54,0.8);text-align:center;z-index:99;background:rgba(0,0,0,0.6);padding:12px 20px;border-radius:8px;border:1px solid rgba(244,67,54,0.3)">3D SCENE ERROR<br><span style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.5);font-weight:400">'+e.message+'</span></div>');
+}
+</script>
+</body>
+</html>

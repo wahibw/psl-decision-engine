@@ -25,7 +25,7 @@ import pandas as pd
 PROJ_ROOT     = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = PROJ_ROOT / "data" / "processed"
 BBB_FILE      = PROCESSED_DIR / "ball_by_ball.parquet"
-PLAYER_INDEX  = PROCESSED_DIR / "player_index.csv"
+PLAYER_INDEX  = PROCESSED_DIR / "player_index_2026_enriched.csv"
 
 # psl_schedule.csv: spec location vs actual location
 SCHEDULE_SPEC   = PROJ_ROOT / "data" / "psl_schedule.csv"
@@ -122,6 +122,76 @@ def _build_player_stats(df: pd.DataFrame) -> pd.DataFrame:
 
     bat_all = pd.concat([bat_by_phase, bat_overall, bat_career, bat_career_phase], ignore_index=True)
     bat_all = bat_all.rename(columns={"batter": "player_name"})
+
+    # ── CHASE / SET BATTING CONTEXT ──────────────────────────────────────────
+    # bat_avg_chase / bat_sr_chase  — innings == 2 (chasing a target)
+    # bat_avg_set   / bat_sr_set    — innings == 1 (setting a target)
+    # innings_context_split         — chase_avg minus set_avg (positive = better chaser)
+    #
+    # Populated only on phase == "overall" rows (both per-season and career season=0).
+    # All other phase rows (powerplay, middle, death) carry NaN for these columns.
+
+    def _context_agg(grp: pd.DataFrame) -> pd.Series:
+        runs      = int(grp["runs_batter"].sum())
+        dismissed = int(grp["batter_dismissed"].sum())
+        balls     = len(grp)
+        innings_n = int(grp["match_id"].nunique())
+        return pd.Series({
+            "ctx_runs":      runs,
+            "ctx_dismissed": dismissed,
+            "ctx_balls":     balls,
+            "ctx_innings":   innings_n,
+        })
+
+    def _build_context(bat_sub: pd.DataFrame, suffix: str, career: bool) -> pd.DataFrame:
+        """
+        Returns (player_name, season, bat_avg_{suffix}, bat_sr_{suffix}, bat_innings_{suffix}).
+        career=True  → group by batter only, season = 0
+        career=False → group by (batter, season)
+        """
+        if career:
+            agg = bat_sub.groupby("batter").apply(_context_agg).reset_index()
+            agg["season"] = 0
+        else:
+            agg = bat_sub.groupby(["batter", "season"]).apply(_context_agg).reset_index()
+
+        agg = agg.rename(columns={"batter": "player_name"})
+        agg[f"bat_avg_{suffix}"] = agg.apply(
+            lambda r: _safe_divide(r["ctx_runs"], r["ctx_dismissed"],
+                                   default=float(r["ctx_runs"])),
+            axis=1,
+        )
+        agg[f"bat_sr_{suffix}"]      = agg.apply(
+            lambda r: _safe_divide(r["ctx_runs"] * 100, r["ctx_balls"]), axis=1,
+        )
+        agg[f"bat_innings_{suffix}"] = agg["ctx_innings"]
+        return agg[["player_name", "season",
+                    f"bat_avg_{suffix}", f"bat_sr_{suffix}", f"bat_innings_{suffix}"]]
+
+    bat_set_season   = _build_context(bat_raw[bat_raw["innings"] == 1], "set",   career=False)
+    bat_set_career   = _build_context(bat_raw[bat_raw["innings"] == 1], "set",   career=True)
+    bat_chase_season = _build_context(bat_raw[bat_raw["innings"] == 2], "chase", career=False)
+    bat_chase_career = _build_context(bat_raw[bat_raw["innings"] == 2], "chase", career=True)
+
+    set_all   = pd.concat([bat_set_season,   bat_set_career],   ignore_index=True)
+    chase_all = pd.concat([bat_chase_season, bat_chase_career], ignore_index=True)
+
+    context_df = set_all.merge(chase_all, on=["player_name", "season"], how="outer")
+    context_df["innings_context_split"] = (
+        context_df["bat_avg_chase"].fillna(0) - context_df["bat_avg_set"].fillna(0)
+    )
+
+    _CTX_COLS = [
+        "bat_avg_chase", "bat_sr_chase", "bat_innings_chase",
+        "bat_avg_set",   "bat_sr_set",   "bat_innings_set",
+        "innings_context_split",
+    ]
+
+    bat_all = bat_all.merge(context_df[["player_name", "season"] + _CTX_COLS],
+                            on=["player_name", "season"], how="left")
+    # Only 'overall' phase rows carry context values; phase-specific rows get NaN
+    non_overall = bat_all["phase"] != "overall"
+    bat_all.loc[non_overall, _CTX_COLS] = float("nan")
 
     # ── BOWLING ──────────────────────────────────────────────────────────────
     # All deliveries including wides/no-balls (they count against bowler)
@@ -220,12 +290,14 @@ def _build_venue_stats(
         df[df["innings"] == 2]
         .sort_values(["match_id", "innings", "over", "ball"])
         .groupby("match_id")
-        .last()[["innings_score", "target", "innings_wickets"]]
+        .last()[["innings_score", "target", "innings_wickets", "season"]]
         .reset_index()
     )
     inn2_last["chase_won"] = inn2_last["innings_score"] >= inn2_last["target"]
 
     match_outcome = dict(zip(inn2_last["match_id"], inn2_last["chase_won"]))
+    # season lookup used for recency-weighted chase_win_pct below
+    match_season  = dict(zip(inn2_last["match_id"], inn2_last["season"]))
 
     for venue, vdf in df.groupby("venue"):
         match_ids = vdf["match_id"].unique()
@@ -248,13 +320,36 @@ def _build_venue_stats(
         wickets_per_match = vdf.groupby(["match_id", "innings"])["is_wicket"].sum()
         avg_wickets = wickets_per_match.mean()
 
-        # Chase/defend
+        # Chase/defend — recency-weighted to avoid bubble-season distortion.
+        # Last 3 seasons are counted twice; older seasons counted once.
+        # Falls back to flat all-time average when recent sample < 10 matches.
         venue_match_ids = set(match_ids)
-        chase_results = [v for k, v in match_outcome.items() if k in venue_match_ids]
-        n_with_result = len(chase_results)
-        n_chase_wins  = sum(chase_results)
-        chase_win_pct  = _safe_divide(n_chase_wins * 100, n_with_result)
-        defend_win_pct = 100.0 - chase_win_pct if n_with_result > 0 else 0.0
+        all_seasons = sorted({match_season[k] for k in venue_match_ids if k in match_season}, reverse=True)
+        recent_cutoff = all_seasons[2] if len(all_seasons) >= 3 else (all_seasons[0] if all_seasons else 0)
+
+        weighted_wins = 0.0
+        weighted_total = 0.0
+        recent_total = 0
+        for mid in venue_match_ids:
+            if mid not in match_outcome:
+                continue
+            won    = match_outcome[mid]
+            season = match_season.get(mid, 0)
+            weight = 2.0 if season >= recent_cutoff else 1.0
+            weighted_wins  += won * weight
+            weighted_total += weight
+            if season >= recent_cutoff:
+                recent_total += 1
+
+        if recent_total >= 10:
+            # Enough recent matches — use recency-weighted figure
+            chase_win_pct = _safe_divide(weighted_wins * 100, weighted_total)
+        else:
+            # Sparse recent data — fall back to flat all-time average
+            chase_results = [v for k, v in match_outcome.items() if k in venue_match_ids]
+            chase_win_pct = _safe_divide(sum(chase_results) * 100, len(chase_results))
+
+        defend_win_pct = 100.0 - chase_win_pct if weighted_total > 0 else 0.0
 
         # Economy by bowling type
         venue_bowlers = vdf[~vdf["is_wide"]].copy()
@@ -388,6 +483,7 @@ def run(
     player_stats.to_parquet(ps_path, index=False)
     if verbose:
         print(f"  player_stats: {len(player_stats):,} rows -> {ps_path.name}")
+        _print_chase_set_sanity(player_stats)
 
     # ── 2. Venue stats ───────────────────────────────────────────────────────
     if verbose:
@@ -422,6 +518,56 @@ def run(
 
 
 # ---------------------------------------------------------------------------
+# CHASE / SET SANITY CHECK
+# ---------------------------------------------------------------------------
+
+def _print_chase_set_sanity(player_stats: pd.DataFrame) -> None:
+    """
+    Print top 5 PSL chasers and top 5 setters by innings_context_split.
+    Requires >=5 innings in each context to appear in the lists.
+    """
+    career = player_stats[
+        (player_stats["season"] == 0) &
+        (player_stats["phase"]  == "overall") &
+        player_stats["innings_context_split"].notna()
+    ].copy()
+
+    # Minimum 5 innings in each context for a reliable split
+    MIN_INN = 5
+    qualified = career[
+        (career["bat_innings_chase"].fillna(0) >= MIN_INN) &
+        (career["bat_innings_set"].fillna(0)   >= MIN_INN)
+    ].copy()
+
+    if qualified.empty:
+        print("  [chase/set] No players with >=5 innings in both contexts yet.")
+        return
+
+    cols = ["player_name", "bat_avg_chase", "bat_avg_set",
+            "bat_sr_chase", "bat_sr_set", "innings_context_split",
+            "bat_innings_chase", "bat_innings_set"]
+
+    top_chasers = qualified.nlargest(5, "innings_context_split")[cols]
+    top_setters = qualified.nsmallest(5, "innings_context_split")[cols]
+
+    print(f"\n  Chase vs Set split (career, >=5 innings each context)")
+    print(f"  {'Player':<25} {'Avg Chase':>9} {'Avg Set':>8} {'SR Chase':>9} {'SR Set':>8} {'Split':>7}")
+    print(f"  {'-'*70}")
+    print("  --- Top 5 Chasers (positive split = better in chases) ---")
+    for _, r in top_chasers.iterrows():
+        print(f"  {r['player_name']:<25} "
+              f"{r['bat_avg_chase']:>9.1f} {r['bat_avg_set']:>8.1f} "
+              f"{r['bat_sr_chase']:>9.1f} {r['bat_sr_set']:>8.1f} "
+              f"{r['innings_context_split']:>+7.1f}")
+    print("  --- Top 5 Setters (negative split = better in set innings) ---")
+    for _, r in top_setters.iterrows():
+        print(f"  {r['player_name']:<25} "
+              f"{r['bat_avg_chase']:>9.1f} {r['bat_avg_set']:>8.1f} "
+              f"{r['bat_sr_chase']:>9.1f} {r['bat_sr_set']:>8.1f} "
+              f"{r['innings_context_split']:>+7.1f}")
+
+
+# ---------------------------------------------------------------------------
 # ENTRY POINT + SUMMARY
 # ---------------------------------------------------------------------------
 
@@ -438,6 +584,7 @@ def _print_summary(results: dict) -> None:
     print(f"    Unique players : {ps['player_name'].nunique()}")
     print(f"    Seasons covered: {sorted(ps['season'].unique())}")
     print(f"    Phases         : {sorted(ps['phase'].unique())}")
+    _print_chase_set_sanity(ps)
 
     print(f"\n  venue_stats ({len(vs)} venues)")
     for _, row in vs.iterrows():

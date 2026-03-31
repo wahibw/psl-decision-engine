@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dugout — TALAASH Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:#E8EAF2;color:#1a0a3a}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 10% 5%,  rgba(139,92,246,0.18) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 45% at 88% 92%,  rgba(255,140,0,0.12)  0%,transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 50%,  rgba(200,210,255,0.35) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 35% at 80% 10%,  rgba(0,229,255,0.08)  0%,transparent 50%),
+    radial-gradient(ellipse 35% 30% at 20% 90%,  rgba(76,175,80,0.08)  0%,transparent 50%);
+}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:52px;
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,0.7);
+  box-shadow:0 1px 0 rgba(139,92,246,0.08),0 4px 20px rgba(139,92,246,0.06);
+}
+.nav-brand-txt{font-family:Rajdhani;font-size:10px;font-weight:500;letter-spacing:5px;text-transform:uppercase;color:rgba(26,10,58,0.35)}
+.nav-links{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:0}
+.nl-sep{width:1px;height:18px;background:rgba(26,10,58,0.12);margin:0 2px}
+.nl{font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(26,10,58,0.38);padding:6px 20px;cursor:pointer;transition:color .2s;border:none;background:transparent;position:relative}
+.nl:hover{color:rgba(26,10,58,0.75)}
+.nl.active{color:#6D28D9}
+.nl.active::after{content:'';position:absolute;bottom:-1px;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#8B5CF6,transparent);border-radius:2px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.live-d{width:7px;height:7px;border-radius:50%;background:#16A34A;animation:blink 1.5s infinite;flex-shrink:0}
+.live-l{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#16A34A}
+.team-b{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#8B5CF6);border:2px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:9px;font-weight:900;color:#1a0a3a;letter-spacing:0.5px;box-shadow:0 2px 12px rgba(139,92,246,0.35)}
+
+/* ══════════════════════════════════════
+   DUGOUT PAGE
+══════════════════════════════════════ */
+.dg-page{
+  position:fixed;top:52px;left:0;right:0;bottom:0;
+  overflow-y:auto;overflow-x:hidden;
+  padding:14px 16px;
+  display:grid;
+  grid-template-columns:300px 1fr 380px;
+  grid-template-rows:auto auto 1fr;
+  gap:12px;
+  z-index:1;
+}
+.dg-page::-webkit-scrollbar{width:4px}
+.dg-page::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+
+/* glass card base */
+.dg-card{
+  background:rgba(255,255,255,0.52);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:16px;
+  box-shadow:0 8px 32px rgba(26,10,58,0.09);
+  padding:14px 16px;
+  position:relative;
+  overflow:hidden;
+}
+.dg-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(109,40,217,0.4),transparent);
+  border-radius:16px 16px 0 0;pointer-events:none;
+}
+.dg-card-title{
+  font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:#6D28D9;
+  display:flex;align-items:center;gap:6px;margin-bottom:12px;
+}
+.dg-card-title .d{width:5px;height:5px;border-radius:50%;background:#6D28D9;flex-shrink:0}
+.dg-card-title .live-pip{width:5px;height:5px;border-radius:50%;background:#16A34A;animation:blink 1.5s infinite;flex-shrink:0}
+
+.dg-match-header{grid-column:1/-1;grid-row:1}
+.dg-left{grid-column:1;display:flex;flex-direction:column;gap:14px}
+.dg-center{grid-column:2;display:flex;flex-direction:column;gap:14px}
+.dg-right{grid-column:3;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:10px;align-content:start}
+.dg-right .dg-intel{grid-column:1/-1}
+.dg-right .dg-momentum-card{grid-column:1}
+.dg-right .dg-dugout-card{grid-column:2}
+.dg-right .dg-field-card{grid-column:1/-1}
+
+/* Match Score Banner */
+.dg-score-banner{
+  grid-column:1/-1;
+  background:linear-gradient(135deg,rgba(109,40,217,0.12),rgba(255,140,0,0.08));
+  border:1px solid rgba(109,40,217,0.2);
+  border-radius:16px;
+  padding:18px 28px;
+  display:grid;
+  grid-template-columns:1fr 160px 140px 140px 1fr;
+  align-items:center;
+  gap:24px;
+  position:relative;overflow:hidden;
+  min-height:100px;
+}
+.dg-score-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,#6D28D9,#FF8C00,#6D28D9);opacity:.5}
+.dg-team-score{display:flex;flex-direction:column;gap:4px;min-width:160px}
+.dg-team-name{font-family:Orbitron;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#1a0a3a}
+.dg-score{font-family:Orbitron;font-size:28px;font-weight:900;color:#1a0a3a;line-height:1}
+.dg-score span{font-size:14px;color:rgba(26,10,58,0.45);font-weight:600}
+.dg-score-overs{font-family:Rajdhani;font-size:11px;color:rgba(26,10,58,0.45);font-weight:600}
+.dg-vs-block{text-align:center;flex:1}
+.dg-vs-txt{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:3px;color:rgba(26,10,58,0.25)}
+.dg-status-pill{font-family:Rajdhani;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;background:rgba(22,163,74,0.12);color:#16A34A;border:1px solid rgba(22,163,74,0.25);margin-top:8px;display:inline-block}
+.dg-status-pill.live{background:rgba(220,38,38,0.1);color:#DC2626;border-color:rgba(220,38,38,0.25)}
+.dg-crr-block{display:flex;flex-direction:column;align-items:center}
+.dg-crr{font-family:Orbitron;font-size:20px;font-weight:900;color:#FF8C00}
+.dg-crr-lbl{font-family:Rajdhani;font-size:8px;letter-spacing:2px;color:rgba(26,10,58,0.35);text-transform:uppercase}
+.dg-rrr{font-family:Orbitron;font-size:11px;font-weight:700;color:#DC2626;margin-top:2px}
+.dg-rrr-lbl{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;color:rgba(26,10,58,0.35);text-transform:uppercase}
+
+/* Batters */
+.dg-batter-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.4);border:1px solid rgba(139,92,246,0.12);margin-bottom:6px}
+.dg-batter-row.active{border-color:rgba(255,140,0,0.35);background:rgba(255,140,0,0.05)}
+.dg-bat-name{font-family:Rajdhani;font-size:12px;font-weight:700;color:#1a0a3a;flex:1}
+.dg-bat-runs{font-family:Orbitron;font-size:14px;font-weight:900;color:#1a0a3a}
+.dg-bat-sr{font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);margin-left:4px}
+.dg-bat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dg-bat-dot.on-strike{background:#FF8C00;box-shadow:0 0 6px rgba(255,140,0,0.6)}
+.dg-bat-dot.off-strike{background:rgba(26,10,58,0.2)}
+
+/* Ball feed */
+.dg-ball-feed{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.dg-ball{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:8px;font-weight:800;border:1.5px solid transparent;flex-shrink:0}
+.dg-ball.dot{background:rgba(26,10,58,0.06);border-color:rgba(26,10,58,0.12);color:rgba(26,10,58,0.35)}
+.dg-ball.single{background:rgba(22,163,74,0.1);border-color:rgba(22,163,74,0.3);color:#16A34A}
+.dg-ball.two{background:rgba(22,163,74,0.15);border-color:rgba(22,163,74,0.4);color:#16A34A}
+.dg-ball.three{background:rgba(2,132,199,0.12);border-color:rgba(2,132,199,0.35);color:#0284C7}
+.dg-ball.four{background:rgba(255,140,0,0.15);border-color:rgba(255,140,0,0.4);color:#FF8C00}
+.dg-ball.six{background:linear-gradient(135deg,rgba(109,40,217,0.2),rgba(255,140,0,0.2));border-color:#FF8C00;color:#FF8C00;box-shadow:0 2px 8px rgba(255,140,0,0.25)}
+.dg-ball.wide{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.25);color:#DC2626}
+.dg-ball.wicket{background:rgba(220,38,38,0.15);border-color:#DC2626;color:#DC2626;font-size:10px;box-shadow:0 2px 8px rgba(220,38,38,0.25)}
+.dg-over-sep{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.3);padding:4px 0;border-top:1px solid rgba(139,92,246,0.08);margin:6px 0 8px;display:flex;justify-content:space-between}
+
+/* Bowler */
+.dg-bowler-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,0.35);border:1px solid rgba(139,92,246,0.1);margin-bottom:5px;cursor:pointer;transition:all .2s}
+.dg-bowler-row:hover{border-color:rgba(109,40,217,0.3);background:rgba(109,40,217,0.04)}
+.dg-bowler-row.bowling{border-color:rgba(220,38,38,0.35);background:rgba(220,38,38,0.05)}
+.dg-bowl-name{font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a;flex:1}
+.dg-bowl-stat{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.55)}
+.dg-bowl-phase{font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.dg-bowl-phase.pp{background:rgba(0,180,220,0.12);color:#0284C7}
+.dg-bowl-phase.mid{background:rgba(180,130,0,0.12);color:#B45309}
+.dg-bowl-phase.death{background:rgba(220,38,38,0.1);color:#DC2626}
+
+/* Wickets */
+.dg-wkt-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;border:1px solid rgba(220,38,38,0.12);background:rgba(220,38,38,0.04);margin-bottom:4px}
+.dg-wkt-over{font-family:Orbitron;font-size:8px;font-weight:700;color:#DC2626;width:36px;flex-shrink:0}
+.dg-wkt-name{font-family:Rajdhani;font-size:11px;font-weight:600;color:#1a0a3a;flex:1}
+.dg-wkt-runs{font-family:Orbitron;font-size:9px;color:rgba(26,10,58,0.45)}
+.dg-wkt-how{font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);font-style:italic}
+
+/* Comms */
+.dg-comm{display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border-radius:8px;margin-bottom:5px;border:1px solid transparent}
+.dg-comm.tactical{background:rgba(109,40,217,0.06);border-color:rgba(109,40,217,0.12)}
+.dg-comm.alert{background:rgba(220,38,38,0.05);border-color:rgba(220,38,38,0.15)}
+.dg-comm.info{background:rgba(22,163,74,0.05);border-color:rgba(22,163,74,0.12)}
+.dg-comm-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+.dg-comm.tactical .dg-comm-icon{background:rgba(109,40,217,0.12)}
+.dg-comm.alert .dg-comm-icon{background:rgba(220,38,38,0.1)}
+.dg-comm.info .dg-comm-icon{background:rgba(22,163,74,0.1)}
+.dg-comm-body{flex:1}
+.dg-comm-from{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;color:rgba(26,10,58,0.4);margin-bottom:2px}
+.dg-comm-txt{font-family:'Exo 2';font-size:9px;color:rgba(26,10,58,0.65);line-height:1.45}
+
+/* Win probability */
+.dg-win-lbl{font-family:Rajdhani;font-size:9px;font-weight:600}
+.dg-win-pct{font-family:Orbitron;font-size:11px;font-weight:800}
+
+/* Field */
+.dg-field-wrap{position:relative;width:100%;aspect-ratio:4/3;margin:8px 0}
+.dg-field-wrap canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+
+/* Momentum */
+.dg-momentum{width:100%;height:80px;position:relative}
+.dg-momentum canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+
+/* Stats */
+.dg-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.dg-stat-box{padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.4);border:1px solid rgba(139,92,246,0.1)}
+.dg-stat-val{font-family:Orbitron;font-size:13px;font-weight:800;color:#1a0a3a;line-height:1}
+.dg-stat-lbl{font-family:Rajdhani;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:rgba(26,10,58,0.38);margin-top:2px}
+.dg-stat-sub{font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.35);margin-top:1px}
+
+/* Input */
+.dg-input-row{display:flex;gap:6px;margin-top:8px}
+.dg-input{flex:1;background:rgba(255,255,255,0.55);border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:7px 10px;font-family:'Exo 2';font-size:10px;color:#1a0a3a;outline:none}
+.dg-input:focus{border-color:rgba(109,40,217,0.4);box-shadow:0 0 0 2px rgba(109,40,217,0.06)}
+.dg-send-btn{background:linear-gradient(135deg,#6D28D9,#8B5CF6);border:none;border-radius:8px;padding:7px 14px;color:#fff;font-family:Orbitron;font-size:8px;font-weight:700;cursor:pointer;letter-spacing:1px}
+
+/* Phase pills */
+.dg-phase-row{display:flex;gap:5px;margin-bottom:10px}
+.dg-phase-pill{flex:1;padding:5px 4px;border-radius:7px;text-align:center;border:1px solid transparent}
+.dg-phase-pill.pp{background:rgba(0,180,220,0.08);border-color:rgba(0,180,220,0.2)}
+.dg-phase-pill.pp.done{background:rgba(0,180,220,0.15);border-color:rgba(0,180,220,0.4)}
+.dg-phase-pill.mid{background:rgba(180,130,0,0.06);border-color:rgba(180,130,0,0.15)}
+.dg-phase-pill.mid.done{background:rgba(180,130,0,0.12);border-color:rgba(180,130,0,0.3)}
+.dg-phase-pill.death{background:rgba(220,38,38,0.05);border-color:rgba(220,38,38,0.12)}
+.dg-phase-pill.death.current{background:rgba(220,38,38,0.1);border-color:rgba(220,38,38,0.3)}
+.dg-phase-lbl{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.dg-phase-pill.pp .dg-phase-lbl,.dg-phase-pill.pp.done .dg-phase-lbl{color:#0284C7}
+.dg-phase-pill.mid .dg-phase-lbl,.dg-phase-pill.mid.done .dg-phase-lbl{color:#B45309}
+.dg-phase-pill.death .dg-phase-lbl,.dg-phase-pill.death.current .dg-phase-lbl{color:#DC2626}
+.dg-phase-runs{font-family:Orbitron;font-size:10px;font-weight:800;color:#1a0a3a;margin-top:2px}
+.dg-phase-rr{font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.4)}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand"><span class="nav-brand-txt">Intelligence Dashboard</span></div>
+  <div class="nav-links">
+    <span class="nl">Prep Room</span>
+    <div class="nl-sep"></div>
+    <span class="nl active">Dugout</span>
+    <div class="nl-sep"></div>
+    <span class="nl">Players</span>
+  </div>
+  <div class="nav-right">
+    <div class="live-d"></div>
+    <span class="live-l">Live</span>
+    <div class="team-b">QG</div>
+  </div>
+</nav>
+
+<div class="dg-page" id="layout-dugout"></div>
+
+<script>
+const DG={
+  match:{home:'Quetta Gladiators',away:'Lahore Qalandars',homeShort:'QG',awayShort:'LQ',venue:'National Stadium, Karachi',inn:2,over:16,ball:3},
+  batting:{score:142,wkts:4,overs:'16.3',target:181,crr:8.61,rrr:11.67},
+  firstInn:{score:180,wkts:6,overs:'20.0'},
+  batters:[
+    {name:'Saud Shakeel',runs:62,balls:45,fours:5,sixes:2,sr:137.7,onStrike:true},
+    {name:'Di Warner',runs:23,balls:18,fours:2,sixes:1,sr:127.7,onStrike:false},
+  ],
+  bowlers:[
+    {name:'Shaheen Afridi',overs:'4.0',runs:38,wkts:2,econ:9.5,phase:'pp',bowling:false},
+    {name:'Haris Rauf',overs:'3.0',runs:28,wkts:1,econ:9.3,phase:'mid',bowling:false},
+    {name:'Zaman Khan',overs:'3.3',runs:32,wkts:1,econ:9.1,phase:'death',bowling:true},
+    {name:'Fakhar Zaman',overs:'2.0',runs:18,wkts:0,econ:9.0,phase:'mid',bowling:false},
+    {name:'Imad Wasim',overs:'4.0',runs:26,wkts:0,econ:6.5,phase:'mid',bowling:false},
+  ],
+  wickets:[
+    {over:'2.4',name:'Babar Azam',runs:18,balls:14,how:'c Fakhar b Shaheen'},
+    {over:'6.1',name:'Rasa Yesea',runs:4,balls:5,how:'lbw b Haris Rauf'},
+    {over:'11.3',name:'Sarfaraz Ahmed',runs:29,balls:22,how:'c sub b Zaman'},
+    {over:'14.6',name:'Shadab Khan',runs:12,balls:9,how:'run out (direct hit)'},
+  ],
+  phases:[
+    {label:'PP',cls:'pp',overs:'1–6',runs:52,wkts:2,rr:8.67,done:true},
+    {label:'MID',cls:'mid',overs:'7–15',runs:74,wkts:2,rr:8.22,done:true},
+    {label:'DEATH',cls:'death',overs:'16–20',runs:16,wkts:0,rr:9.6,current:true},
+  ],
+  balls:[
+    {v:'1',type:'single'},{v:'W',type:'wicket'},{v:'4',type:'four'},{v:'·',type:'dot'},{v:'2',type:'two'},{v:'1',type:'single'},
+    {v:'6',type:'six'},{v:'·',type:'dot'},{v:'4',type:'four'},
+  ],
+  comms:[
+    {type:'tactical',icon:'🎯',from:'AI ANALYSIS',txt:'Zaman bowling 73% yorkers to Shakeel. Suggest stepping outside off-stump to create room — last 3 balls can be targeted square leg.',time:'16.3'},
+    {type:'alert',icon:'⚠',from:'FIELDING ALERT',txt:'Extra cover has crept in 5 yards. Lofted drive over covers is on — gap probability 82% based on current set.',time:'16.1'},
+    {type:'info',icon:'✓',from:'PARTNERSHIP NOTE',txt:'Shakeel–Warner partnership: 47 runs in 31 balls. SR 151.6. On track if maintained through over 18.',time:'14.6'},
+    {type:'tactical',icon:'🎯',from:'AI ANALYSIS',txt:'Rauf due next over. His last 3 death over economy: 14.2, 16.0, 11.5. Attack him in over 17.',time:'13.0'},
+    {type:'info',icon:'✓',from:'MATCH CONTEXT',txt:'Required rate crossover at over 18. Window open: 6 boundaries in next 12 balls wins the match.',time:'12.0'},
+  ],
+  winProb:{home:38,away:62},
+  momentum:[52,48,55,44,58,50,62,45,59,53,68,47,55,72,61,78],
+  stats:{dots:47,boundaries:18,sixes:5,dotPct:38,extras:9,highPartnership:{runs:71,balls:52,batters:'Babar & Shakeel'}},
+};
+
+function renderDugout(){
+  const el=document.getElementById('layout-dugout');
+  if(!el)return;
+  const toGet=DG.batting.target-DG.batting.score;
+  const ballsLeft=Math.round((20-DG.match.over-DG.match.ball/6)*6);
+
+  el.innerHTML=`
+  <div class="dg-score-banner dg-match-header">
+    <div class="dg-team-score">
+      <div class="dg-team-name">${DG.match.home}</div>
+      <div class="dg-score">${DG.batting.score}<span>/${DG.batting.wkts}</span></div>
+      <div class="dg-score-overs">${DG.batting.overs} overs</div>
+    </div>
+    <div class="dg-vs-block">
+      <div class="dg-vs-txt">CHASING</div>
+      <div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#1a0a3a;margin:3px 0">${toGet} off ${ballsLeft}</div>
+      <div class="dg-status-pill live">● LIVE</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 8px;border-left:1px solid rgba(26,10,58,0.08);border-right:1px solid rgba(26,10,58,0.08)">
+      <div class="dg-crr-block">
+        <div class="dg-crr">${DG.batting.crr}</div>
+        <div class="dg-crr-lbl">Current RR</div>
+      </div>
+      <div class="dg-crr-block" style="align-items:center">
+        <div class="dg-rrr">${DG.batting.rrr}</div>
+        <div class="dg-rrr-lbl">Required RR</div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:0 8px">
+      <div style="font-family:Rajdhani;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.35);margin-bottom:2px">Target</div>
+      <div style="font-family:Orbitron;font-size:32px;font-weight:900;color:#6D28D9;line-height:1">${DG.batting.target}</div>
+      <div style="font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);margin-top:2px">${DG.match.away} set ${DG.firstInn.score}/${DG.firstInn.wkts}</div>
+    </div>
+    <div class="dg-team-score" style="align-items:flex-end">
+      <div class="dg-team-name" style="text-align:right">${DG.match.away}</div>
+      <div class="dg-score" style="color:rgba(26,10,58,0.45)">${DG.firstInn.score}<span>/${DG.firstInn.wkts}</span></div>
+      <div class="dg-score-overs">${DG.firstInn.overs} overs</div>
+    </div>
+  </div>
+
+  <!-- Left Column -->
+  <div class="dg-left">
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="live-pip"></span>At The Crease</div>
+      ${DG.batters.map(b=>`
+      <div class="dg-batter-row ${b.onStrike?'active':''}">
+        <span class="dg-bat-dot ${b.onStrike?'on-strike':'off-strike'}"></span>
+        <span class="dg-bat-name">${b.name}</span>
+        <span class="dg-bat-runs">${b.runs}</span>
+        <span class="dg-bat-sr">(${b.balls})</span>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.35)">${b.fours}×4 ${b.sixes}×6</div>
+          <div style="font-family:Rajdhani;font-size:9px;color:${b.sr>150?'#16A34A':b.sr>120?'#B45309':'#DC2626'};font-weight:700">SR ${b.sr}</div>
+        </div>
+      </div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;background:rgba(109,40,217,0.05);border:1px solid rgba(109,40,217,0.1);margin-top:4px">
+        <div>
+          <div style="font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.35);letter-spacing:1px;text-transform:uppercase">Partnership</div>
+          <div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#6D28D9">47 <span style="font-size:10px;color:rgba(26,10,58,0.4)">off 31</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.35);letter-spacing:1px;text-transform:uppercase">Part. SR</div>
+          <div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#FF8C00">151.6</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Bowling Figures</div>
+      ${DG.bowlers.map(b=>`
+      <div class="dg-bowler-row ${b.bowling?'bowling':''}">
+        <div>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span class="dg-bowl-name">${b.name}</span>
+            ${b.bowling?`<span style="font-family:Orbitron;font-size:6px;font-weight:700;color:#DC2626;letter-spacing:1px">●BOWLING</span>`:''}
+          </div>
+          <span class="dg-bowl-phase ${b.phase}">${b.phase==='pp'?'PP':b.phase==='mid'?'MID':'DEATH'}</span>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="dg-bowl-stat">${b.wkts}/${b.runs} <span style="color:rgba(26,10,58,0.35)">(${b.overs})</span></div>
+          <div style="font-family:Rajdhani;font-size:9px;color:${b.econ<8?'#16A34A':b.econ<10?'#B45309':'#DC2626'};font-weight:700">Econ ${b.econ}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Fall of Wickets</div>
+      ${DG.wickets.map(w=>`
+      <div class="dg-wkt-row">
+        <span class="dg-wkt-over">${w.over}</span>
+        <div>
+          <div class="dg-wkt-name">${w.name} <span class="dg-wkt-runs">${w.runs}(${w.balls})</span></div>
+          <div class="dg-wkt-how">${w.how}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Centre Column -->
+  <div class="dg-center">
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="live-pip"></span>Ball-by-Ball Feed</div>
+      <div class="dg-phase-row">
+        ${DG.phases.map(p=>`<div class="dg-phase-pill ${p.cls}${p.done?' done':''}${p.current?' current':''}">
+          <div class="dg-phase-lbl">${p.label}</div>
+          <div class="dg-phase-runs">${p.runs}</div>
+          <div class="dg-phase-rr">RR ${p.rr}</div>
+        </div>`).join('')}
+      </div>
+      <div class="dg-over-sep"><span>OVER 15</span><span style="color:#B45309">6 runs · 1 wkt</span></div>
+      <div class="dg-ball-feed">
+        ${DG.balls.slice(0,6).map(b=>`<div class="dg-ball ${b.type}">${b.v}</div>`).join('')}
+      </div>
+      <div class="dg-over-sep"><span>OVER 16 <span style="color:#DC2626">●CURRENT</span></span><span style="color:#16A34A">10 runs · 0 wkts</span></div>
+      <div class="dg-ball-feed">
+        ${DG.balls.slice(6).map(b=>`<div class="dg-ball ${b.type}">${b.v}</div>`).join('')}
+        <div class="dg-ball dot" style="opacity:0.25;border-style:dashed">·</div>
+        <div class="dg-ball dot" style="opacity:0.25;border-style:dashed">·</div>
+        <div class="dg-ball dot" style="opacity:0.25;border-style:dashed">·</div>
+      </div>
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Win Probability</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="position:relative;flex-shrink:0;width:130px;height:130px">
+          <canvas id="dg-winring-canvas" width="130" height="130"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+            <div style="background:rgba(255,255,255,0.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.8);border-radius:50%;width:72px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,0.9)">
+              <div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#FF8C00;line-height:1">${DG.winProb.away}%</div>
+              <div style="font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;color:rgba(26,10,58,0.45);text-transform:uppercase;margin-top:2px">${DG.match.awayShort}</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#8B5CF6);flex-shrink:0"></div>
+              <div style="font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a">${DG.match.homeShort}</div>
+              <div style="font-family:Orbitron;font-size:14px;font-weight:900;color:#6D28D9;margin-left:auto">${DG.winProb.home}%</div>
+            </div>
+            <div style="height:5px;border-radius:3px;background:rgba(26,10,58,0.07);overflow:hidden">
+              <div style="height:100%;width:${DG.winProb.home}%;background:linear-gradient(90deg,#6D28D9,#8B5CF6);border-radius:3px"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#FF8C00,#FFD700);flex-shrink:0"></div>
+              <div style="font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a">${DG.match.awayShort}</div>
+              <div style="font-family:Orbitron;font-size:14px;font-weight:900;color:#FF8C00;margin-left:auto">${DG.winProb.away}%</div>
+            </div>
+            <div style="height:5px;border-radius:3px;background:rgba(26,10,58,0.07);overflow:hidden">
+              <div style="height:100%;width:${DG.winProb.away}%;background:linear-gradient(90deg,#FF8C00,#FFD700);border-radius:3px"></div>
+            </div>
+          </div>
+          <div style="font-family:'Exo 2';font-size:8px;color:rgba(26,10,58,0.38);line-height:1.4;margin-top:2px">Based on run rate, wickets in hand & historical chase data at this venue.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Innings Statistics</div>
+      <div class="dg-stats-grid">
+        <div class="dg-stat-box">
+          <div class="dg-stat-val">${DG.stats.boundaries}</div>
+          <div class="dg-stat-lbl">Boundaries</div>
+          <div class="dg-stat-sub">${DG.stats.sixes} sixes · ${DG.stats.boundaries-DG.stats.sixes} fours</div>
+        </div>
+        <div class="dg-stat-box">
+          <div class="dg-stat-val">${DG.stats.dotPct}%</div>
+          <div class="dg-stat-lbl">Dot Ball %</div>
+          <div class="dg-stat-sub">${DG.stats.dots} of ${Math.round(DG.batting.overs)*6} balls</div>
+        </div>
+        <div class="dg-stat-box">
+          <div class="dg-stat-val">${DG.stats.extras}</div>
+          <div class="dg-stat-lbl">Extras</div>
+          <div class="dg-stat-sub">wides · no-balls · byes</div>
+        </div>
+        <div class="dg-stat-box">
+          <div class="dg-stat-val" style="font-size:11px">${DG.stats.highPartnership.runs}</div>
+          <div class="dg-stat-lbl">Best Partnership</div>
+          <div class="dg-stat-sub">${DG.stats.highPartnership.batters}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="dg-right">
+    <div class="dg-card dg-intel">
+      <div class="dg-card-title"><span class="live-pip"></span>Tactical Intel Feed</div>
+      ${DG.comms.map(c=>`
+      <div class="dg-comm ${c.type}">
+        <div class="dg-comm-icon">${c.icon}</div>
+        <div class="dg-comm-body">
+          <div class="dg-comm-from">${c.from} · Over ${c.time}</div>
+          <div class="dg-comm-txt">${c.txt}</div>
+        </div>
+      </div>`).join('')}
+      <div class="dg-input-row">
+        <input class="dg-input" placeholder="Ask analyst…" id="dg-ask-input">
+        <button class="dg-send-btn" onclick="dgAsk()">ASK</button>
+      </div>
+    </div>
+
+    <div class="dg-card dg-momentum-card">
+      <div class="dg-card-title"><span class="live-pip"></span>Run Rate Momentum</div>
+      <div class="dg-momentum"><canvas id="dg-momentum-canvas"></canvas></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:14px;height:2px;background:#FF6B00;border-radius:1px;box-shadow:0 0 4px #FF6B00"></div><span style="font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.4)">Run Rate</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:14px;height:1.5px;background:rgba(255,140,0,0.4);border-radius:1px;border-top:1px dashed rgba(255,140,0,0.5)"></div><span style="font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.4)">Avg RR</span></div>
+      </div>
+    </div>
+
+    <div class="dg-card dg-dugout-card">
+      <div class="dg-card-title"><span class="d"></span>In The Dugout</div>
+      ${['Karv Bhan','W. Hasaranga','Naseem Shah','Rashid Khan'].map((n,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;border:1px solid rgba(139,92,246,0.08);background:rgba(255,255,255,0.3);margin-bottom:4px">
+        <span style="font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.3);width:14px">${i+8}</span>
+        <span style="font-family:Rajdhani;font-size:11px;font-weight:600;color:rgba(26,10,58,0.65);flex:1">${n}</span>
+        <span style="font-family:Orbitron;font-size:6px;padding:2px 5px;border-radius:3px;background:rgba(109,40,217,0.08);color:#6D28D9">${['ALL','ALL','BOWL','ALL'][i]}</span>
+      </div>`).join('')}
+    </div>
+
+    <div class="dg-card dg-field-card">
+      <div class="dg-card-title"><span class="d"></span>Current Field Setting</div>
+      <div class="dg-field-wrap"><canvas id="dg-field-canvas"></canvas></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+        ${['Fine Leg','Square Leg','Mid Wicket','Long On','Long Off','Cover','Point','Third Man'].map(f=>`<span style="font-family:Rajdhani;font-size:8px;padding:2px 7px;border-radius:8px;background:rgba(109,40,217,0.07);border:1px solid rgba(109,40,217,0.12);color:rgba(26,10,58,0.5)">${f}</span>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  requestAnimationFrame(()=>{drawWinRing();drawMomentum();drawField();});
+}
+
+function drawWinRing(){
+  const c=document.getElementById('dg-winring-canvas');if(!c)return;
+  const sz=130,ctx=c.getContext('2d');
+  const cx=sz/2,cy=sz/2,r=52,lw=14;
+  const homeAngle=(DG.winProb.home/100)*Math.PI*2;
+  const startAngle=-Math.PI/2;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(26,10,58,0.07)';ctx.lineWidth=lw+2;ctx.stroke();
+  const awayGrad=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+  awayGrad.addColorStop(0,'#FFD700');awayGrad.addColorStop(1,'#FF6B00');
+  ctx.beginPath();ctx.arc(cx,cy,r,startAngle+homeAngle,startAngle+Math.PI*2);
+  ctx.strokeStyle=awayGrad;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+  const homeGrad=ctx.createLinearGradient(cx-r,cy-r,cx+r,cy+r);
+  homeGrad.addColorStop(0,'#8B5CF6');homeGrad.addColorStop(1,'#6D28D9');
+  ctx.beginPath();ctx.arc(cx,cy,r,startAngle,startAngle+homeAngle);
+  ctx.strokeStyle=homeGrad;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+  ctx.shadowColor='#8B5CF6';ctx.shadowBlur=8;
+  ctx.beginPath();ctx.arc(cx,cy,r,startAngle,startAngle+homeAngle*0.15);
+  ctx.strokeStyle='rgba(139,92,246,0.4)';ctx.lineWidth=lw+4;ctx.stroke();
+  ctx.shadowBlur=0;
+}
+
+function drawMomentum(){
+  const c=document.getElementById('dg-momentum-canvas');if(!c)return;
+  const W=c.parentElement.clientWidth||260,H=80;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  const data=DG.momentum;
+  const avg=data.reduce((a,b)=>a+b,0)/data.length;
+  const max=Math.max(...data)+5,min=Math.min(...data)-5;
+  const px=(i)=>(i/(data.length-1))*(W-8)+4;
+  const py=(v)=>H-((v-min)/(max-min))*H*0.82-H*0.09;
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(255,107,0,0.22)');grad.addColorStop(1,'rgba(255,107,0,0.01)');
+  ctx.beginPath();ctx.moveTo(px(0),py(data[0]));
+  data.forEach((v,i)=>{if(i>0)ctx.lineTo(px(i),py(v));});
+  ctx.lineTo(px(data.length-1),H);ctx.lineTo(px(0),H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,py(avg));ctx.lineTo(W,py(avg));
+  ctx.strokeStyle='rgba(255,140,0,0.35)';ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowColor='#FF6B00';ctx.shadowBlur=6;
+  ctx.beginPath();ctx.moveTo(px(0),py(data[0]));
+  data.forEach((v,i)=>{if(i>0)ctx.lineTo(px(i),py(v));});
+  ctx.strokeStyle='#FF6B00';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  ctx.shadowBlur=0;
+  data.forEach((v,i)=>{
+    ctx.beginPath();ctx.arc(px(i),py(v),2.5,0,Math.PI*2);
+    ctx.fillStyle=v>avg?'#FF6B00':'rgba(255,107,0,0.5)';ctx.fill();
+  });
+  const li=data.length-1;
+  ctx.beginPath();ctx.arc(px(li),py(data[li]),4,0,Math.PI*2);
+  ctx.fillStyle='#FF6B00';ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=1.5;ctx.stroke();
+}
+
+function drawField(){
+  const c=document.getElementById('dg-field-canvas');if(!c)return;
+  const W=c.parentElement.clientWidth||360;
+  const H=Math.round(W*0.75);
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  const cx=W/2,cy=H*0.52,Rx=W*0.44,Ry=H*0.38;
+  function proj(nx,ny){
+    const tilt=0.18,scaleY=1-tilt*(1-ny)*0.5;
+    const x=cx+nx*Rx,y=cy+ny*Ry*scaleY;
+    const s=0.7+0.3*((ny+1)/2);
+    return{x,y,s};
+  }
+  function projEllipse(fill,stroke,lw,sX=1,sY=1){
+    const N=80;ctx.beginPath();
+    for(let i=0;i<=N;i++){
+      const a=(i/N)*Math.PI*2,nx=Math.cos(a)*sX,ny=Math.sin(a)*sY,p=proj(nx,ny);
+      i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+    }
+    ctx.closePath();
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+  }
+  const grassGrad=ctx.createRadialGradient(cx,cy,Rx*0.1,cx,cy+Ry*0.2,Rx);
+  grassGrad.addColorStop(0,'rgba(34,120,40,0.35)');grassGrad.addColorStop(0.6,'rgba(22,90,28,0.28)');grassGrad.addColorStop(1,'rgba(12,60,16,0.18)');
+  projEllipse(grassGrad,'rgba(80,200,90,0.3)',1.5);
+  for(let i=0;i<12;i++){
+    const ny=-1+i*(2/11),ex=Math.sqrt(Math.max(0,1-ny*ny));
+    const pl=proj(-ex,ny),pr=proj(ex,ny);
+    ctx.beginPath();ctx.moveTo(pl.x,pl.y);ctx.lineTo(pr.x,pr.y);
+    ctx.strokeStyle=i%2===0?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.05)';
+    ctx.lineWidth=Math.max(1,(1-Math.abs(ny))*Ry*(2/11)*0.9);ctx.stroke();
+  }
+  projEllipse(null,'rgba(255,255,255,0.18)',1,0.46,0.46);
+  projEllipse(null,'rgba(255,255,255,0.4)',2);
+  const pNW=0.055,pNH=0.28;
+  const ptl=proj(-pNW,-pNH/2),ptr=proj(pNW,-pNH/2),pbr=proj(pNW,pNH/2),pbl=proj(-pNW,pNH/2);
+  const pGrad=ctx.createLinearGradient(ptl.x,ptl.y,pbl.x,pbl.y);
+  pGrad.addColorStop(0,'rgba(185,155,90,0.45)');pGrad.addColorStop(0.5,'rgba(220,185,110,0.65)');pGrad.addColorStop(1,'rgba(200,165,95,0.5)');
+  ctx.beginPath();ctx.moveTo(ptl.x,ptl.y);ctx.lineTo(ptr.x,ptr.y);ctx.lineTo(pbr.x,pbr.y);ctx.lineTo(pbl.x,pbl.y);ctx.closePath();
+  ctx.fillStyle=pGrad;ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=0.5;ctx.stroke();
+  [-0.09,0.09].forEach(cny=>{
+    const cl=proj(-pNW*0.9,cny),cr=proj(pNW*0.9,cny);
+    ctx.beginPath();ctx.moveTo(cl.x,cl.y);ctx.lineTo(cr.x,cr.y);
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1;ctx.stroke();
+  });
+  const NEON='#FF6B00';
+  const fielders=[
+    {nx:0.05,ny:0.92,lbl:'FN'},{nx:-0.55,ny:0.75,lbl:'SL'},{nx:-0.62,ny:0.35,lbl:'MW'},
+    {nx:-0.7,ny:-0.1,lbl:'LO'},{nx:0.7,ny:-0.1,lbl:'LOF'},{nx:0.6,ny:0.25,lbl:'CV'},
+    {nx:0.65,ny:0.6,lbl:'PT'},{nx:0.3,ny:-0.82,lbl:'TM'},
+    {nx:-0.25,ny:0.25,lbl:''},{nx:0.25,ny:0.1,lbl:''},{nx:-0.38,ny:-0.05,lbl:''},
+  ];
+  fielders.forEach(f=>{
+    const p=proj(f.nx,f.ny),dotR=Math.max(4,p.s*8);
+    const glow=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,dotR*3.5);
+    glow.addColorStop(0,`rgba(255,107,0,${0.3*p.s})`);glow.addColorStop(1,'rgba(255,107,0,0)');
+    ctx.beginPath();ctx.arc(p.x,p.y,dotR*3.5,0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();
+    ctx.beginPath();ctx.ellipse(p.x,p.y+dotR*0.7,dotR*1.2,dotR*0.3,0,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fill();
+    const dg=ctx.createRadialGradient(p.x-dotR*0.3,p.y-dotR*0.35,0,p.x,p.y,dotR);
+    dg.addColorStop(0,'#FFE066');dg.addColorStop(0.5,NEON);dg.addColorStop(1,'rgba(160,50,0,0.95)');
+    ctx.beginPath();ctx.arc(p.x,p.y,dotR,0,Math.PI*2);ctx.fillStyle=dg;ctx.fill();
+    ctx.shadowColor=NEON;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(p.x,p.y,dotR,0,Math.PI*2);ctx.strokeStyle=NEON;ctx.lineWidth=1.5;ctx.stroke();ctx.shadowBlur=0;
+    if(f.lbl){
+      ctx.font=`700 ${Math.max(7,Math.round(p.s*10))}px Rajdhani`;
+      ctx.fillStyle='rgba(255,255,255,0.75)';ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(f.lbl,p.x,p.y+dotR+1);
+    }
+  });
+  const bp=proj(0,0.16),br=Math.max(4,bp.s*8);
+  const bglow=ctx.createRadialGradient(bp.x,bp.y,0,bp.x,bp.y,br*3);
+  bglow.addColorStop(0,'rgba(220,38,38,0.35)');bglow.addColorStop(1,'rgba(220,38,38,0)');
+  ctx.beginPath();ctx.arc(bp.x,bp.y,br*3,0,Math.PI*2);ctx.fillStyle=bglow;ctx.fill();
+  const bg=ctx.createRadialGradient(bp.x-br*0.3,bp.y-br*0.3,0,bp.x,bp.y,br);
+  bg.addColorStop(0,'#FF9999');bg.addColorStop(1,'#DC2626');
+  ctx.beginPath();ctx.arc(bp.x,bp.y,br,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+  ctx.shadowColor='#FF2222';ctx.shadowBlur=10;ctx.strokeStyle='#FF4444';ctx.lineWidth=1.5;ctx.stroke();ctx.shadowBlur=0;
+  ctx.font=`700 ${Math.max(6,Math.round(bp.s*8))}px Orbitron`;
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('B',bp.x,bp.y);
+  const topY=cy-Ry*0.95;
+  const atm=ctx.createLinearGradient(0,topY-6,0,topY+12);
+  atm.addColorStop(0,'rgba(109,40,217,0)');atm.addColorStop(0.5,'rgba(109,40,217,0.07)');atm.addColorStop(1,'rgba(109,40,217,0)');
+  ctx.fillStyle=atm;ctx.fillRect(0,topY-6,W,18);
+}
+
+function dgAsk(){
+  const inp=document.getElementById('dg-ask-input');
+  if(!inp||!inp.value.trim())return;
+  const q=inp.value.trim();inp.value='';
+  const feed=document.querySelector('.dg-card:has(#dg-ask-input) .dg-comm:last-of-type');
+  const newComm=document.createElement('div');
+  newComm.className='dg-comm tactical';
+  newComm.innerHTML=`<div class="dg-comm-icon">🎯</div><div class="dg-comm-body"><div class="dg-comm-from">YOUR QUERY · Now</div><div class="dg-comm-txt">${q}</div><div class="dg-comm-txt" style="margin-top:4px;opacity:0.6;font-style:italic">Analysing…</div></div>`;
+  if(feed)feed.insertAdjacentElement('afterend',newComm);
+}
+
+renderDugout();
+</script>
+</body>
+</html>

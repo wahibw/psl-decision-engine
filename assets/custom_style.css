@@ -1,0 +1,132 @@
+/* custom_style.css - High-Fidelity Premium 3D Match */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1AA;
+  --accent-gold: #FFD700;
+  --accent-gold-glow: rgba(255, 215, 0, 0.6);
+  --accent-purple: #8B5CF6;
+  --bg-gradient: linear-gradient(135deg, #0F001A 0%, #1A0033 100%);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg-hover: rgba(139, 92, 246, 0.08); /* slight purple tint on hover */
+  --glass-border: rgba(255, 215, 0, 0.15); /* 15% gold border */
+  --glass-blur: blur(15px);
+  
+  --font-base: 'Inter', sans-serif;
+  --font-serif: 'Cinzel', serif;
+}
+
+/* body styles intentionally removed — custom.css owns body/layout */
+
+/* Glass Panels - Core Foundation */
+.glass-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.05);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s, border-color 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+/* Interactive Floating Depth */
+.glass-panel.interactive:hover {
+  transform: translateY(-4px);
+  background-color: var(--glass-bg-hover);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* nav-pill / nav-link / nav-brand intentionally removed — custom.css owns navigation */
+
+/* Section Headers */
+.section-hdr {
+  font-family: var(--font-base);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 8px;
+}
+
+/* form overrides intentionally removed — conflicts with light theme */
+
+/* LED Micro-interaction Buttons */
+.btn-primary {
+  background: var(--accent-gold) !important;
+  background: linear-gradient(135deg, #FFD700, #F59E0B) !important;
+  color: #0F001A !important;
+  font-family: var(--font-serif) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 28px !important;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6) !important;
+}
+
+.btn-primary:active {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 0 15px rgba(255,255,255,0.5), 0 0 25px rgba(255,215,0,0.8) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 215, 0, 0.5); }
+
+/* Gold Neon Halo Player Cards Grid */
+.glass-grid-card {
+  background: linear-gradient(180deg, rgba(20, 0, 40, 0.4) 0%, rgba(10, 0, 20, 0.8) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  position: relative;
+  overflow: visible; /* to allow medals passing boundaries if needed */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(255, 215, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: var(--glass-blur);
+}
+
+.glass-grid-card:hover {
+  border-color: rgba(255, 215, 0, 1);
+  box-shadow: 0 12px 35px var(--accent-gold-glow), inset 0 0 30px rgba(255, 215, 0, 0.2);
+  transform: translateY(-5px) scale(1.02);
+  z-index: 20;
+}
+
+/* Hexagonal Medal Container */
+.hex-medal {
+  width: 50px;
+  height: 56px;
+  background: linear-gradient(135deg, #FFDF40 0%, #B8860B 50%, #FFDF40 100%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Gold Value Highlighter */
+.gold-value {
+  color: var(--accent-gold);
+  font-weight: 800;
+  text-shadow: 0 0 8px var(--accent-gold-glow);
+}

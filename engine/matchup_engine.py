@@ -30,9 +30,17 @@ MAX_NOTE_TOKENS  = 60
 # CONSTANTS
 # ---------------------------------------------------------------------------
 
-# Minimum balls before we trust H2H data for a note
-MIN_BALLS_FOR_NOTE       = 8
-MIN_BALLS_PHASE_NOTE     = 6     # lower threshold for phase-specific notes (smaller samples per phase)
+# Minimum balls before we trust H2H data for a note.
+# 8 was too low — 1 dismissal in 8 balls = 12.5% dismissal rate, pure noise.
+# At 12 balls a batter has had ~2 meaningful encounters; at 20 we're approaching reliable.
+MIN_BALLS_FOR_NOTE       = 12
+MIN_BALLS_PHASE_NOTE     = 8     # phase buckets are smaller — still need 8 to avoid single-over noise
+
+# Minimum dismissals to generate a "bowler dominates" note.
+# 1 wicket in 12 balls looks dominant numerically but is a single event — require 2+
+# unless the ball count is high enough (>= MIN_BALLS_SINGLE_DISMISSAL_OK).
+MIN_DISMISSALS_FOR_DOMINANCE  = 2
+MIN_BALLS_SINGLE_DISMISSAL_OK = 24   # 1 wicket OK if we have 24+ balls (4 solid encounters)
 
 # Recency weights for season-level ball-by-ball aggregation
 SEASON_RECENCY_WEIGHTS = {2025: 2.0, 2024: 1.5, 2023: 1.0}   # anything older → 0.5
@@ -43,8 +51,9 @@ PRIOR_SR           = 130.0   # league average SR
 PRIOR_DISMISSAL_PCT= 7.5     # 1 wicket per ~13 balls
 
 # "Clear advantage" thresholds for note generation
-BOWLER_ADV_THRESHOLD   = 15.0   # bowler_adv >= 15 -> bowler has clear edge
-BATTER_ADV_THRESHOLD   = -15.0  # bowler_adv <= -15 -> batter has clear edge
+# bowler_adv = (dismissal_pct/100) - (sr/150), range approx -1.7 to +0.1
+BOWLER_ADV_THRESHOLD   = -0.55  # bowler_adv >= -0.55 -> bowler has clear edge
+BATTER_ADV_THRESHOLD   = -1.05  # bowler_adv <= -1.05 -> batter has clear edge
 
 
 # ---------------------------------------------------------------------------
@@ -85,28 +94,22 @@ class MatchupNote:
 # UPGRADE 3 — GPT-2 SCOUTING NOTE GENERATOR (lazy-loaded)
 # ---------------------------------------------------------------------------
 
-_gpt2_pipeline = None   # module-level cache: None = not yet attempted
-
-
+@lru_cache(maxsize=1)
 def _load_gpt2():
     """
     Load fine-tuned GPT-2 pipeline (once). Returns None if model missing or
     transformers unavailable.
     """
-    global _gpt2_pipeline
-    if _gpt2_pipeline is not None:
-        return _gpt2_pipeline
     if not GPT2_MODEL_PATH.exists():
         return None
     try:
         from transformers import pipeline as hf_pipeline
-        _gpt2_pipeline = hf_pipeline(
+        return hf_pipeline(
             "text-generation",
             model=str(GPT2_MODEL_PATH),
             tokenizer=str(GPT2_MODEL_PATH),
             device=-1,     # CPU
         )
-        return _gpt2_pipeline
     except Exception:
         return None
 
@@ -164,6 +167,58 @@ def _generate_note_gpt2(
         return generated
     except Exception:
         return None
+
+
+# ---------------------------------------------------------------------------
+# Fix 4.3 — DETERMINISTIC TEMPLATE NOTE GENERATOR
+# ---------------------------------------------------------------------------
+
+def _generate_note_template(
+    batter:     str,
+    bowler:     str,
+    balls:      int,
+    sr:         float,
+    bayes_sr:   float,
+    dismissals: int,
+    dot_pct:    float,
+    boundary_pct: float,
+    adv_side:   str,        # "bowler" | "batter" | "neutral"
+    confidence: str,        # "High" | "Medium" | "Low" | "Insufficient"
+    phase_ctx:  str = "",   # optional phase-specific append
+) -> str:
+    """
+    Generate a statistically grounded, deterministic scouting note.
+    No ML required — always reproducible and auditable.
+    """
+    batter_last = batter.split()[-1]
+    bowler_last  = bowler.split()[-1]
+    conf_flag    = f" [{confidence} confidence — {balls} PSL balls]" if confidence != "High" else ""
+
+    if adv_side == "bowler":
+        dismiss_rate = round(dismissals / balls * 100, 1) if balls > 0 else 0.0
+        dot_note     = f", {dot_pct:.0f}% dot balls" if dot_pct >= 45 else ""
+        note = (
+            f"{bowler_last} dominates {batter_last}: "
+            f"{dismissals} wicket(s) in {balls} PSL balls (SR {sr:.0f}, {dismiss_rate}% dismissal rate{dot_note}). "
+            f"Bowl {bowler_last} early to {batter_last} — this is a key wicket opportunity.{conf_flag}"
+        )
+    elif adv_side == "batter":
+        boundary_note = f", {boundary_pct:.0f}% boundaries" if boundary_pct >= 40 else ""
+        note = (
+            f"{batter_last} has the edge vs {bowler_last}: "
+            f"SR {sr:.0f} in {balls} PSL balls (Bayes-adj {bayes_sr:.0f}{boundary_note}). "
+            f"Protect {bowler_last} — avoid this matchup or bowl {bowler_last} at non-striker end.{conf_flag}"
+        )
+    else:
+        note = (
+            f"{bowler_last} vs {batter_last}: evenly matched in {balls} PSL balls "
+            f"(SR {sr:.0f}, Bayes-adj {bayes_sr:.0f}). "
+            f"Match state should drive the decision over head-to-head preference.{conf_flag}"
+        )
+
+    if phase_ctx:
+        note = note.rstrip(".") + f" {phase_ctx}"
+    return note
 
 
 # ---------------------------------------------------------------------------
@@ -348,11 +403,11 @@ def _bayes_dismissal_pct(balls: int, dismissals: int) -> float:
 
 
 def _confidence(balls: int) -> str:
-    if balls >= 30:
+    if balls >= 36:      # 6+ meaningful encounters — genuinely reliable
         return "High"
-    elif balls >= MIN_BALLS_FOR_NOTE:
+    elif balls >= 20:    # 3-5 encounters — usable with context
         return "Medium"
-    elif balls >= 4:
+    elif balls >= MIN_BALLS_FOR_NOTE:   # 12-19 balls — show with explicit caveat
         return "Low"
     return "Insufficient"
 
@@ -454,7 +509,7 @@ def get_matchup(
 def get_matchup_table(
     batters: list[str],
     bowlers: list[str],
-    min_balls: int = 4,
+    min_balls: int = MIN_BALLS_FOR_NOTE,   # was 4 — raised to match brief threshold
     matrix_path: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -511,7 +566,22 @@ def get_key_matchups_for_brief(
     ].copy()
 
     if df.empty:
-        return []
+        # No pair clears the threshold — return a single informative note so the
+        # brief section is never blank.  Coaches need to know WHY there are no notes.
+        return [MatchupNote(
+            batter     = "—",
+            bowler     = "—",
+            advantage  = "neutral",
+            note       = (
+                f"No H2H matchups with sufficient PSL data (≥{MIN_BALLS_FOR_NOTE} balls) "
+                "between these squads. Use overall form and venue stats to guide decisions — "
+                "do not rely on head-to-head history for this fixture."
+            ),
+            confidence = "Insufficient",
+            balls      = 0,
+            dismissals = 0,
+            batter_sr  = PRIOR_SR,
+        )]
 
     df["confidence"] = df["balls"].apply(_confidence)
     df["bayes_sr"]   = df.apply(lambda r: _bayes_sr(r["balls"], r["runs"]), axis=1)
@@ -523,6 +593,21 @@ def get_key_matchups_for_brief(
         return r_adv if r_adv is not None else float(row["bowler_adv"])
 
     df["bowler_adv_recency"] = df.apply(_recency_adv, axis=1)
+
+    # Dismissal guard: remove bowler-dominance rows driven by a single wicket
+    # on insufficient balls. A 1-wicket note on 12 balls is one lucky delivery —
+    # require 2+ dismissals OR enough balls to make 1 dismissal meaningful.
+    def _passes_dismissal_guard(row: pd.Series) -> bool:
+        d = int(row.get("dismissals", 0))
+        b = int(row["balls"])
+        if d == 0:
+            return True   # batter-advantage rows always pass (0 dismissals is fine)
+        if d >= MIN_DISMISSALS_FOR_DOMINANCE:
+            return True   # 2+ dismissals — credible regardless of ball count
+        # Exactly 1 dismissal: only pass if balls are high enough
+        return b >= MIN_BALLS_SINGLE_DISMISSAL_OK
+
+    df = df[df.apply(_passes_dismissal_guard, axis=1)].copy()
 
     # Split into bowler-advantage and batter-advantage matchups
     bowler_wins = df[df["bowler_adv_recency"] >= BOWLER_ADV_THRESHOLD].sort_values(
@@ -543,27 +628,26 @@ def get_key_matchups_for_brief(
         conf       = str(row["confidence"])
         economy    = float(row["runs"]) / balls * 6 if balls > 0 else 8.0
 
-        # --- UPGRADE 3: Try GPT-2 note first ---
+        # Fix 4.3: Deterministic template is the primary note generator.
+        # GPT-2 is used only as an optional enhancement when the model exists;
+        # template notes are always auditable, reproducible, and stat-grounded.
+        bayes_sr     = float(row.get("bayes_sr", sr))
+        dot_pct      = float(row.get("dot_pct", 0.0))
+        boundary_pct = float(row.get("boundary_pct", 0.0))
+        phase_ctx    = _get_phase_context(batter, bowler, phase_lookup)
+
+        note = _generate_note_template(
+            batter=batter, bowler=bowler, balls=balls, sr=sr,
+            bayes_sr=bayes_sr, dismissals=dismissals,
+            dot_pct=dot_pct, boundary_pct=boundary_pct,
+            adv_side=adv_side, confidence=conf, phase_ctx=phase_ctx,
+        )
+
+        # Optional GPT-2 enhancement — only replaces the template when the
+        # model produces a non-trivial output (long enough to be coherent).
         gpt2_note = _generate_note_gpt2(batter, bowler, balls, sr, dismissals, economy)
-
-        if gpt2_note:
+        if gpt2_note and len(gpt2_note) > len(note) * 0.8:
             note = gpt2_note
-        elif adv_side == "bowler":
-            note = (
-                f"{bowler} vs {batter}: {dismissals} dismissal(s) in {balls} PSL balls "
-                f"(SR {sr:.0f}). Deploy {bowler.split()[-1]} when {batter.split()[-1]} arrives."
-            )
-        else:
-            note = (
-                f"{batter} vs {bowler}: SR {sr:.0f} in {balls} balls — "
-                f"{batter.split()[-1]} has the edge. Avoid {bowler.split()[-1]} when {batter.split()[-1]} is in."
-            )
-
-        # Append phase-specific context when available (only for template notes)
-        if not gpt2_note:
-            phase_ctx = _get_phase_context(batter, bowler, phase_lookup)
-            if phase_ctx:
-                note = note.rstrip(".") + f" {phase_ctx}"
 
         return MatchupNote(
             batter     = batter,
@@ -624,8 +708,8 @@ if __name__ == "__main__":
     print(f"  Confidence: {detail.confidence}")
     print(f"  Summary: {detail.summary}")
 
-    lahore_bowlers  = ["Shaheen Shah Afridi", "Haris Rauf", "Zaman Khan", "Liam Dawson"]
-    karachi_batters = ["Babar Azam", "Sharjeel Khan", "Saim Ayub", "JM Vince", "Mohammad Rizwan"]
+    lahore_bowlers  = ["Shaheen Shah Afridi", "Haris Rauf", "Usama Mir", "Mustafizur Rahman"]
+    karachi_batters = ["David Warner", "Moeen Ali", "Azam Khan", "Khushdil Shah", "Muhammad Waseem"]
 
     print(f"\nKey matchup notes (Lahore vs Karachi) [{'GPT-2' if gpt2_ready else 'template'}]:")
     notes = get_key_matchups_for_brief(lahore_bowlers, karachi_batters)

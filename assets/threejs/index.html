@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSL Prep Room — TALAASH Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+// Iframe detection — hide nav, adjust layout heights
+(function(){
+  var inIframe=false;
+  try{inIframe=(window.self!==window.top);}catch(e){inIframe=true;}
+  if(inIframe){
+    document.addEventListener('DOMContentLoaded',function(){
+      var nav=document.getElementById('main-nav');
+      if(nav) nav.style.display='none';
+      document.documentElement.style.setProperty('--nav-h','0px');
+    });
+  }
+})();
+</script>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="ls-teams">
+    <div class="ls-logo" id="ls-our">QG</div>
+    <div class="ls-vs">VS</div>
+    <div class="ls-logo" id="ls-opp" style="background:linear-gradient(135deg,#1a0a3a,#6D28D9)">LQ</div>
+  </div>
+  <div class="ls-sub" id="ls-sub">Generating Match Brief</div>
+  <div class="ls-bar"><div class="ls-fill" id="ls-fill"></div></div>
+  <div class="ls-txt" id="ls-txt">Analysing pitch data · loading formations</div>
+</div>
+
+<nav class="nav" id="main-nav">
+  <div class="nav-inner">
+    <div class="nav-links">
+      <a class="nl" href="/">TALAASH</a>
+      <span class="nl-sep">|</span>
+      <a class="nl active" href="/prep">PREP ROOM</a>
+      <span class="nl-sep">|</span>
+      <a class="nl" href="/dugout">DUGOUT</a>
+      <span class="nl-sep">|</span>
+      <a class="nl" href="/players">PLAYERS</a>
+    </div>
+    <div class="nav-crest">
+      <div class="nav-crest-badge">
+        <svg viewBox="0 0 28 32" width="22" height="25" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Shield crest -->
+          <path d="M14 2L3 7v9c0 6.5 4.8 12.2 11 13.9C20.2 28.2 25 22.5 25 16V7L14 2z" fill="rgba(255,215,0,0.08)" stroke="rgba(255,215,0,0.5)" stroke-width="1"/>
+          <!-- PSL text -->
+          <text x="14" y="20" font-family="Orbitron" font-size="6" font-weight="900" fill="#FFD700" text-anchor="middle" letter-spacing="0.5">PSL</text>
+          <!-- Top star -->
+          <polygon points="14,5 14.6,7 16.2,7 14.9,8 15.4,9.8 14,8.8 12.6,9.8 13.1,8 11.8,7 13.4,7" fill="rgba(255,215,0,0.7)"/>
+        </svg>
+      </div>
+      <span class="nav-crest-label">DECISION<br>INTELLIGENCE</span>
+    </div>
+  </div>
+</nav>
+
+<div class="main-3col" id="layout-3col">
+  <div class="side" id="sidebar"></div>
+  <div class="center">
+    <div id="cc">
+      <canvas id="ball-ring-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;display:none"></canvas>
+      <div class="tabs" id="tab-area"></div>
+      <div class="vbar" id="vbar">
+        <button class="vb act" onclick="setView('3d',this)">3D-Perspective</button>
+        <button class="vb" onclick="setView('top',this)">Top Down</button>
+      </div>
+      <div class="zoom-ctrl" id="zoom-ctrl">
+        <button class="zoom-btn" onclick="zoomStep(-1)" title="Zoom In">+</button>
+        <div class="zoom-pct" id="zoom-pct">100%</div>
+        <button class="zoom-btn" onclick="zoomStep(1)" title="Zoom Out">−</button>
+        <button class="zoom-reset" onclick="zoomReset()">Reset</button>
+      </div>
+      <div class="zoom-hint" id="zoom-hint">Scroll to zoom</div>
+      <div id="overlays"></div>
+      <div id="player-labels"></div>
+      <div class="zl hidden" id="zl"></div>
+      <div id="pdf-btn-overlay"><button class="pdf-btn" onclick="window.print()">Download PDF</button></div>
+    </div>
+  </div>
+  <div class="rp" id="right-panel"></div>
+</div>
+
+<div class="main-full hidden" id="layout-full">
+  <div id="tab-area-full" style="display:flex;justify-content:center;margin-bottom:16px"></div>
+  <div id="scenarios-content"></div>
+</div>
+
+<!-- Load order: Three.js → data → ground → ui → zoom → data-api → init -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="data.js"></script>
+<script src="ground.js"></script>
+<script src="ui.js"></script>
+<script src="zoom.js"></script>
+<script src="data-api.js"></script>
+<script>
+// Init
+renderTabs();
+switchTab(0);
+animate();
+var _zc=document.getElementById('zoom-ctrl');
+var _zh=document.getElementById('zoom-hint');
+if(_zc) _zc.style.display='none';
+if(_zh) _zh.style.display='none';
+setTimeout(function(){
+  var h=document.getElementById('zoom-hint');
+  if(h&&curTab===1) h.style.opacity='0';
+},4000);
+applyZoom();
+</script>
+
+</body>
+</html>

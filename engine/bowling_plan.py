@@ -14,7 +14,15 @@ from typing import Optional
 
 import pandas as pd
 
-from utils.situation import WeatherImpact
+from utils.situation import LiveMatchState, WeatherImpact
+
+# ---------------------------------------------------------------------------
+# EXCEPTIONS
+# ---------------------------------------------------------------------------
+
+class PlanValidationError(Exception):
+    """Raised when a generated bowling plan violates the PSL 4-over cap rules."""
+
 
 # ---------------------------------------------------------------------------
 # PATHS
@@ -25,6 +33,14 @@ STATS_PATH   = PROJ_ROOT / "data" / "processed" / "player_stats.parquet"
 PLAYER_INDEX = PROJ_ROOT / "data" / "processed" / "player_index_2026_enriched.csv"
 PLAYER_INDEX_FALLBACK = PROJ_ROOT.parent / "player_index_2026_enriched.csv"
 OPP_PROFILES       = PROJ_ROOT / "data" / "processed" / "opposition_profiles.csv"
+
+# Current PSL season — used to blend career aggregate with recent-season data.
+# Update each season when build_opposition_profiles re-runs with new data.
+CURRENT_PSL_SEASON = 2025
+
+# Blend weight for current-season data vs career aggregate.
+# 0.60 = current season contributes 60%, career 40%.
+OPP_CURRENT_SEASON_WEIGHT = 0.60
 MATCHUP_PATH       = PROJ_ROOT / "data" / "processed" / "matchup_matrix.parquet"
 RECENT_FORM_PATH   = PROJ_ROOT / "data" / "processed" / "recent_form.parquet"
 
@@ -39,17 +55,20 @@ TOTAL_OVERS          = 20
 LEAGUE_AVG_DOT_PCT   = 35.0   # % of balls that are dots across all PSL bowlers
 
 PHASE_LABEL = {
-    0:  "PP", 1:  "PP", 2:  "PP", 3:  "PP", 4:  "PP", 5:  "PP",
-    6:  "Mid",7:  "Mid",8:  "Mid",9:  "Mid",10: "Mid",11: "Mid",
-    12: "Mid",13: "Mid",14: "Pre-Death",15: "Pre-Death",
-    16: "Death",17: "Death",18: "Death",19: "Death",
+    0:  "PP",        1:  "PP",        2:  "PP",        3:  "PP",        4:  "PP",        5:  "PP",
+    6:  "Early-Mid", 7:  "Early-Mid", 8:  "Early-Mid", 9:  "Early-Mid",
+    10: "Late-Mid",  11: "Late-Mid",  12: "Late-Mid",  13: "Late-Mid",
+    14: "Pre-Death", 15: "Pre-Death",
+    16: "Death",     17: "Death",     18: "Death",     19: "Death",
 }
 
 PHASE_NAME = {
-    "PP":        "powerplay",
-    "Mid":       "middle",
-    "Pre-Death": "pre-death",
-    "Death":     "death",
+    "PP":         "powerplay",
+    "Early-Mid":  "middle",       # _phase_fitness alias
+    "Late-Mid":   "middle",       # _phase_fitness alias (differentiated internally)
+    "Mid":        "middle",       # backward-compat alias
+    "Pre-Death":  "pre-death",
+    "Death":      "death",
 }
 
 
@@ -73,6 +92,7 @@ class BowlingPlan:
     bowler_summary: dict[str, list[int]]   # {"BowlerName": [1,3,7,8]} (allocated overs)
     key_decisions:  list[str]
     contingencies:  list[str]
+    plan_warnings:  list[str] = field(default_factory=list)  # cap violations surfaced to UI
 
 
 # ---------------------------------------------------------------------------
@@ -165,13 +185,32 @@ def _load_t20_proxy(pi_path: Path) -> dict[str, dict]:
 def _load_opposition_profile(
     opposition_team: str,
     opp_path: Path | None = None,
+    overrides: dict | None = None,
 ) -> dict:
     """
-    Load career-aggregate opposition profile from opposition_profiles.csv.
+    Load opposition profile from opposition_profiles.csv.
+
+    Freshness strategy:
+      1. Always load season=0 (career aggregate) as the base.
+      2. If a CURRENT_PSL_SEASON row exists, blend:
+            60% current-season + 40% career for all numeric stats.
+         Blended profile carries profile_freshness="current-season".
+      3. If no current-season row, profile_freshness="career-only" and a
+         staleness note is stored so callers can surface a plan warning.
+      4. If analyst-supplied `overrides` dict is provided, it is applied on
+         top of the blended profile.  Supported keys:
+            vs_spin_economy, vs_pace_economy, powerplay_sr, death_sr,
+            left_hand_top6_pct, vs_leftarm_economy — numeric stat overrides.
+            injury_notes (str)  — free-text e.g. "Babar out with hamstring"
+            injured_out (list)  — names of unavailable batters
+            form_note (str)     — free-text form context
+         After applying overrides, profile_freshness="override-applied".
+
     Returns a dict with keys:
         left_hand_top6_pct, vs_spin_economy, vs_pace_economy,
-        vs_leftarm_economy, powerplay_sr, death_sr, is_estimated
-    Returns sensible neutral defaults if team not found.
+        vs_leftarm_economy, powerplay_sr, death_sr, is_estimated,
+        profile_freshness, staleness_note, injury_notes,
+        injured_out, form_note
     """
     NEUTRAL = {
         "left_hand_top6_pct":  33.0,
@@ -225,7 +264,7 @@ def _load_opposition_profile(
         # Generic vs_spin_economy is the fallback for any subtype column that
         # is absent from the CSV (pre-2026 data files won't have the subtype split).
         generic_spin_eco = _f("vs_spin_economy", 8.0)
-        return {
+        profile: dict = {
             "left_hand_top6_pct":      _f("left_hand_top6_pct",         33.0),
             "vs_spin_economy":         generic_spin_eco,
             # Spin subtype columns — fall back to generic if not in CSV yet
@@ -237,7 +276,69 @@ def _load_opposition_profile(
             "powerplay_sr":            _f("powerplay_sr",                130.0),
             "death_sr":                _f("death_sr",                   155.0),
             "is_estimated":            bool(r.get("is_estimated", False)),
+            # Freshness metadata
+            "profile_freshness": "career-only",
+            "staleness_note":    "",
+            "injury_notes":      "",
+            "injured_out":       [],
+            "form_note":         "",
         }
+
+        # ----------------------------------------------------------------
+        # FRESHNESS BLEND: try current-season row
+        # ----------------------------------------------------------------
+        _BLEND_KEYS = (
+            "vs_spin_economy", "vs_legspin_economy", "vs_offspin_economy",
+            "vs_leftarm_spin_economy", "vs_pace_economy", "vs_leftarm_economy",
+            "powerplay_sr", "death_sr", "left_hand_top6_pct",
+        )
+        season_mask = (df["team"].str.lower() == opposition_team.lower()) \
+                      & (df["season"] == CURRENT_PSL_SEASON)
+        season_row  = df[season_mask]
+
+        if not season_row.empty:
+            sr = season_row.iloc[0]
+            def _fs(col: str, default: float, _sr=sr) -> float:
+                try:
+                    v = _sr.get(col)
+                    result = float(v) if pd.notna(v) else default
+                    return default if result == 0.0 and any(k in col for k in _ZERO_NULL_KEYS) else result
+                except (ValueError, TypeError):
+                    return default
+            W = OPP_CURRENT_SEASON_WEIGHT
+            for key in _BLEND_KEYS:
+                career_val  = profile.get(key, 0.0)
+                current_val = _fs(key, float(career_val))
+                profile[key] = round(W * current_val + (1.0 - W) * career_val, 2)
+            profile["profile_freshness"] = "current-season"
+        else:
+            profile["staleness_note"] = (
+                f"Opposition profile for {opposition_team} uses career aggregate only "
+                f"(no PSL {CURRENT_PSL_SEASON} data found). "
+                f"Consider manual overrides for any known in-season form/injury changes."
+            )
+
+        # ----------------------------------------------------------------
+        # ANALYST OVERRIDES (injuries, in-season form, manual corrections)
+        # ----------------------------------------------------------------
+        if overrides:
+            _NUMERIC_OVERRIDE_KEYS = {
+                "vs_spin_economy", "vs_pace_economy", "vs_leftarm_economy",
+                "vs_legspin_economy", "vs_offspin_economy", "vs_leftarm_spin_economy",
+                "powerplay_sr", "death_sr", "left_hand_top6_pct",
+            }
+            for key, val in overrides.items():
+                if key in _NUMERIC_OVERRIDE_KEYS:
+                    try:
+                        profile[key] = float(val)
+                    except (ValueError, TypeError):
+                        pass
+            profile["injury_notes"] = str(overrides.get("injury_notes", ""))
+            profile["injured_out"]  = list(overrides.get("injured_out",  []))
+            profile["form_note"]    = str(overrides.get("form_note",     ""))
+            profile["profile_freshness"] = "override-applied"
+
+        return profile
     except Exception:
         return NEUTRAL
 
@@ -361,28 +462,82 @@ def _load_bowler_phase_stats(
 
 
 # ---------------------------------------------------------------------------
-# RECENT FORM LOADER (bowl_form_score for phase fitness blending)
+# RECENT FORM LOADER
 # ---------------------------------------------------------------------------
 
-def _load_bowl_form_scores(bowlers: list[str]) -> dict[str, float]:
+# Minimum recent overs before we trust recent economy over career average.
+# Below this, recent_eco is noise (2-3 overs in last 10 matches tells us nothing).
+MIN_RECENT_OVERS_FOR_ECO_BLEND = 5.0
+
+# How much recent form overrides career economy when we have enough recent data.
+# 0.60 = recent form is 60% of the blended economy, career 40%.
+# Rationale: last ~5 matches are 3-5× more predictive of next-match performance
+# than career average for in-form / out-of-form diagnosis.
+RECENT_ECO_WEIGHT = 0.60
+
+# Threshold beyond which a bowler is flagged as "form concern" in plan_warnings.
+# 15% worse than career = meaningful enough to mention to the captain.
+FORM_CONCERN_ECO_DELTA_PCT = 0.15
+
+
+def _load_recent_form(bowlers: list[str], venue: str = "") -> dict[str, dict]:
     """
-    Load bowl_form_score (0-100) from recent_form.parquet for a list of bowlers.
-    Returns {player_name: bowl_form_score}. Defaults to 50.0 (neutral) on any error.
+    Load recent form data from recent_form.parquet for a list of bowlers.
+
+    Returns {player_name: {
+        "form_score":    float,   # 0-100 composite (50 = neutral)
+        "recent_eco":    float,   # economy in last ~10 matches (0.0 = no data)
+        "recent_overs":  float,   # overs bowled in that window
+        "trend":         str,     # "improving" | "stable" | "declining"
+        "venue_eco":     float,   # economy at THIS venue (0.0 = no data)
+    }}
+
+    Defaults to neutral values on any error or missing data.
     """
-    scores: dict[str, float] = {b: 50.0 for b in bowlers}
+    neutral = {"form_score": 50.0, "recent_eco": 0.0,
+               "recent_overs": 0.0, "trend": "stable", "venue_eco": 0.0}
+    result: dict[str, dict] = {b: dict(neutral) for b in bowlers}
+
     if not RECENT_FORM_PATH.exists():
-        return scores
+        return result
     try:
         df      = pd.read_parquet(RECENT_FORM_PATH)
         overall = df[df["venue"] == ""]
+        venue_df = df[df["venue"] == venue] if venue else pd.DataFrame()
+
         for b in bowlers:
             row = overall[overall["player_name"] == b]
-            if not row.empty:
-                val = row.iloc[0].get("bowl_form_score", 50.0)
-                scores[b] = float(val) if pd.notna(val) else 50.0
+            if row.empty:
+                continue
+            r = row.iloc[0]
+
+            def _f(col: str, default: float, _r=r) -> float:
+                v = _r.get(col, default)
+                return float(v) if pd.notna(v) else default
+
+            recent_overs = _f("bowl_overs", 0.0)
+            recent_eco   = _f("bowl_economy", 0.0)
+            form_score   = _f("bowl_form_score", 50.0)
+            trend        = str(r.get("bowl_trend", "stable") or "stable")
+
+            # Venue-specific economy
+            venue_eco = 0.0
+            if not venue_df.empty:
+                vrow = venue_df[venue_df["player_name"] == b]
+                if not vrow.empty:
+                    ve = vrow.iloc[0].get("venue_bowl_economy", 0.0)
+                    venue_eco = float(ve) if pd.notna(ve) and float(ve) > 0 else 0.0
+
+            result[b] = {
+                "form_score":   form_score,
+                "recent_eco":   recent_eco   if recent_overs >= MIN_RECENT_OVERS_FOR_ECO_BLEND else 0.0,
+                "recent_overs": recent_overs,
+                "trend":        trend,
+                "venue_eco":    venue_eco,
+            }
     except Exception:
         pass
-    return scores
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -390,13 +545,14 @@ def _load_bowl_form_scores(bowlers: list[str]) -> dict[str, float]:
 # ---------------------------------------------------------------------------
 
 def _phase_fitness(
-    b:              str,
-    phase:          str,
-    stats:          dict[str, dict],
-    meta:           dict[str, dict],
-    weather:        WeatherImpact,
-    opp:            dict | None = None,
+    b:               str,
+    phase:           str,
+    stats:           dict[str, dict],
+    meta:            dict[str, dict],
+    weather:         WeatherImpact,
+    opp:             dict | None = None,
     bowl_form_score: float = 50.0,
+    recent_eco:      float = 0.0,    # overall economy in last ~10 matches (0 = unavailable)
 ) -> float:
     """
     Return a 0-100 fitness score for a bowler in a specific phase.
@@ -449,8 +605,17 @@ def _phase_fitness(
     def _norm(v: float, lo: float, hi: float) -> float:
         return max(0.0, min(1.0, (v - lo) / (hi - lo))) * 100.0
 
+    # Recent-form economy blend: when we have enough recent data, shift each
+    # phase economy toward recent form.  Career economy alone misses a bowler
+    # who was econ 7.5 career but 9.8 in their last 6 matches.
+    # recent_eco=0.0 means unavailable — blend is skipped.
+    def _blend_eco(career_eco: float) -> float:
+        if recent_eco > 0.0:
+            return round(career_eco * (1.0 - RECENT_ECO_WEIGHT) + recent_eco * RECENT_ECO_WEIGHT, 2)
+        return career_eco
+
     if phase == "PP":
-        eco    = s.get("pp_economy",  8.5)
+        eco    = _blend_eco(s.get("pp_economy",  8.5))
         wpo    = s.get("pp_wkts_po",  0.2)
         # bowl_dot_pct priority: PSL parquet > player index T20I > league avg (35.0)
         # Resolved upstream in _load_bowler_phase_stats(); 35.0 is the last-resort default.
@@ -489,19 +654,39 @@ def _phase_fitness(
         elif bt == "spin" and opp_vs_spin_eco > 9.5:
             raw += 8.0
 
+        # Hard structural penalty: spinners in PP are a tactical risk in T20.
+        # Modern aggressive openers target spinners in the powerplay ring field.
+        # Apply a base penalty unless conditions strongly favour spin (no-swing
+        # + high opposition vs-pace economy) OR spinner has elite PP sample data.
+        if bt == "spin":
+            _spin_pp_justified = (
+                weather.swing_bonus < 1.05         # no swing — pace less lethal
+                and opp_vs_pace_eco < 7.5          # openers handle pace well
+                and opp_vs_spin_eco > 9.0          # openers genuinely struggle vs spin
+            )
+            if not _spin_pp_justified:
+                raw -= 12.0   # strong default: spinner in PP is the exception, not rule
+            elif sample < 6:
+                raw -= 4.0    # justified but small sample — moderate caution
+
+        # Pace structural bonus in PP — new ball + ring field favour pace
+        if bt == "pace":
+            raw += 5.0   # pace has natural PP advantage regardless of swing
+
         # Left-hand heavy batting lineup: left-arm bowlers get extra angle advantage
         if is_left_arm and opp_lh_pct >= 50:
             raw += 6.0
 
     elif phase == "Death":
-        eco    = s.get("death_economy",  9.5)
+        eco    = _blend_eco(s.get("death_economy",  9.5))
         wpo    = s.get("death_wkts_po",  0.2)
         dots   = s.get("bowl_dot_pct",  LEAGUE_AVG_DOT_PCT)
         sample = s.get("death_overs",    0.0)
 
-        # Dew degrades spinners at death — raise their effective economy
+        # Dew degrades spinners at death — use over 18 as representative death over
+        # so the gradient (not binary) penalty correctly reflects late-innings dew build-up.
         if bt == "spin":
-            eco = eco / max(0.3, weather.spinner_penalty)
+            eco = eco / max(0.3, weather.spinner_penalty_at(18))
 
         eco_s  = _norm(14.0 - eco,  0.0, 8.0)   # wider range at death (higher ECO acceptable)
         wpo_s  = _norm(wpo,         0.0, 0.65)   # wickets are the priority at death
@@ -528,33 +713,80 @@ def _phase_fitness(
         if is_left_arm and opp_lh_pct >= 50:
             raw += 5.0
 
-    else:  # Mid
-        eco    = s.get("mid_economy",  8.0)
+    elif phase in ("Early-Mid", "middle", "Mid"):
+        # Early-Mid: overs 7-10. Spinners dominate, containment + dot-ball pressure.
+        # Batters may still be cautious/new. Economy + dots outweigh wickets.
+        eco    = _blend_eco(s.get("mid_economy",  8.0))
         wpo    = s.get("mid_wkts_po",  0.2)
         dots   = s.get("bowl_dot_pct", LEAGUE_AVG_DOT_PCT)
         sample = s.get("mid_overs",    0.0)
 
-        # Dry/slow conditions (low swing bonus) suit spinners more
+        # Dry/slow conditions: spinners get a stronger boost in early-mid
         if bt == "spin" and weather.swing_bonus <= 1.05:
-            eco = eco * 0.92    # slight bonus
+            eco = eco * 0.88    # larger bonus than generic mid (was 0.92)
+
+        # No meaningful dew at overs 7-10 — use over 8 representative (pre-onset)
+        # (spinner_penalty_at(8) returns 1.0 unless onset is unusually early)
+        if bt == "spin":
+            early_dew = weather.spinner_penalty_at(8)
+            if early_dew < 1.0:
+                eco = eco / max(0.5, early_dew)
 
         eco_s  = _norm(12.0 - eco,  0.0, 6.0)
         wpo_s  = _norm(wpo,         0.0, 0.50)
         dot_s  = _norm(dots,        25.0, 58.0)
-        raw    = eco_s * 0.50 + wpo_s * 0.30 + dot_s * 0.20
+        # Economy 45% | Wickets 30% | Dots 25% — containment priority in early-mid
+        raw    = eco_s * 0.45 + wpo_s * 0.30 + dot_s * 0.25
 
-        # Opposition vs spin in middle: the key matchup phase for spinners
+        # Opposition vs spin in early-mid: the prime spinner window
         if bt == "spin" and opp_vs_spin_eco < 7.0:
             raw -= 8.0  # they attack spinners hard
         elif bt == "spin" and opp_vs_spin_eco > 9.5:
-            raw += 8.0  # they struggle against spin — front-load spinners
+            raw += 9.0  # they struggle vs spin — prioritise spinners here
+
+        if bt == "pace" and opp_vs_pace_eco < 7.5:
+            raw -= 4.0
+        elif bt == "pace" and opp_vs_pace_eco > 9.5:
+            raw += 4.0
+
+        if is_left_arm and opp_lh_pct >= 50:
+            raw += 4.0
+
+    else:  # Late-Mid: overs 11-14
+        # Batters are set and looking to accelerate. Wickets become critical.
+        # Partial dew may be building (onset ~13). Pace change-ups more valuable.
+        eco    = _blend_eco(s.get("mid_economy",  8.0))
+        wpo    = s.get("mid_wkts_po",  0.2)
+        dots   = s.get("bowl_dot_pct", LEAGUE_AVG_DOT_PCT)
+        sample = s.get("mid_overs",    0.0)
+
+        # Dry conditions still help spinners slightly in late-mid
+        if bt == "spin" and weather.swing_bonus <= 1.05:
+            eco = eco * 0.94
+
+        # Partial dew in late-mid (e.g. onset=13, over 14 = 25% intensity)
+        if bt == "spin":
+            late_dew_penalty = weather.spinner_penalty_at(14)
+            if late_dew_penalty < 1.0:
+                eco = eco / max(0.5, late_dew_penalty)
+
+        eco_s  = _norm(12.0 - eco,  0.0, 6.0)
+        wpo_s  = _norm(wpo,         0.0, 0.50)
+        dot_s  = _norm(dots,        25.0, 58.0)
+        # Economy 40% | Wickets 40% | Dots 20% — shift toward wickets as batters attack
+        raw    = eco_s * 0.40 + wpo_s * 0.40 + dot_s * 0.20
+
+        # Opposition vs spin: spinners slightly less dominant in late-mid (set batters)
+        if bt == "spin" and opp_vs_spin_eco < 7.0:
+            raw -= 9.0  # they punish spin when set
+        elif bt == "spin" and opp_vs_spin_eco > 9.5:
+            raw += 7.0
 
         if bt == "pace" and opp_vs_pace_eco < 7.5:
             raw -= 5.0
         elif bt == "pace" and opp_vs_pace_eco > 9.5:
-            raw += 5.0
+            raw += 6.0  # pace change-ups effective against set batters
 
-        # Left-arm angle in the middle
         if is_left_arm and opp_lh_pct >= 50:
             raw += 4.0
 
@@ -578,6 +810,7 @@ def _classify_bowlers(
     meta:        dict[str, dict],
     weather:     WeatherImpact,
     opp:         dict | None = None,
+    venue:       str = "",
 ) -> dict[str, list[str]]:
     """
     Classify each bowler into phases, ranked by _phase_fitness (descending).
@@ -586,50 +819,106 @@ def _classify_bowlers(
     Pre-Death pool (overs 15-16): medium-pace / secondary options — top death
     specialists are reserved for overs 17-20.
     Opposition profile (opp) adjusts fitness scores when provided.
-    Recent bowl_form_score (from recent_form.parquet) blended at 30% weight.
+    Recent bowl_form_score (0-100) blended at 30% weight; recent economy
+    (last ~10 matches) blended at 60% into phase economies when available.
     """
-    bowl_forms = _load_bowl_form_scores(bowlers)
+    recent_form_data = _load_recent_form(bowlers, venue)
 
-    pp_bowlers:        list[tuple[str, float]] = []
-    mid_bowlers:       list[tuple[str, float]] = []
-    predeath_bowlers:  list[tuple[str, float]] = []
-    death_bowlers:     list[tuple[str, float]] = []
+    pp_bowlers:         list[tuple[str, float]] = []
+    early_mid_bowlers:  list[tuple[str, float]] = []
+    late_mid_bowlers:   list[tuple[str, float]] = []
+    predeath_bowlers:   list[tuple[str, float]] = []
+    death_bowlers:      list[tuple[str, float]] = []
 
     for b in bowlers:
         bt         = _bowl_type(b, meta)
         is_genuine = _is_genuine_bowler(b, meta)
-        bfs        = bowl_forms.get(b, 50.0)
+        fd         = recent_form_data.get(b, {})
+        bfs        = fd.get("form_score",  50.0)
+        r_eco      = fd.get("recent_eco",   0.0)
 
-        pp_fit    = _phase_fitness(b, "PP",    stats, meta, weather, opp, bfs)
-        mid_fit   = _phase_fitness(b, "Mid",   stats, meta, weather, opp, bfs)
-        death_fit = _phase_fitness(b, "Death", stats, meta, weather, opp, bfs)
+        pp_fit         = _phase_fitness(b, "PP",        stats, meta, weather, opp, bfs, r_eco)
+        early_mid_fit  = _phase_fitness(b, "Early-Mid", stats, meta, weather, opp, bfs, r_eco)
+        late_mid_fit   = _phase_fitness(b, "Late-Mid",  stats, meta, weather, opp, bfs, r_eco)
+        death_fit      = _phase_fitness(b, "Death",     stats, meta, weather, opp, bfs, r_eco)
 
-        # All genuine bowlers enter all phase pools
         if is_genuine:
             pp_bowlers.append((b, pp_fit))
-            mid_bowlers.append((b, mid_fit))
+            early_mid_bowlers.append((b, early_mid_fit))
+            late_mid_bowlers.append((b, late_mid_fit))
             if not (weather.severe_dew and bt == "spin"):
                 death_bowlers.append((b, death_fit))
-            # Pre-Death: all genuine bowlers eligible, ranked by mid fitness
-            # (medium-pace / secondary options preferred here over strike bowlers)
-            predeath_bowlers.append((b, mid_fit))
-
-        # Part-timers only enter mid pool (safest phase for them)
+            # Pre-Death pool: ranked by late-mid fitness (similar demands)
+            predeath_bowlers.append((b, late_mid_fit))
         else:
-            mid_bowlers.append((b, mid_fit * 0.6))   # discounted fitness
+            # Part-timers only in mid phases (safest window)
+            early_mid_bowlers.append((b, early_mid_fit * 0.6))
+            late_mid_bowlers.append((b, late_mid_fit * 0.6))
 
-    # Sort descending (highest fitness first)
-    pp_bowlers.sort(key=lambda x: x[1], reverse=True)
-    mid_bowlers.sort(key=lambda x: x[1], reverse=True)
-    predeath_bowlers.sort(key=lambda x: x[1], reverse=True)
-    death_bowlers.sort(key=lambda x: x[1], reverse=True)
+    pp_bowlers.sort(        key=lambda x: x[1], reverse=True)
+    early_mid_bowlers.sort( key=lambda x: x[1], reverse=True)
+    late_mid_bowlers.sort(  key=lambda x: x[1], reverse=True)
+    predeath_bowlers.sort(  key=lambda x: x[1], reverse=True)
+    death_bowlers.sort(     key=lambda x: x[1], reverse=True)
 
     return {
-        "PP":        [b for b, _ in pp_bowlers],
-        "Mid":       [b for b, _ in mid_bowlers],
-        "Pre-Death": [b for b, _ in predeath_bowlers],
-        "Death":     [b for b, _ in death_bowlers],
+        "PP":         [b for b, _ in pp_bowlers],
+        "Early-Mid":  [b for b, _ in early_mid_bowlers],
+        "Late-Mid":   [b for b, _ in late_mid_bowlers],
+        "Mid":        [b for b, _ in early_mid_bowlers],   # backward-compat alias
+        "Pre-Death":  [b for b, _ in predeath_bowlers],
+        "Death":      [b for b, _ in death_bowlers],
     }
+
+
+# ---------------------------------------------------------------------------
+# CAP VALIDATION
+# ---------------------------------------------------------------------------
+
+def _validate_four_over_cap(
+    over_assignments: list[OverAssignment],
+    meta: dict[str, dict],
+    overs_already_used: Optional[dict] = None,
+) -> None:
+    """
+    Validate that the bowling plan respects PSL rules:
+      1. No bowler appears in more than 4 over slots.
+      2. Genuine Bowlers (primary_role == 'Bowler') cover at least 16 of 20 overs.
+
+    Raises PlanValidationError describing the first violation found.
+    """
+    counts: dict[str, int] = {}
+    for oa in over_assignments:
+        if oa.primary_bowler and oa.primary_bowler not in ("TBD", "COMPLETED"):
+            counts[oa.primary_bowler] = counts.get(oa.primary_bowler, 0) + 1
+
+    # Rule 1 — 4-over cap
+    for bowler, n in counts.items():
+        if n > MAX_OVERS_PER_BOWLER:
+            raise PlanValidationError(
+                f"{bowler} assigned {n} overs — exceeds PSL cap of {MAX_OVERS_PER_BOWLER}."
+            )
+
+    # Rule 2 — genuine Bowlers must cover ≥ 80% of total match overs
+    # Include already-bowled overs (from re-optimisation context) so partial plans
+    # aren't penalised for genuines who already bowled in completed overs.
+    prior = overs_already_used or {}
+    prior_total   = sum(prior.values())
+    prior_genuine = sum(
+        v for b, v in prior.items()
+        if meta.get(b, {}).get("primary_role", "") == "Bowler"
+    )
+    total_match   = prior_total + sum(counts.values())
+    genuine_overs = prior_genuine + sum(
+        n for b, n in counts.items()
+        if meta.get(b, {}).get("primary_role", "") == "Bowler"
+    )
+    min_genuine = max(1, round(total_match * 0.80))
+    if genuine_overs < min_genuine:
+        raise PlanValidationError(
+            f"Genuine Bowlers cover only {genuine_overs}/{total_match} overs — minimum is {min_genuine}. "
+            f"Squad may not have enough specialist bowlers."
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -644,6 +933,9 @@ def generate_bowling_plan(
     stats_path:               Optional[Path] = None,
     player_index_path:        Optional[Path] = None,
     opposition_batting_order: Optional[list] = None,
+    overs_already_used:       Optional[dict] = None,
+    _start_from_over:         int = 1,
+    opposition_overrides:     Optional[dict] = None,
 ) -> BowlingPlan:
     """
     Generate a 20-over bowling plan template.
@@ -670,7 +962,7 @@ def generate_bowling_plan(
 
     meta  = _load_player_meta(pi)
     stats = _load_bowler_phase_stats(our_bowlers, sp, pi_path=pi)
-    opp   = _load_opposition_profile(opposition_team)
+    opp   = _load_opposition_profile(opposition_team, overrides=opposition_overrides)
 
     # Load matchup matrix for danger-batter intelligence
     _matchup_df: Optional[pd.DataFrame] = None
@@ -704,13 +996,14 @@ def generate_bowling_plan(
         genuine = genuine + parttimers_sorted[:needed]
         parttimers = [b for b in parttimers if b not in genuine]
 
-    # Phase-specialist classification (opposition-aware)
-    phase_pools = _classify_bowlers(genuine + parttimers, stats, meta, weather, opp)
+    # Phase-specialist classification (opposition + venue + recent-form aware)
+    phase_pools = _classify_bowlers(genuine + parttimers, stats, meta, weather, opp, venue)
 
-    pp_pool        = phase_pools["PP"]
-    mid_pool       = phase_pools["Mid"]
-    predeath_pool  = phase_pools["Pre-Death"]
-    death_pool     = phase_pools["Death"]
+    pp_pool           = phase_pools["PP"]
+    early_mid_pool    = phase_pools["Early-Mid"]
+    late_mid_pool     = phase_pools["Late-Mid"]
+    predeath_pool     = phase_pools["Pre-Death"]
+    death_pool        = phase_pools["Death"]
 
     # ------------------------------------------------------------------
     # PARTNERSHIP-BASED ALLOCATION
@@ -729,7 +1022,9 @@ def generate_bowling_plan(
     #   Death     overs 16-19 (4 overs): death pair, 2+2 overs
     # ------------------------------------------------------------------
 
-    overs_used:  dict[str, int] = {b: 0 for b in our_bowlers}
+    overs_used:  dict[str, int] = {
+        b: (overs_already_used or {}).get(b, 0) for b in our_bowlers
+    }
     # death_reserved[b] = number of overs to hold back from non-death phases
     death_reserved: dict[str, int] = {}
     assignments: dict[int, str] = {}
@@ -817,16 +1112,31 @@ def generate_bowling_plan(
                 _best_for_phase(genuine, phase, exclude=primary) or primary
             )
 
+    # When re-optimising mid-match, skip overs already bowled so their quota
+    # is not double-counted (pre-populated via overs_already_used).
+    # _start_from_over is 1-indexed; convert to 0-indexed for range comparisons.
+    _si = max(0, _start_from_over - 1)
+
+    def _remaining(indices: list[int]) -> list[int]:
+        return [i for i in indices if i >= _si]
+
     # PP: one opening pair (best 2 PP fitness), 3 overs each
-    _assign_pair(list(range(0, 6)),   "PP",  pp_pool)
+    if _remaining(list(range(0, 6))):
+        _assign_pair(_remaining(list(range(0, 6))), "PP", pp_pool)
 
-    # Middle block 1 (overs 7-11): best mid fitness pair
-    _assign_pair(list(range(6, 11)),  "Mid", mid_pool)
+    # Early-Mid (overs 7-10): spinners dominate, economy + dots priority
+    if _remaining(list(range(6, 10))):
+        _assign_pair(_remaining(list(range(6, 10))), "Early-Mid", early_mid_pool)
 
-    # Middle block 2 (overs 12-14): change-up pair — prefer bowlers not yet used heavily
-    # Death specialists' reserved overs prevent them appearing here
-    remaining_mid = [b for b in mid_pool + pp_pool if _available_now(b, "Mid")]
-    _assign_pair(list(range(11, 14)), "Mid", remaining_mid if remaining_mid else mid_pool)
+    # Late-Mid (overs 11-14): set batters accelerating, wickets priority
+    # Death specialists' reserved overs prevent them appearing here.
+    # Prefer bowlers not yet used heavily — fresh change-up options.
+    remaining_late_mid = [b for b in late_mid_pool + pp_pool if _available_now(b, "Late-Mid")]
+    if _remaining(list(range(10, 14))):
+        _assign_pair(
+            _remaining(list(range(10, 14))),
+            "Late-Mid", remaining_late_mid if remaining_late_mid else late_mid_pool,
+        )
 
     # Pre-Death (overs 15-16): secondary bowlers — reserve top death specialists for 17-20
     # Top-2 death specialists are excluded via death_reserved; use predeath_pool which
@@ -845,10 +1155,88 @@ def generate_bowling_plan(
         # Truly nothing left — last resort: use predeath_pool including death specialists.
         # This only fires if the squad has fewer than 5 genuine bowlers.
         predeath_available = predeath_pool
-    _assign_pair(list(range(14, 16)), "Pre-Death", predeath_available)
+    if _remaining(list(range(14, 16))):
+        _assign_pair(_remaining(list(range(14, 16))), "Pre-Death", predeath_available)
 
     # Death (overs 17-20): top death specialists, 2+2 overs
-    _assign_pair(list(range(16, 20)), "Death", death_pool)
+    if _remaining(list(range(16, 20))):
+        _assign_pair(_remaining(list(range(16, 20))), "Death", death_pool)
+
+    # ------------------------------------------------------------------
+    # Post-processing fix 1: eliminate back-to-back overs by the same bowler
+    # (happens at phase boundaries when the same bowler tops two pools)
+    # ------------------------------------------------------------------
+    _over_seq = sorted(assignments.keys())
+    for _i in range(len(_over_seq) - 1):
+        _o1, _o2 = _over_seq[_i], _over_seq[_i + 1]
+        if _o2 != _o1 + 1:          # non-adjacent — skip
+            continue
+        _dup = assignments.get(_o1)
+        if not _dup or _dup != assignments.get(_o2):
+            continue
+        # Same bowler in consecutive overs — find the nearest later non-duplicate to swap
+        for _j in range(_i + 2, len(_over_seq)):
+            _o3 = _over_seq[_j]
+            _other = assignments.get(_o3)
+            if not _other or _other in ("TBD", "COMPLETED") or _other == _dup:
+                continue
+            # Ensure the swap doesn't violate 4-over cap for either bowler
+            _dup_overs   = sum(1 for b in assignments.values() if b == _dup)
+            _other_overs = sum(1 for b in assignments.values() if b == _other)
+            if _dup_overs > MAX_OVERS_PER_BOWLER or _other_overs > MAX_OVERS_PER_BOWLER:
+                continue
+            # Ensure _o3-1 and _o3+1 won't become consecutive with _dup after swap
+            _o3_prev = _over_seq[_j - 1] if _j > 0 else -99
+            _o3_next = _over_seq[_j + 1] if _j + 1 < len(_over_seq) else -99
+            if assignments.get(_o3_prev) == _dup or assignments.get(_o3_next) == _dup:
+                continue
+            # Safe to swap _o2 and _o3
+            assignments[_o2], assignments[_o3] = assignments[_o3], assignments[_o2]
+            backup[_o2], backup[_o3] = backup.get(_o3, _dup), backup.get(_o2, _other)
+            break
+
+    # ------------------------------------------------------------------
+    # Post-processing fix 2: guarantee genuine bowlers ≥ 2 overs
+    # A 1-over allocation wastes a bowling slot and signals poor planning
+    # ------------------------------------------------------------------
+    def _alloc_count(b: str) -> int:
+        return sum(1 for v in assignments.values() if v == b)
+
+    _genuine_in_plan = [b for b in genuine if _alloc_count(b) > 0]
+    _one_over = [b for b in _genuine_in_plan if _alloc_count(b) == 1]
+    _four_over = [b for b in _genuine_in_plan if _alloc_count(b) == 4]
+
+    for _needy in _one_over:
+        if not _four_over:
+            break
+        _donor = _four_over.pop(0)
+        # Find the donor's latest non-PP, non-Death over to reassign
+        _donor_overs = sorted(
+            [o for o, b in assignments.items()
+             if b == _donor and PHASE_LABEL.get(o, "") not in ("Death", "PP")],
+            reverse=True,
+        )
+        if not _donor_overs:
+            continue
+        _swap_over = _donor_overs[0]
+        # Verify the swap doesn't create new consecutive pair
+        _prev = _swap_over - 1
+        _next = _swap_over + 1
+        if assignments.get(_prev) == _needy or assignments.get(_next) == _needy:
+            # Try second candidate
+            if len(_donor_overs) > 1:
+                _swap_over = _donor_overs[1]
+                _prev, _next = _swap_over - 1, _swap_over + 1
+                if assignments.get(_prev) == _needy or assignments.get(_next) == _needy:
+                    continue
+            else:
+                continue
+        assignments[_swap_over] = _needy
+        overs_used[_needy]  = overs_used.get(_needy, 0) + 1
+        overs_used[_donor]  = overs_used.get(_donor, 0) - 1
+        if overs_used[_donor] == 3:
+            _four_over_remaining = [b for b in _genuine_in_plan if _alloc_count(b) == 4]
+            _four_over = _four_over_remaining
 
     # ------------------------------------------------------------------
     # Build OverAssignment list
@@ -857,52 +1245,84 @@ def generate_bowling_plan(
     prev_primary: Optional[str] = None
 
     for over in range(TOTAL_OVERS):
-        primary = assignments.get(over, our_bowlers[0] if our_bowlers else "TBD")
+        # Overs before _start_from_over were not allocated — mark as COMPLETED so
+        # cap validation and bowler_summary don't count them against any bowler.
+        _fallback = "COMPLETED" if over < _si else (our_bowlers[0] if our_bowlers else "TBD")
+        primary = assignments.get(over, _fallback)
         bkp     = backup.get(over, primary)
         phase   = PHASE_LABEL[over]
         bt      = _bowl_type(primary, meta)
         s       = stats.get(primary, {})
         partner = bkp
 
-        # Reason — distinguish new spell vs continuing spell
+        # Reason — distinguish new spell vs continuing spell; include role justification
         new_spell = (primary != prev_primary)
+        _dot_pct  = s.get("dot_pct", LEAGUE_AVG_DOT_PCT)
+        _wkt_rate = s.get("bowl_avg", None)   # lower = better wicket-taker
+        _role_tag = ""
+        if _dot_pct >= 40:
+            _role_tag = f" Dot-ball threat ({_dot_pct:.0f}%)."
+        elif _wkt_rate is not None and _wkt_rate < 22:
+            _role_tag = f" Wicket-taker (avg {_wkt_rate:.1f})."
+
         if phase == "PP":
             econ   = s.get("pp_economy", 8.5)
             reason = (
-                f"New ball — opens with {partner} from other end. PP economy {econ:.1f}."
+                f"New ball — opens with {partner} from other end. PP economy {econ:.1f}.{_role_tag}"
                 if new_spell
-                else f"Continuing PP spell — economy {econ:.1f}."
+                else f"Continuing PP spell — economy {econ:.1f}.{_role_tag}"
             )
         elif phase == "Death":
             econ   = s.get("death_economy", 9.5)
             reason = (
-                f"Death partnership with {partner} — economy {econ:.1f}."
+                f"Death partnership with {partner} — economy {econ:.1f}.{_role_tag} Selected for death execution."
                 if new_spell
                 else f"Continuing death spell — economy {econ:.1f}."
             )
         elif phase == "Pre-Death":
             econ   = s.get("mid_economy", 7.5)
             reason = (
-                f"Pre-death spell (overs 15-16) — holding death specialists for 17-20. "
-                f"Economy {econ:.1f}."
+                f"Pre-death spell (overs 15-16) — bridges middle to death. "
+                f"Preserves top specialists for 17-20. Economy {econ:.1f}.{_role_tag}"
                 if new_spell
                 else f"Continuing pre-death spell — economy {econ:.1f}."
+            )
+        elif phase == "Early-Mid":
+            econ   = s.get("mid_economy", 7.5)
+            reason = (
+                f"Early-middle spell (overs 7-10) — pair with {partner}. Economy {econ:.1f}.{_role_tag}"
+                if new_spell
+                else f"Continuing early-middle spell — economy {econ:.1f}."
+            )
+        elif phase == "Late-Mid":
+            econ   = s.get("mid_economy", 7.5)
+            reason = (
+                f"Late-middle spell (overs 11-14) — pair with {partner}. Economy {econ:.1f}.{_role_tag}"
+                if new_spell
+                else f"Continuing late-middle spell — economy {econ:.1f}."
             )
         else:
             econ   = s.get("mid_economy", 7.5)
             reason = (
-                f"Middle spell — pair with {partner}. Economy {econ:.1f}."
+                f"Middle spell — pair with {partner}. Economy {econ:.1f}.{_role_tag}"
                 if new_spell
                 else f"Continuing middle spell — economy {econ:.1f}."
             )
 
-        # Weather note
+        # Weather note — use gradient intensity for nuanced dew warnings
         w_note = ""
-        if phase in ("Death", "Pre-Death") and bt == "spin" and weather.dew_onset_over <= over:
-            w_note = (
-                f"Dew warning — spinner risky here "
-                f"(onset over {weather.dew_onset_over}). Consider pace."
-            )
+        if phase in ("Death", "Pre-Death", "Late-Mid") and bt == "spin":
+            _dew_intensity = weather.dew_probability_at(over + 1)   # over is 0-indexed
+            if _dew_intensity >= 0.75:
+                w_note = (
+                    f"Dew warning — spinner risky here "
+                    f"(onset over {weather.dew_onset_over}, {round(_dew_intensity*100)}% intensity). Consider pace."
+                )
+            elif _dew_intensity >= 0.25:
+                w_note = (
+                    f"Dew building ({round(_dew_intensity*100)}% intensity from over {weather.dew_onset_over}) "
+                    f"— monitor grip, 1-2 more overs before switching to pace."
+                )
         elif phase == "PP" and bt == "pace" and weather.swing_bonus >= 1.20:
             w_note = f"Swing conditions ({weather.swing_bonus:.2f}x) — ideal for pace."
 
@@ -916,10 +1336,11 @@ def generate_bowling_plan(
         ))
         prev_primary = primary
 
-    # Bowler summary
+    # Bowler summary (exclude COMPLETED/TBD placeholders from skipped overs)
     bowler_summary: dict[str, list[int]] = {}
     for over, b in assignments.items():
-        bowler_summary.setdefault(b, []).append(over + 1)
+        if b and b not in ("TBD", "COMPLETED"):
+            bowler_summary.setdefault(b, []).append(over + 1)
 
     # Key decisions — weather + fitness aware
     key_decisions: list[str] = []
@@ -975,18 +1396,22 @@ def generate_bowling_plan(
             )
         key_decisions.append(msg)
 
-    # Spinner allocation — weather driven
+    # Spinner allocation — weather driven (gradient-aware)
     spin_bowlers = [b for b in our_bowlers if _bowl_type(b, meta) == "spin"]
     if spin_bowlers:
         if weather.severe_dew:
+            # Full-intensity dew at over 18 — hard constraint
+            full_over = (weather.dew_onset_over or 0) + weather.DEW_GRADIENT_OVERS
             key_decisions.append(
                 f"SEVERE DEW — {', '.join(spin_bowlers)} restricted to overs 7-14 only. "
-                f"No spinners after over {weather.dew_onset_over}."
+                f"Dew reaches full intensity around over {full_over} — no spinners after over {weather.dew_onset_over}."
             )
         elif weather.spinner_penalty <= 0.75:
+            full_over = (weather.dew_onset_over or 0) + weather.DEW_GRADIENT_OVERS
             key_decisions.append(
                 f"Moderate dew (penalty {weather.spinner_penalty:.2f}) — keep "
-                f"{', '.join(spin_bowlers)} in middle overs (7-14), avoid death."
+                f"{', '.join(spin_bowlers)} in middle overs (7-14), avoid death. "
+                f"Dew builds gradually from over {weather.dew_onset_over}, full effect ~over {full_over}."
             )
         elif weather.swing_bonus <= 1.05:
             key_decisions.append(
@@ -1179,43 +1604,250 @@ def generate_bowling_plan(
             "Rain risk — front-load your strike bowlers in overs 1-10. D/L favours the side with early wickets."
         )
 
-    # Validate cap compliance — warn and clamp if any bowler exceeds 4-over PSL cap.
-    # This can happen with very small squads (< 5 genuine bowlers); the allocation
-    # logic does its best but may still over-assign part-timers in edge cases.
-    import warnings as _vcw
-    for bowler, alloc in list(bowler_summary.items()):
-        if len(alloc) > MAX_OVERS_PER_BOWLER:
-            _vcw.warn(
-                f"[bowling_plan] {bowler} allocated {len(alloc)} overs "
-                f"(PSL cap = {MAX_OVERS_PER_BOWLER}). Squad may have too few genuine bowlers. "
-                f"Plan clamped to {MAX_OVERS_PER_BOWLER} overs for this bowler.",
-                UserWarning,
-                stacklevel=2,
+    plan_warnings: list[str] = []
+
+    # Opposition profile freshness warnings — surface to captain before match
+    if opp:
+        _freshness = opp.get("profile_freshness", "career-only")
+        _staleness = opp.get("staleness_note", "")
+        if _staleness:
+            plan_warnings.append(_staleness)
+        if _freshness == "current-season":
+            key_decisions.insert(0,
+                f"[Opposition] {opposition_team} profile blended: "
+                f"{round(OPP_CURRENT_SEASON_WEIGHT*100):.0f}% PSL {CURRENT_PSL_SEASON} "
+                f"+ {round((1-OPP_CURRENT_SEASON_WEIGHT)*100):.0f}% career aggregate."
             )
-            # Clamp: remove excess overs from bowler_summary
-            excess_overs = alloc[MAX_OVERS_PER_BOWLER:]
+        _injury_notes = opp.get("injury_notes", "")
+        _injured_out  = opp.get("injured_out",  [])
+        _form_note    = opp.get("form_note",    "")
+        if _injured_out:
+            key_decisions.insert(0,
+                f"[INJURY] {', '.join(_injured_out)} unavailable for {opposition_team}. "
+                + (_injury_notes if _injury_notes else "Batting order may shift.")
+            )
+        elif _injury_notes:
+            key_decisions.insert(0, f"[Squad note] {_injury_notes}")
+        if _form_note:
+            key_decisions.insert(0 if not _injured_out else 1,
+                f"[Form note] {_form_note}"
+            )
+
+    def _rebuild_assignments() -> None:
+        """Sync bowler_summary from the current assignments dict and rebuild over_assignments."""
+        nonlocal over_assignments
+        # Rebuild summary from assignments
+        bowler_summary.clear()
+        for idx, bname in assignments.items():
+            if bname and bname not in ("TBD", "COMPLETED"):
+                bowler_summary.setdefault(bname, []).append(idx + 1)
+        for v in bowler_summary.values():
+            v.sort()
+        over_assignments = [
+            OverAssignment(
+                over           = oa.over,
+                primary_bowler = assignments.get(oa.over - 1, oa.primary_bowler),
+                backup_bowler  = oa.backup_bowler,
+                phase          = oa.phase,
+                reason         = oa.reason,
+                weather_note   = oa.weather_note,
+            )
+            for oa in over_assignments
+        ]
+
+    def _rebalance_cap() -> None:
+        """
+        One-pass rebalancing: for every bowler exceeding 4 overs, move their
+        excess over slots to the next-best eligible bowler (by _phase_fitness)
+        who is still under cap. Modifies assignments and bowler_summary in place.
+        """
+        import warnings as _rw
+        _rb_form = _load_recent_form(our_bowlers, venue)
+        for bowler, alloc in list(bowler_summary.items()):
+            excess = alloc[MAX_OVERS_PER_BOWLER:]
+            if not excess:
+                continue
+            _rw.warn(
+                f"[bowling_plan] {bowler} allocated {len(alloc)} overs — "
+                f"exceeds PSL cap. Attempting rebalance.",
+                UserWarning,
+                stacklevel=4,
+            )
+            for _ov in excess:
+                phase_label = PHASE_LABEL[_ov - 1]
+                # Find best eligible replacement under cap
+                pool = phase_pools.get(phase_label, phase_pools.get("Mid", []))
+                best_sub: str | None = None
+                best_fit: float = -1.0
+                for candidate in pool:
+                    if candidate == bowler:
+                        continue
+                    current_count = sum(1 for a in assignments.values() if a == candidate)
+                    if current_count >= MAX_OVERS_PER_BOWLER:
+                        continue
+                    cfd   = _rb_form.get(candidate, {})
+                    bfs   = cfd.get("form_score", 50.0)
+                    r_eco = cfd.get("recent_eco",  0.0)
+                    fit = _phase_fitness(
+                        candidate, PHASE_NAME.get(phase_label, "middle"),
+                        stats, meta, weather, opp, bfs, r_eco,
+                    )
+                    if fit > best_fit:
+                        best_fit = fit
+                        best_sub = candidate
+                assignments[_ov - 1] = best_sub if best_sub else "TBD"
+            # Cap original bowler's summary immediately
             bowler_summary[bowler] = alloc[:MAX_OVERS_PER_BOWLER]
-            # Re-assign excess overs to TBD in over_assignments
-            for _ov in excess_overs:
-                assignments[_ov - 1] = "TBD"
-            # Rebuild over_assignments from updated assignments
-            over_assignments = [
-                OverAssignment(
-                    over           = oa.over,
-                    primary_bowler = assignments.get(oa.over - 1, oa.primary_bowler),
-                    backup_bowler  = oa.backup_bowler,
-                    phase          = oa.phase,
-                    reason         = oa.reason,
-                    weather_note   = oa.weather_note,
-                )
-                for oa in over_assignments
-            ]
+        _rebuild_assignments()
+
+    # --- First validation attempt ---
+    try:
+        _validate_four_over_cap(over_assignments, meta, overs_already_used)
+    except PlanValidationError as _e:
+        # Attempt one rebalancing pass
+        _rebalance_cap()
+        # Re-validate after rebalancing
+        try:
+            _validate_four_over_cap(over_assignments, meta, overs_already_used)
+        except PlanValidationError as _e2:
+            import warnings as _vw
+            msg = f"[bowling_plan] Cap violation after rebalance: {_e2}"
+            _vw.warn(msg, UserWarning, stacklevel=2)
+            plan_warnings.append(str(_e2))
+
+    # --- Form warnings: flag bowlers whose recent economy is significantly worse
+    #     than their career average, and highlight improving bowlers. ---
+    _form_data = _load_recent_form(our_bowlers, venue)
+    for _b in our_bowlers:
+        _fd = _form_data.get(_b, {})
+        _r_eco   = _fd.get("recent_eco",   0.0)
+        _r_overs = _fd.get("recent_overs", 0.0)
+        _trend   = _fd.get("trend",        "stable")
+        if _r_overs < MIN_RECENT_OVERS_FOR_ECO_BLEND or _r_eco <= 0.0:
+            continue
+        # Compute career blended economy (PP×4 + Mid×10 + Death×6 overs weighting)
+        _s = stats.get(_b, {})
+        _career_eco = (
+            _s.get("pp_economy",    8.5) * 4
+            + _s.get("mid_economy", 7.5) * 10
+            + _s.get("death_economy", 9.5) * 6
+        ) / 20.0
+        if _r_eco > _career_eco * (1.0 + FORM_CONCERN_ECO_DELTA_PCT):
+            _delta_pct = round((_r_eco / _career_eco - 1.0) * 100)
+            plan_warnings.append(
+                f"{_b}: recent economy {_r_eco:.2f} is {_delta_pct}% above career average "
+                f"({_career_eco:.2f}) — monitor form."
+            )
+        elif _trend == "improving" and _r_eco < _career_eco * (1.0 - FORM_CONCERN_ECO_DELTA_PCT):
+            key_decisions.append(
+                f"{_b} is in improving form (recent eco {_r_eco:.2f} vs career {_career_eco:.2f}) "
+                f"— consider using full 4-over allocation."
+            )
 
     return BowlingPlan(
         overs          = over_assignments,
         bowler_summary = bowler_summary,
         key_decisions  = key_decisions,
         contingencies  = contingencies,
+        plan_warnings  = plan_warnings,
+    )
+
+
+# ---------------------------------------------------------------------------
+# LIVE RE-OPTIMISER
+# ---------------------------------------------------------------------------
+
+def reoptimise_bowling_plan(
+    state:                    LiveMatchState,
+    weather:                  WeatherImpact,
+    original_plan:            BowlingPlan,
+    our_bowlers:              list[str],
+    opposition_team:          str = "",
+    stats_path:               Optional[Path] = None,
+    player_index_path:        Optional[Path] = None,
+    opposition_batting_order: Optional[list] = None,
+    opposition_overrides:     Optional[dict] = None,
+) -> BowlingPlan:
+    """
+    Re-optimise the bowling plan for all remaining overs based on current match state.
+
+    Called from the Dugout screen at the start of each over after the analyst
+    updates the score, wickets, and bowler who just bowled.
+
+    Completed overs (< state.current_over) are carried over unchanged from
+    original_plan.  Remaining overs are freshly allocated, respecting each
+    bowler's remaining quota (4 - already bowled this innings).
+
+    Args:
+        state:          Current LiveMatchState (overs_bowled_by is the key input).
+        weather:        Updated WeatherImpact (may reflect new dew / wind data).
+        original_plan:  The BowlingPlan that was generated pre-match.
+        our_bowlers:    Full list of our bowlers (same as generate_bowling_plan call).
+        opposition_team, stats_path, player_index_path, opposition_batting_order:
+                        Passed through to generate_bowling_plan unchanged.
+
+    Returns:
+        A new BowlingPlan where completed overs are locked and remaining overs
+        reflect the updated quota-constrained allocation.
+    """
+    current_over = state.current_over  # 1-indexed; this over is still to be bowled
+
+    # Nothing to re-optimise before the first ball
+    if current_over <= 1:
+        return original_plan
+
+    # Pre-populate overs used from live state so the allocator respects remaining quota
+    overs_already_used: dict[str, int] = dict(state.overs_bowled_by)
+
+    # Generate a fresh plan for remaining overs only.
+    # _start_from_over ensures completed overs are not allocated (quota not double-counted).
+    fresh = generate_bowling_plan(
+        our_bowlers              = our_bowlers,
+        weather                  = weather,
+        venue                    = state.venue,
+        opposition_team          = opposition_team,
+        stats_path               = stats_path,
+        player_index_path        = player_index_path,
+        opposition_batting_order = opposition_batting_order,
+        overs_already_used       = overs_already_used,
+        _start_from_over         = current_over,
+        opposition_overrides     = opposition_overrides,
+    )
+
+    # Lock completed overs: replace fresh plan's placeholder assignments with
+    # the original plan's actual (historical) assignments.
+    completed: dict[int, OverAssignment] = {
+        oa.over: oa
+        for oa in original_plan.overs
+        if oa.over < current_over
+    }
+    # Fresh plan only has assignments for overs >= current_over (due to _start_from_over).
+    # Build merged list: historical from original_plan + remaining from fresh plan.
+    completed_overs  = [completed[i] for i in sorted(completed)]
+    remaining_overs  = [oa for oa in fresh.overs if oa.over >= current_over]
+    merged_overs: list[OverAssignment] = completed_overs + remaining_overs
+
+    # bowler_summary shows only REMAINING (future) planned overs — use fresh plan's
+    # summary directly since it was built only from the remaining allocation.
+    bowler_summary = fresh.bowler_summary
+
+    # Surface remaining quotas as the first key decision
+    quota_parts = [
+        f"{b} ({4 - overs_already_used.get(b, 0)} left)"
+        for b in our_bowlers
+        if overs_already_used.get(b, 0) > 0
+    ]
+    reopt_note = (
+        f"[Re-optimised at over {current_over}]"
+        + (f" Quotas: {', '.join(quota_parts)}" if quota_parts else "")
+    )
+
+    return BowlingPlan(
+        overs          = merged_overs,
+        bowler_summary = bowler_summary,
+        key_decisions  = [reopt_note] + fresh.key_decisions,
+        contingencies  = fresh.contingencies,
+        plan_warnings  = fresh.plan_warnings,
     )
 
 
@@ -1229,9 +1861,9 @@ if __name__ == "__main__":
     lahore_bowlers = [
         "Shaheen Shah Afridi",
         "Haris Rauf",
-        "Zaman Khan",
-        "Rashid Khan",
-        "Liam Dawson",
+        "Usama Mir",
+        "Mustafizur Rahman",
+        "Sikandar Raza",
         "Fakhar Zaman",   # part-timer
     ]
 
@@ -1283,4 +1915,9 @@ if __name__ == "__main__":
     print(f"\nContingencies:")
     for c in plan.contingencies:
         print(f"  - {c}")
+
+    if plan.plan_warnings:
+        print(f"\nPlan Warnings:")
+        for w in plan.plan_warnings:
+            print(f"  ! {w}")
     print()

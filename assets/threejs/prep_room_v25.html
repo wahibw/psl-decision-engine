@@ -1,0 +1,3102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSL Prep Room — TALAASH Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:#050A18;color:#E4E9F6}
+/* Deep night-stadium ambient glow blobs */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 10% 5%,  rgba(88,28,235,0.14)  0%,transparent 60%),
+    radial-gradient(ellipse 50% 45% at 88% 92%,  rgba(255,140,0,0.08)  0%,transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 50%,  rgba(15,35,90,0.55)   0%,transparent 70%),
+    radial-gradient(ellipse 40% 35% at 80% 10%,  rgba(0,180,255,0.06)  0%,transparent 50%),
+    radial-gradient(ellipse 35% 30% at 20% 90%,  rgba(76,175,80,0.04)  0%,transparent 50%);
+}
+
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:52px;
+  background:rgba(5,10,24,0.92);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  box-shadow:0 1px 0 rgba(139,92,246,0.2),0 4px 24px rgba(0,0,0,0.6);
+}
+.nav-brand{display:flex;align-items:center;gap:0}
+.nav-brand-txt{
+  font-family:Rajdhani;font-size:10px;font-weight:500;
+  letter-spacing:5px;text-transform:uppercase;
+  color:rgba(180,200,240,0.38);
+}
+.nav-links{
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:0;
+}
+.nl-sep{width:1px;height:18px;background:rgba(255,255,255,0.08);margin:0 2px}
+.nl{
+  font-family:Orbitron;font-size:10px;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(180,200,240,0.42);
+  padding:6px 20px;cursor:pointer;
+  transition:color .2s;
+  border:none;background:transparent;
+  position:relative;
+}
+.nl:hover{color:rgba(210,225,255,0.88)}
+.nl.active{color:#A890FF}
+.nl.active::after{
+  content:'';
+  position:absolute;bottom:-1px;left:20px;right:20px;
+  height:2px;
+  background:linear-gradient(90deg,transparent,#A890FF,transparent);
+  border-radius:2px;
+}
+.nav-right{display:flex;align-items:center;gap:10px}
+.live-d{width:7px;height:7px;border-radius:50%;background:#16A34A;animation:blink 1.5s infinite;flex-shrink:0}
+.live-l{
+  font-family:Rajdhani;font-size:9px;font-weight:600;
+  letter-spacing:2.5px;text-transform:uppercase;color:#16A34A;
+}
+.team-b{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#6D28D9,#8B5CF6);
+  border:2px solid rgba(139,92,246,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-family:Orbitron;font-size:9px;font-weight:900;
+  color:#FFD700;letter-spacing:0.5px;
+  box-shadow:0 2px 12px rgba(139,92,246,0.35);
+}
+.psl-b{display:none}
+.nav-t{display:none}
+
+.main-3col{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1}
+.main-full{display:grid;grid-template-columns:1fr;height:100vh;margin-top:0;position:relative;z-index:1;overflow-y:auto;padding:16px 24px}
+.hidden{display:none!important}
+
+/* Full-screen stadium canvas */
+.center{position:absolute;inset:0;overflow:hidden;background:transparent}
+#cc{position:absolute;inset:0;z-index:1;overflow:hidden}
+#cc canvas{display:block;position:absolute;top:0;left:0;width:100%!important;height:100%!important}
+
+/* LEFT floating glass panel */
+.side{
+  position:fixed;top:10px;left:14px;width:228px;
+  max-height:calc(100vh - 20px);z-index:50;
+  background:rgba(7,12,28,0.84);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.06),0 0 0 0.5px rgba(139,92,246,0.12);
+  padding:12px 10px;display:flex;flex-direction:column;overflow-y:auto;
+}
+.side::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,rgba(168,144,255,0.55),transparent);border-radius:16px 16px 0 0;pointer-events:none}
+.side::-webkit-scrollbar{width:3px}.side::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+
+/* RIGHT floating glass panel — transparent wrapper, each .rc is its own card */
+.rp{
+  position:fixed;top:10px;right:14px;width:262px;
+  max-height:calc(100vh - 20px);z-index:50;
+  background:transparent;border:none;box-shadow:none;
+  padding:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;
+}
+.rp::-webkit-scrollbar{width:3px}.rp::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+.rp .rc{
+  background:rgba(7,12,28,0.84);
+  backdrop-filter:blur(22px) saturate(180%);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;
+  box-shadow:0 6px 32px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.05);
+  padding:12px 13px;position:relative;overflow:visible;
+}
+/* Scrollable inner body for tall cards */
+.rc-scroll{
+  overflow-y:auto;max-height:220px;padding-right:4px;
+}
+.rc-scroll::-webkit-scrollbar{width:3px}
+.rc-scroll::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+/* Tactical alert card — standalone glass card in right panel */
+.tac-alert{
+  background:rgba(7,12,28,0.88);
+  backdrop-filter:blur(22px) saturate(180%);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  border:1px solid rgba(244,67,54,0.28);
+  border-radius:14px;padding:10px 13px;
+  box-shadow:0 4px 20px rgba(244,67,54,0.12),0 6px 24px rgba(0,0,0,0.55);
+  position:relative;
+}
+.tac-alert::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,rgba(244,67,54,0.5),transparent);border-radius:14px 14px 0 0}
+.tac-alert-t{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1.5px;color:#F44336;margin-bottom:6px}
+.tac-alert-body{font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)}
+.rp .rc::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,rgba(168,144,255,0.5),transparent);border-radius:14px 14px 0 0}
+
+/* Overlay cards — nudge inward from floating panels (no inner nav — iframe starts flush) */
+.vbar{top:8px;left:50%;transform:translateX(-50%)}
+.zoom-ctrl{top:10px;right:290px}
+.toss-card{bottom:16px;left:266px;max-width:220px}
+.cont-card{bottom:50px;left:256px;right:276px;transform:none;max-width:none;width:auto}
+.alert-card{top:10px;right:290px;max-width:240px}
+.matchup-overlay{bottom:16px;left:256px;right:290px}
+.st{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(168,188,235,0.55);margin-bottom:10px}
+.sl{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(148,168,215,0.5);margin-bottom:3px;display:block}
+.ss{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.22);border-radius:7px;padding:6px 9px;color:#C8D4F0;font-family:'Exo 2';font-size:10px;outline:none;appearance:none;cursor:pointer;margin-bottom:8px}
+.sp{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0 10px}
+.spl{font-family:Rajdhani;font-size:9px;font-weight:600;padding:3px 8px;border-radius:12px;border:1px solid rgba(139,92,246,0.18);background:rgba(255,255,255,0.04);color:rgba(180,200,240,0.5);cursor:pointer;transition:all .2s;user-select:none}
+.spl:hover{border-color:rgba(168,144,255,0.45);color:#B8A8FF}
+.spl.on{background:rgba(109,40,217,0.18);border-color:rgba(168,144,255,0.5);color:#C0B0FF}
+.sbtn{font-family:Rajdhani;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 16px;border-radius:7px;border:none;cursor:pointer;width:100%;margin-top:6px}
+.sbtn.gold{background:linear-gradient(135deg,#FF8C00,#FFD700);color:#1a0a3a;box-shadow:0 3px 12px rgba(255,140,0,0.25)}
+.sbtn.ghost{background:rgba(255,255,255,0.06);color:rgba(168,188,240,0.55);border:1px solid rgba(139,92,246,0.18);margin-top:4px}
+
+.opi{padding:7px 8px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.12);margin-bottom:4px;cursor:pointer}
+.opi.act{border-color:rgba(168,144,255,0.45);background:rgba(109,40,217,0.14)}
+.opi-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.opi-o{font-family:Orbitron;font-size:8px;font-weight:700;color:#A890FF}
+.opi-ph{font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.opi-ph.pp{background:rgba(0,180,220,0.12);color:#0284C7}
+.opi-ph.mid{background:rgba(180,130,0,0.12);color:#B45309}
+.opi-ph.death{background:rgba(220,38,38,0.1);color:#DC2626}
+.opi-ph.predeath{background:rgba(220,100,0,0.12);color:#C05000}
+.opi-b{font-family:Rajdhani;font-size:10px;font-weight:600;color:rgba(200,218,255,0.75)}
+.opi-n{font-family:'Exo 2';font-size:8px;color:rgba(160,185,230,0.45);margin-top:2px;font-style:italic}
+
+.bat-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;border:1px solid rgba(139,92,246,0.12);background:rgba(255,255,255,0.04);margin-bottom:4px;cursor:pointer}
+.bat-item:hover{border-color:rgba(168,144,255,0.35);background:rgba(255,255,255,0.07)}
+.bat-num{font-family:Orbitron;font-size:9px;font-weight:700;color:rgba(160,180,230,0.38);width:16px}
+.bat-name{font-family:Rajdhani;font-size:11px;font-weight:600;color:rgba(205,220,255,0.82)}
+.bat-danger{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 5px;border-radius:3px;margin-left:auto}
+.bat-danger.high{background:rgba(220,38,38,0.1);color:#DC2626}
+.bat-danger.med{background:rgba(180,100,0,0.1);color:#B45309}
+.bat-danger.low{background:rgba(22,163,74,0.1);color:#16A34A}
+
+/* CENTER — see layout block above */
+
+/* Tab bar — .tab-row lives inside .vbar */
+.tab-row{display:flex;gap:2px;background:rgba(6,11,26,0.88);backdrop-filter:blur(20px) saturate(200%);-webkit-backdrop-filter:blur(20px) saturate(200%);padding:3px;border-radius:18px;border:1px solid rgba(255,255,255,0.07);box-shadow:0 4px 20px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.05)}
+.tbtn{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:14px;border:none;background:transparent;color:rgba(175,195,240,0.45);cursor:pointer;transition:all .2s;white-space:nowrap}
+.tbtn:hover{color:rgba(210,225,255,0.88)}
+.tbtn.active{background:rgba(109,40,217,0.2);color:#B8A8FF;border:1px solid rgba(168,144,255,0.35)}
+.xi-dot-row{display:flex;gap:8px;align-items:center}
+.xi-dot{width:10px;height:10px;border-radius:50%;cursor:pointer;transition:all .2s;border:2px solid transparent;position:relative}
+.xi-dot:hover{transform:scale(1.3)}
+.xi-dot.act{border-color:rgba(168,144,255,0.6);transform:scale(1.4)}
+.xi-dot .tip{display:none;position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:Rajdhani;font-size:7px;color:#E4E9F6;background:rgba(7,12,28,0.92);padding:2px 6px;border-radius:3px;white-space:nowrap;border:1px solid rgba(139,92,246,0.35)}
+.xi-dot:hover .tip{display:block}
+
+/* View bar — tabs on top row, dots/view-btns on second row */
+.vbar{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:19;display:flex;flex-direction:column;align-items:center;gap:0}
+.vb{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(6,11,26,0.82);color:rgba(175,195,240,0.5);cursor:pointer;backdrop-filter:blur(12px)}
+.vb:hover{border-color:rgba(168,144,255,0.4);color:#B8A8FF}
+.vb.act{background:rgba(109,40,217,0.2);color:#C0B0FF;border-color:rgba(168,144,255,0.4)}
+
+/* Toss — dark glass card */
+.toss-card{position:absolute;bottom:12px;left:12px;z-index:18;padding:14px 16px;max-width:210px;
+  background:rgba(7,12,28,0.88);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.07);border-radius:14px;box-shadow:0 8px 36px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.06)}
+.toss-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,rgba(109,40,217,0.5),transparent);opacity:.8;border-radius:14px 14px 0 0}
+.toss-t{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;color:#6D28D9;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.toss-t .d{width:4px;height:4px;border-radius:50%;background:#6D28D9}
+.toss-rec{font-family:Orbitron;font-size:16px;font-weight:900;color:#16A34A;margin-bottom:4px}
+.toss-why{font-family:'Exo 2';font-size:9px;color:rgba(170,190,235,0.55);line-height:1.5}
+
+/* Contingency + Alert */
+.cont-card{position:absolute;bottom:50px;left:256px;right:276px;z-index:18;padding:10px 14px;
+  background:rgba(7,12,28,0.88);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.07);border-radius:12px;box-shadow:0 6px 28px rgba(0,0,0,0.6)}
+.cont-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,rgba(109,40,217,0.4),transparent);opacity:.7}
+.cont-t{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;color:#6D28D9;margin-bottom:6px}
+.cont-item{display:flex;gap:8px;margin-bottom:4px;align-items:flex-start}
+.cont-text{font-family:'Exo 2';font-size:9px;color:rgba(175,195,240,0.62);line-height:1.4}
+
+.alert-card{position:absolute;top:48px;right:10px;z-index:19;padding:8px 12px;max-width:240px;
+  background:rgba(28,6,6,0.88);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(220,38,38,0.28);border-radius:10px;box-shadow:0 4px 20px rgba(220,38,38,0.18),0 6px 24px rgba(0,0,0,0.55)}
+.alert-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;background:linear-gradient(90deg,transparent,#DC2626,transparent);opacity:.6;border-radius:10px 10px 0 0}
+.alert-t{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1.5px;color:#DC2626;margin-bottom:4px}
+.alert-txt{font-family:'Exo 2';font-size:9px;color:rgba(255,175,175,0.72);line-height:1.4}
+
+/* Matchup bar */
+.matchup-overlay{position:absolute;bottom:12px;left:12px;right:12px;z-index:18;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.matchup-overlay::-webkit-scrollbar{height:3px}
+.matchup-overlay::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+.mn-card{flex-shrink:0;width:260px;padding:10px 12px;background:rgba(7,12,28,0.90);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-radius:12px;border:1px solid rgba(255,255,255,0.07);box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+.mn-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1.5px;opacity:.5}
+.mn-card.high{border-left:3px solid #DC2626}
+.mn-card.med{border-left:3px solid #B45309}
+.mn-lvl{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.mn-lvl.high{background:rgba(220,38,38,0.1);color:#DC2626}
+.mn-lvl.med{background:rgba(180,83,9,0.1);color:#B45309}
+.mn-balls{font-family:Rajdhani;font-size:8px;color:rgba(135,158,210,0.50);margin-left:6px}
+.mn-txt{font-family:'Exo 2';font-size:9px;color:rgba(175,198,245,0.65);line-height:1.4;margin-top:3px}
+
+/* ── FIFA-style player cards ── */
+.pl{
+  position:absolute;
+  z-index:18;
+  pointer-events:none;
+  transition:opacity .3s;
+  width:62px;
+}
+/* Outer card — vertical rectangle, gold border, DARK glass for contrast on green ground */
+.pl-card{
+  width:62px;
+  border-radius:9px;
+  overflow:hidden;
+  border:1.5px solid rgba(255,215,0,0.55);
+  background:rgba(8,1,20,0.62);
+  backdrop-filter:blur(8px);
+  box-shadow:0 6px 20px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,215,0,0.12);
+  position:relative;
+}
+/* Top sheen */
+.pl-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:1.5px;
+  background:linear-gradient(90deg,transparent,#FFD700,transparent);
+  opacity:.7;z-index:3;
+}
+.pl-num{
+  position:absolute;top:4px;left:5px;
+  font-family:Orbitron;font-size:7px;font-weight:900;
+  color:rgba(255,215,0,0.9);
+  background:rgba(8,1,20,0.65);backdrop-filter:blur(4px);
+  padding:1px 4px;border-radius:3px;z-index:4;letter-spacing:.5px;
+}
+.pl-surname{
+  font-family:Orbitron;font-size:7px;font-weight:800;
+  color:#FFD700;letter-spacing:.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:block;margin-top:1px;
+}
+/* Photo area — 3:4 ratio */
+.pl-photo{
+  width:100%;
+  aspect-ratio:3/4;
+  display:block;
+  object-fit:cover;
+  object-position:top center;
+  position:relative;
+  z-index:1;
+}
+/* Gradient overlay fading into card bottom */
+.pl-gradient{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:60%;
+  background:linear-gradient(to top,
+    rgba(8,1,20,0.98) 0%,
+    rgba(8,1,20,0.7)  45%,
+    transparent       100%);
+  z-index:2;
+}
+/* Number badge — top-left */
+.pl-num{
+  position:absolute;
+  top:4px;left:5px;
+  font-family:Orbitron;
+  font-size:7px;font-weight:900;
+  color:rgba(255,215,0,0.8);
+  background:rgba(8,1,20,0.65);
+  backdrop-filter:blur(4px);
+  padding:1px 4px;
+  border-radius:3px;
+  z-index:4;
+  letter-spacing:.5px;
+}
+/* Role badge — top-right */
+.pl-role{
+  position:absolute;
+  top:4px;right:5px;
+  font-family:Orbitron;
+  font-size:5.5px;font-weight:800;
+  letter-spacing:.8px;
+  padding:2px 4px;
+  border-radius:3px;
+  z-index:4;
+}
+.pl-role.bat {background:rgba(0,229,255,0.18);color:#00E5FF;border:1px solid rgba(0,229,255,0.3)}
+.pl-role.bowl{background:rgba(244,67,54,0.18);color:#F44336;border:1px solid rgba(244,67,54,0.3)}
+.pl-role.all {background:rgba(255,193,7,0.18);color:#FFC107;border:1px solid rgba(255,193,7,0.3)}
+.pl-role.wk  {background:rgba(139,92,246,0.18);color:#8B5CF6;border:1px solid rgba(139,92,246,0.3)}
+/* Bottom text area */
+.pl-info{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  padding:0 5px 5px;
+  z-index:4;
+  text-align:center;
+}
+.pl-name{
+  font-family:Rajdhani;
+  font-size:9px;font-weight:700;
+  color:rgba(220,235,255,0.90);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  line-height:1.1;
+  display:block;
+}
+.pl-surname{
+  font-family:Orbitron;
+  font-size:7px;font-weight:800;
+  color:#FFD700;
+  letter-spacing:.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:block;
+  margin-top:1px;
+}
+/* Danger badge for opposition batting */
+.pl-danger{
+  font-family:Orbitron;font-size:5.5px;font-weight:700;
+  letter-spacing:.8px;padding:1px 4px;border-radius:3px;
+  display:inline-block;margin-top:2px;
+}
+.pl-danger.high{background:rgba(244,67,54,0.2);color:#F44336}
+.pl-danger.med {background:rgba(255,193,7,0.2);color:#FFC107}
+.pl-danger.low {background:rgba(76,175,80,0.2);color:#4CAF50}
+/* Placeholder when no photo */
+.pl-placeholder{
+  width:100%;aspect-ratio:3/4;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;
+  background:linear-gradient(160deg,rgba(35,7,79,0.8),rgba(8,1,20,0.9));
+}
+.pl-placeholder-init{
+  font-family:Orbitron;font-size:14px;font-weight:900;
+  color:rgba(255,215,0,0.5);
+}
+.db.high{background:rgba(244,67,54,0.2);color:#F44336}
+.db.med{background:rgba(255,193,7,0.2);color:#FFC107}
+.db.low{background:rgba(76,175,80,0.2);color:#4CAF50}
+
+.zl{position:absolute;bottom:12px;left:256px;right:276px;z-index:19;display:flex;flex-wrap:wrap;gap:3px 8px;background:rgba(7,12,28,0.88);backdrop-filter:blur(12px);padding:5px 8px;border-radius:7px;border:1px solid rgba(255,255,255,0.07)}
+.zl span{display:flex;align-items:center;gap:3px;font-family:Rajdhani;font-size:7px;color:rgba(170,190,235,0.55)}
+.zl span{display:flex;align-items:center;gap:3px;font-family:Rajdhani;font-size:7px;color:rgba(170,190,235,0.55)}
+.zl .zd{width:5px;height:5px;border-radius:50%}
+
+/* RIGHT PANEL — see layout block above */
+.rc{background:rgba(7,12,28,0.72);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;box-shadow:0 4px 18px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.05)}
+.rt{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A890FF;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.rt .d{width:4px;height:4px;border-radius:50%;background:#A890FF}
+
+/* Wind mini */
+.wind-v{height:70px;position:relative;overflow:hidden;border-radius:7px;background:rgba(0,191,255,0.03);border:1px solid rgba(0,191,255,0.08);margin-top:6px}
+.wa{position:absolute;opacity:.4;animation:wd 3s ease-in-out infinite}
+.wa svg{width:35px;height:10px}
+@keyframes wd{0%{transform:translateX(-15px)}50%{transform:translateX(15px)}100%{transform:translateX(-15px)}}
+
+.wm{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.wm-r{width:30px;height:30px;position:relative}
+.wm-r svg{width:100%;height:100%;transform:rotate(-90deg)}
+.wm-r .tk{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:4}
+.wm-r .fl{fill:none;stroke-width:4;stroke-linecap:round}
+.wm-v{font-family:Orbitron;font-size:10px;font-weight:800}
+.wm-l{font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:rgba(140,165,218,0.50)}
+
+/* Bowler allocation */
+.ba-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.ba-name{font-family:Rajdhani;font-size:10px;font-weight:600;color:rgba(200,218,255,0.78);width:80px;flex-shrink:0}
+.ba-overs{display:flex;gap:3px;flex-wrap:wrap}
+.ba-ov{font-family:Orbitron;font-size:8px;font-weight:700;color:#080114;background:#FFC107;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.ba-total{font-family:Rajdhani;font-size:9px;color:rgba(140,165,218,0.55);margin-left:auto;white-space:nowrap}
+
+/* Key notes */
+.kn{padding:8px;border-radius:8px;margin-bottom:6px;border-left:3px solid}
+.kn.high{background:rgba(220,38,38,0.06);border-color:#DC2626}
+.kn.med{background:rgba(180,83,9,0.06);border-color:#B45309}
+.kn.low{background:rgba(22,163,74,0.06);border-color:#16A34A}
+.kn-conf{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px}
+.kn-conf.high{color:#DC2626}.kn-conf.med{color:#B45309}.kn-conf.low{color:#16A34A}
+.kn-text{font-family:'Exo 2';font-size:9px;color:rgba(175,200,245,0.65);line-height:1.4;margin-top:3px}
+.arr-badge{font-family:Rajdhani;font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(109,40,217,0.12);color:rgba(168,144,255,0.70)}
+
+/* Soil mini */
+.soil-num{font-family:Orbitron;font-size:28px;font-weight:900;background:linear-gradient(135deg,#FFD700,#66BB6A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.soil-max{font-family:Rajdhani;font-size:14px;color:rgba(135,158,210,0.45)}
+.soil-conds{display:flex;justify-content:center;gap:14px;margin-top:8px}
+.soil-c{text-align:center}
+.soil-ic{width:40px;height:40px;border-radius:6px;margin:0 auto 3px;overflow:hidden}
+.soil-ic img{width:100%;height:100%;object-fit:cover}
+.soil-lb{font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:rgba(135,158,210,0.45)}
+
+/* Grouped bar chart — VISIBLE */
+.gbc{display:flex;align-items:flex-end;gap:3px;height:100px;padding:4px 6px;background:rgba(7,12,28,0.55);border-radius:8px;border:1px solid rgba(109,40,217,0.18)}
+.gbc-g{display:flex;gap:1px;align-items:flex-end;flex:1}
+.gbc-b{border-radius:2px 2px 0 0;min-height:4px}
+.gbc-labels{display:flex;justify-content:space-between;padding:2px 6px;margin-top:2px}
+.gbc-labels span{font-family:Rajdhani;font-size:6px;color:rgba(135,158,210,0.45)}
+
+/* SCENARIOS */
+.scenarios-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.sc-card{background:rgba(7,12,28,0.78);backdrop-filter:blur(20px) saturate(180%);border-radius:14px;padding:16px;position:relative;overflow:hidden;border:1.5px solid}
+.sc-card.a{border-color:rgba(76,175,80,0.3)}.sc-card.b{border-color:rgba(255,193,7,0.3)}.sc-card.c{border-color:rgba(244,67,54,0.3)}.sc-card.d{border-color:rgba(0,229,255,0.3)}
+.sc-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;opacity:.6}
+.sc-card.a::before{background:linear-gradient(90deg,transparent,#4CAF50,transparent)}
+.sc-card.b::before{background:linear-gradient(90deg,transparent,#FFC107,transparent)}
+.sc-card.c::before{background:linear-gradient(90deg,transparent,#F44336,transparent)}
+.sc-card.d::before{background:linear-gradient(90deg,transparent,#00E5FF,transparent)}
+.sc-title{font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px;display:flex;justify-content:space-between}
+.sc-tag{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(148,168,225,0.55)}
+.sc-desc{font-family:'Exo 2';font-size:10px;color:rgba(165,185,238,0.62);line-height:1.5;margin-bottom:6px;font-style:italic}
+.sc-trigger{font-family:Rajdhani;font-size:9px;font-weight:600;color:rgba(148,168,225,0.55);margin-bottom:8px}
+.sc-player{display:flex;gap:6px;padding:6px 0;border-top:1px solid rgba(109,40,217,0.1)}
+.sc-pnum{font-family:Orbitron;font-size:9px;font-weight:700;color:rgba(130,152,208,0.45)}
+.sc-pname{font-family:Rajdhani;font-size:11px;font-weight:700;color:rgba(205,220,255,0.85)}
+.sc-prole{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px;display:inline-block;margin-left:4px}
+.sc-prole.agg{background:rgba(244,67,54,0.15);color:#F44336}
+.sc-prole.anc{background:rgba(0,229,255,0.12);color:#00E5FF}
+.sc-prole.sup{background:rgba(255,255,255,0.06);color:rgba(158,178,230,0.62)}
+.sc-prole.fin{background:rgba(255,193,7,0.15);color:#FFC107}
+.sc-pnote{font-family:'Exo 2';font-size:9px;color:rgba(145,168,222,0.55);line-height:1.4;margin-top:2px}
+
+.matchup-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.mn{padding:12px 14px;border-radius:12px;background:rgba(7,12,28,0.78);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.08);position:relative;overflow:hidden}
+.mn.high{border-left:3px solid #F44336}.mn.med{border-left:3px solid #FFC107}
+.mn-level{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px}
+.mn-level.high{background:rgba(244,67,54,0.15);color:#F44336}
+.mn-level.med{background:rgba(255,193,7,0.15);color:#FFC107}
+.mn-balls{font-family:Rajdhani;font-size:8px;color:rgba(135,158,210,0.50);margin-left:6px}
+.mn-text{font-family:'Exo 2';font-size:10px;color:rgba(168,192,245,0.68);line-height:1.5;margin-top:4px}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── LOADING SCREEN ── */
+#loading-screen{position:fixed;inset:0;z-index:999;background:rgba(5,10,24,0.97);backdrop-filter:blur(20px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.ls-teams{display:flex;align-items:center;gap:28px}
+.ls-logo{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,215,0,0.3);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:13px;font-weight:900;color:#FFD700;background:rgba(35,7,79,0.7);box-shadow:0 0 24px rgba(139,92,246,0.3)}
+.ls-vs{font-family:Orbitron;font-size:10px;font-weight:800;color:rgba(168,144,255,0.55);letter-spacing:3px}
+.ls-bar{width:220px;height:3px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden}
+.ls-fill{height:100%;background:linear-gradient(90deg,#6D28D9,#8B5CF6);border-radius:3px;animation:lsfill 2.2s ease-in-out forwards}
+@keyframes lsfill{0%{width:0%}100%{width:100%}}
+.ls-txt{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:3px;color:rgba(175,200,245,0.6);text-transform:uppercase}
+.ls-sub{font-family:Rajdhani;font-size:10px;color:rgba(168,144,255,0.8);letter-spacing:2px}
+
+/* ── PITCH HEATMAP WIDGET (right panel) ── */
+.phm-wrap{display:flex;gap:8px;align-items:stretch;margin-top:6px}
+.phm-pitch{position:relative;width:80px;flex-shrink:0}
+.phm-pitch svg{width:100%;display:block}
+.phm-zones{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:2px}
+.phm-zone{border-radius:5px;padding:3px 6px;display:flex;align-items:center;justify-content:space-between;gap:4px;position:relative;overflow:hidden}
+.phm-zone-label{font-family:Orbitron;font-size:5.5px;font-weight:700;letter-spacing:0.8px;color:rgba(255,255,255,0.9);white-space:nowrap}
+.phm-zone-count{font-family:Orbitron;font-size:8px;font-weight:900;color:#E4E9F6}
+.phm-dots{display:flex;gap:2px;flex-wrap:wrap;align-items:center}
+.phm-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.75);flex-shrink:0}
+.phm-side-labels{display:flex;flex-direction:column;justify-content:space-between;padding:28px 0 28px;gap:0}
+.phm-side-l{font-family:Rajdhani;font-size:6px;font-weight:600;letter-spacing:1px;color:rgba(135,158,210,0.50);text-transform:uppercase;writing-mode:horizontal-tb}
+
+.xi-list-row{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;border:1px solid rgba(109,40,217,0.15);margin-bottom:2px;background:rgba(7,12,28,0.55)}
+.xi-list-num{font-family:Orbitron;font-size:7px;font-weight:700;color:rgba(130,152,208,0.45);width:12px;flex-shrink:0}
+.xi-list-name{font-family:Rajdhani;font-size:10px;font-weight:600;color:rgba(205,220,255,0.85);flex:1}
+.xi-list-role{font-family:Orbitron;font-size:5.5px;font-weight:700;letter-spacing:0.8px;padding:1px 4px;border-radius:3px;flex-shrink:0}
+.xi-list-role.bat{background:rgba(2,132,199,0.12);color:#0284C7}
+.xi-list-role.bowl{background:rgba(220,38,38,0.1);color:#DC2626}
+.xi-list-role.all{background:rgba(180,83,9,0.1);color:#B45309}
+.xi-list-role.wk{background:rgba(109,40,217,0.1);color:#6D28D9}
+
+/* ── BRIEF SIDEBAR (after Generate Brief) ── */
+.brief-panel{display:flex;flex-direction:column;gap:0;height:100%}
+.bp-header{padding:10px 10px 6px;border-bottom:1px solid rgba(109,40,217,0.12)}
+.bp-teams{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.bp-logo{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:7px;font-weight:900;color:#fff;background:linear-gradient(135deg,#6D28D9,#8B5CF6);border:1px solid rgba(109,40,217,0.3);flex-shrink:0}
+.bp-vs{font-family:Rajdhani;font-size:8px;color:rgba(140,165,222,0.50);letter-spacing:2px}
+.bp-venue{font-family:'Exo 2';font-size:8px;color:rgba(138,162,218,0.52);margin-top:2px}
+.bp-tabs{display:flex;gap:2px;margin-top:6px}
+.bp-tab{flex:1;font-family:Rajdhani;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 6px;border-radius:8px;border:1px solid rgba(109,40,217,0.15);background:rgba(7,12,28,0.55);color:rgba(148,168,225,0.55);cursor:pointer;text-align:center;transition:all .2s}
+.bp-tab.act{background:rgba(109,40,217,0.1);border-color:rgba(109,40,217,0.3);color:#6D28D9}
+.bp-body{flex:1;overflow-y:auto;padding:8px 10px}
+.bp-body::-webkit-scrollbar{width:3px}.bp-body::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+.bp-section{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(130,152,208,0.48);margin:8px 0 4px;padding-left:2px}
+.bp-player{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:7px;border:1px solid rgba(109,40,217,0.14);margin-bottom:3px;background:rgba(7,12,28,0.55)}
+.bp-player.xi-on{border-color:rgba(109,40,217,0.25);background:rgba(109,40,217,0.05)}
+.bp-num{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(130,152,208,0.45);width:14px;flex-shrink:0}
+.bp-pname{font-family:Rajdhani;font-size:11px;font-weight:600;color:rgba(205,220,255,0.85);flex:1}
+.bp-role{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:1px 5px;border-radius:3px}
+.bp-role.bat{background:rgba(2,132,199,0.12);color:#0284C7}
+.bp-role.bowl{background:rgba(220,38,38,0.1);color:#DC2626}
+.bp-role.all{background:rgba(180,83,9,0.1);color:#B45309}
+.bp-role.wk{background:rgba(109,40,217,0.1);color:#6D28D9}
+
+
+/* Zoom controls */
+.zoom-ctrl{position:absolute;top:8px;right:10px;z-index:19;display:flex;flex-direction:column;gap:3px;align-items:center}
+.zoom-btn{width:26px;height:26px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(7,12,28,0.88);backdrop-filter:blur(10px);color:rgba(175,200,245,0.6);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1;font-family:monospace}
+.zoom-btn:hover{border-color:rgba(168,144,255,0.45);color:#C0B0FF;background:rgba(109,40,217,0.15)}
+.zoom-pct{font-family:Orbitron;font-size:7px;font-weight:700;color:rgba(155,180,235,0.50);letter-spacing:1px;text-align:center;min-width:26px}
+.zoom-reset{font-family:Rajdhani;font-size:7px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,0.10);background:rgba(7,12,28,0.75);color:rgba(168,188,240,0.55);cursor:pointer;backdrop-filter:blur(8px);white-space:nowrap;transition:all .15s}
+.zoom-reset:hover{border-color:rgba(109,40,217,0.35);color:#B8A8FF}
+.zoom-hint{position:absolute;bottom:8px;right:12px;z-index:15;font-family:Rajdhani;font-size:7px;color:rgba(140,168,220,0.28);letter-spacing:1px;pointer-events:none;transition:opacity .5s}
+
+/* 120-ball boundary probability ring */
+#ball-ring-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;display:none}
+.ball-ring-legend{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:18;display:none;gap:10px;align-items:center;background:rgba(7,12,28,0.88);backdrop-filter:blur(12px);padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.09);white-space:nowrap}
+.brl-item{display:flex;align-items:center;gap:4px;font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:rgba(160,185,238,0.65)}
+.brl-dot{width:7px;height:7px;border-radius:50%}
+
+</style>
+</head>
+<body>
+<script>
+// Iframe detection — hide nav, adjust layout heights when embedded
+(function(){
+  var inIframe=false;
+  try{inIframe=(window.self!==window.top);}catch(e){inIframe=true;}
+  if(inIframe){
+    document.addEventListener('DOMContentLoaded',function(){
+      var nav=document.querySelector('.nav');
+      if(nav)nav.style.display='none';
+      document.documentElement.style.setProperty('--nav-h','0px');
+      var m3=document.getElementById('layout-3col');
+      var mf=document.getElementById('layout-full');
+      if(m3){m3.style.top='0';m3.style.bottom='0';}
+      if(mf){mf.style.marginTop='0';}
+    });
+  }
+})();
+</script>
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="ls-teams">
+    <div class="ls-logo" id="ls-our">QG</div>
+    <div class="ls-vs">VS</div>
+    <div class="ls-logo" id="ls-opp" style="background:linear-gradient(135deg,#1a0a3a,#6D28D9)">LQ</div>
+  </div>
+  <div class="ls-sub" id="ls-sub">Generating Match Brief</div>
+  <div class="ls-bar"><div class="ls-fill" id="ls-fill"></div></div>
+  <div class="ls-txt" id="ls-txt">Analysing pitch data · loading formations</div>
+</div>
+<!-- Inner iframe nav hidden — outer Dash nav handles page navigation -->
+<!-- Tab-area kept as hidden anchor for renderTabs() to populate -->
+<div id="tab-area" style="display:none"></div>
+
+<div class="main-3col" id="layout-3col">
+  <div class="side" id="sidebar"></div>
+  <div class="center"><div id="cc">
+    <div class="vbar" id="vbar"><button class="vb act" onclick="setView('3d',this)">3D-Perspective</button><button class="vb" onclick="setView('top',this)">Top Down</button></div>
+    <div class="zoom-ctrl" id="zoom-ctrl">
+      <button class="zoom-btn" onclick="zoomStep(-1)" title="Zoom In">+</button>
+      <div class="zoom-pct" id="zoom-pct">100%</div>
+      <button class="zoom-btn" onclick="zoomStep(1)" title="Zoom Out">−</button>
+      <button class="zoom-reset" onclick="zoomReset()">Reset</button>
+    </div>
+    <div class="zoom-hint" id="zoom-hint">Scroll to zoom</div>
+    <div id="overlays"></div>
+    <div id="player-labels"></div>
+    <div class="zl hidden" id="zl"></div>
+  </div></div>
+  <div class="rp" id="right-panel"></div>
+</div>
+
+<div class="main-full hidden" id="layout-full">
+  <div id="tab-area-full" style="display:flex;justify-content:center;margin-bottom:16px"></div>
+  <div id="scenarios-content"></div>
+</div>
+
+<div id="ai-player-tip" style="display:none;position:fixed;z-index:9999;max-width:240px;pointer-events:none;
+  background:rgba(15,5,35,0.95);border:1px solid rgba(109,40,217,0.6);border-radius:10px;
+  padding:10px 12px;box-shadow:0 8px 32px rgba(109,40,217,0.3)">
+  <div id="ai-tip-name" style="font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#FFD700;margin-bottom:5px"></div>
+  <div id="ai-tip-role" style="font-family:Rajdhani;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,0.45);margin-bottom:6px;text-transform:uppercase"></div>
+  <div id="ai-tip-note" style="font-family:'Exo 2';font-size:11px;line-height:1.55;color:rgba(255,255,255,0.88)"></div>
+  <div style="font-family:Rajdhani;font-size:8px;letter-spacing:1px;color:rgba(109,40,217,0.7);margin-top:6px">⚡ HEAD COACH</div>
+</div>
+<!-- Bowling over tooltip — shown on hovering bowler name in over-by-over sidebar -->
+<div id="bowl-over-tip" style="display:none;position:fixed;z-index:9999;max-width:260px;pointer-events:none;
+  background:rgba(5,15,35,0.97);border:1px solid rgba(255,140,0,0.55);border-radius:10px;
+  padding:10px 13px;box-shadow:0 8px 28px rgba(255,140,0,0.2)">
+  <div id="bot-over" style="font-family:Rajdhani;font-size:8px;letter-spacing:2px;color:rgba(255,140,0,0.7);text-transform:uppercase;margin-bottom:3px"></div>
+  <div id="bot-bowler" style="font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:1px;color:#FFD700;margin-bottom:4px"></div>
+  <div id="bot-groq" style="font-family:'Exo 2';font-size:10px;line-height:1.5;color:rgba(255,255,255,0.88)"></div>
+  <div id="bot-reason" style="font-family:'Exo 2';font-size:9px;line-height:1.4;color:rgba(255,200,80,0.75);margin-top:4px;font-style:italic"></div>
+  <div style="font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;color:rgba(255,140,0,0.6);margin-top:6px">⚡ GROQ LLAMA 3.3 70B</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const TABS=['Final Playing XI','Bowling Attack','Opposition Batting','Batting Scenarios','Head Coach Eval'];
+let curTab=0,curXI=0,curOver=1;
+let coachEval=null,evalLoading=false;
+let aiCoaching=null,aiCoachLoading=false;
+
+// Full squad for sidebar
+const fullSquad=['Babar Azam','Saud Shakeel','Shadab Khan','Naseem Shah','Rashid Khan','Sarfaraz Ahmed','Di Warner','Rasa Yesea','Rase Ronme','Rashs Vassa','W. Hasaranga','Karv Bhan','Mohammad Nawaz','Faheem Ashraf','Iftikhar Ahmed','Azam Khan'];
+const selectedSquad=new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
+
+const xiOpts=[
+  {name:'Primary XI',color:'#FFD700',players:[{n:'Babar Azam',p:'https://i.pravatar.cc/200?img=12'},{n:'Saud Shakeel',p:'https://i.pravatar.cc/200?img=32'},{n:'Shadab Khan',p:'https://i.pravatar.cc/200?img=14'},{n:'Naseem Shah',p:'https://i.pravatar.cc/200?img=51'},{n:'Rashid Khan',p:'https://i.pravatar.cc/200?img=52'},{n:'Sarfaraz Ahmed',p:'https://i.pravatar.cc/200?img=57'},{n:'Di Warner',p:'https://i.pravatar.cc/200?img=60'},{n:'Rasa Yesea',p:'https://i.pravatar.cc/200?img=33'},{n:'W. Hasaranga',p:'https://i.pravatar.cc/200?img=11'},{n:'Rase Ronme',p:'https://i.pravatar.cc/200?img=15'},{n:'Karv Bhan',p:'https://i.pravatar.cc/200?img=22'}]},
+  {name:'Spin Heavy',color:'#8B5CF6',players:[{n:'Sam Harper',p:'assets/players/Quetta-gladiators/sam-harper.png'},{n:'Saud Shakeel',p:'assets/players/Quetta-gladiators/saud-shakeel.png'},{n:'Bismillah Khan',p:'assets/players/Quetta-gladiators/bismillah-khan.png'},{n:'Bevon Jacobs',p:'assets/players/Quetta-gladiators/bevon-jacobs.png'},{n:'Usman Tariq',p:'assets/players/Quetta-gladiators/usman-tariq.png'},{n:'Ahsan Ali',p:'assets/players/Quetta-gladiators/ahsan-ali.png'},{n:'Jahanzaib Sultan',p:'assets/players/Quetta-gladiators/jahanzaib-sultan.png'},{n:'Tom Curran',p:'assets/players/Quetta-gladiators/tom-curran.png'},{n:'Hassan Nawaz',p:'assets/players/Quetta-gladiators/hassan-nawaz.png'},{n:'Shamyl Hussain',p:'assets/players/Quetta-gladiators/shamyl-hussain.png'},{n:'Wasim Akram Jr',p:'assets/players/Quetta-gladiators/wasim-akram-jr.png'}]},
+  {name:'Pace Heavy',color:'#F44336',players:[{n:'Sam Harper',p:'assets/players/Quetta-gladiators/sam-harper.png'},{n:'Saud Shakeel',p:'assets/players/Quetta-gladiators/saud-shakeel.png'},{n:'Bismillah Khan',p:'assets/players/Quetta-gladiators/bismillah-khan.png'},{n:'Bevon Jacobs',p:'assets/players/Quetta-gladiators/bevon-jacobs.png'},{n:'Usman Tariq',p:'assets/players/Quetta-gladiators/usman-tariq.png'},{n:'Ben McDermott',p:'assets/players/Quetta-gladiators/ben-mcdermott.png'},{n:'Tom Curran',p:'assets/players/Quetta-gladiators/tom-curran.png'},{n:'Alzarri Joseph',p:'assets/players/Quetta-gladiators/alzarri-joseph.png'},{n:'Wasim Akram Jr',p:'assets/players/Quetta-gladiators/wasim-akram-jr.png'},{n:'Shamyl Hussain',p:'assets/players/Quetta-gladiators/shamyl-hussain.png'},{n:'Khawaja Muhammad Nafay',p:'assets/players/Quetta-gladiators/khawaja-muhammad-nafay.png'}]}
+];
+
+const overPlan=[];
+const bwlrs=['Shaheen Afridi','Naseem Shah','Rashid Khan','Shadab Khan','W. Hasaranga','Rasa Yesea'];
+const planB=[0,1,0,1,2,3,2,4,3,2,4,3,1,2,4,5,1,0,1,0];
+const planP=['pp','pp','pp','pp','pp','pp','mid','mid','mid','mid','mid','mid','mid','mid','mid','mid','death','death','death','death'];
+const planN=['Target off-stump','Short of good length','Yorker if set','Mix pace','Googly first up','Attack stumps','Continue spin','Flight the ball','Bowl dry','Build dots','Change pace','Target weakness','Reverse swing','Final spin','Defensive field','Medium pace','Yorkers only','Slower bouncer','Wide yorker','Full & straight'];
+for(let i=0;i<20;i++)overPlan.push({over:i+1,bowler:bwlrs[planB[i]],phase:planP[i],note:planN[i]});
+
+const bowlerAlloc=[
+  {name:'Shaheen Afridi',overs:[1,3,18,20],total:4},{name:'Naseem Shah',overs:[2,4,13,17,19],total:4},
+  {name:'Rashid Khan',overs:[5,7,10,14],total:4},{name:'Shadab Khan',overs:[6,9,12],total:3},
+  {name:'W. Hasaranga',overs:[8,11,15],total:3},{name:'Rasa Yesea',overs:[16],total:1}
+];
+
+const oppBat=[
+  {name:'Usman Khan',danger:'high',form:'Good form',arrival:'opens',notes:'Elite death hitter (SR 169). 34 avg, 144 SR last 10.',last10:{runs:340,sr:144,avg:34}},
+  {name:'Saim Ayub',danger:'med',form:'Good form',arrival:'opens',notes:'Left-hand bat. 17 avg, 125 SR last 10.',last10:{runs:170,sr:125,avg:17}},
+  {name:'Maaz Sadaqat',danger:'high',form:'50',arrival:'1-4',notes:'Elite death hitter (SR 211). 39 avg, 166 SR.',last10:{runs:390,sr:166,avg:39}},
+  {name:'Sharjeel Khan',danger:'high',form:'63',arrival:'4-8',notes:'Elite death hitter (SR 203). 18 avg, 119 SR.',last10:{runs:180,sr:119,avg:18}},
+  {name:'Kusal Perera',danger:'low',form:'50',arrival:'6-10',notes:'Left-hand bat. 25 avg, 130 SR.',last10:{runs:200,sr:130,avg:25}},
+  {name:'Glenn Maxwell',danger:'low',form:'50',arrival:'8-12',notes:'Career PSL SR 120.',last10:{runs:250,sr:120,avg:25}},
+  {name:'Marnus Labuschagne',danger:'low',form:'50',arrival:'10-14',notes:'Career PSL SR 120.',last10:{runs:220,sr:110,avg:22}},
+  {name:'Akif Javed',danger:'low',form:'Good form',arrival:'12-16',notes:'Career PSL SR 58. 7 avg, 70 SR.',last10:{runs:70,sr:70,avg:7}}
+];
+
+const matchupNotes=[
+  {conf:'high',balls:35,text:'Shafique has edge vs Ahmed: SR 123 in 35 PSL balls. Protect Ahmed at non-striker end.'},
+  {conf:'med',balls:10,text:'Tariq dominates Shafique: 1 wkt in 10 balls (SR 100). Bowl Tariq early — key wicket.'},
+  {conf:'med',balls:19,text:'Ahmed dominates Zaman: 1 wkt in 19 balls (SR 110). Bowl Ahmed early to Zaman.'},
+  {conf:'med',balls:8,text:'Zaman has edge vs Tariq: SR 162 in 8 balls. Protect Tariq — avoid this matchup.'}
+];
+
+const contingency=['If Abrar goes for 12+ in over 1, bring Usman Tariq for over 3 instead.','If Abrar concedes 14+ before over 17, switch to Usman Tariq for remaining death overs.'];
+let coachingRead='';
+
+const scenarios=[
+  {id:'A',title:'Ideal Start',color:'#4CAF50',cls:'a',desc:'Platform set — accelerate immediately and target 190+.',trigger:'60+ on board after 10 overs with 2 or fewer wickets',players:[{name:'Rilee Rossouw',role:'Aggressor',cls:'agg',note:'Keep going — platform set. Target 150+ SR.'},{name:'Ben McDermott',role:'Aggressor',cls:'agg',note:'Platform set. Target McDermott scoring at 150+ SR.'},{name:'Bismillah Khan',role:'Aggressor',cls:'agg',note:'Positive intent from ball 1. Accelerate immediately.'}]},
+  {id:'B',title:'Tough Start (Collapse)',color:'#FFC107',cls:'b',desc:'Rebuild first, accelerate later — get to over 15 with 4 wickets in hand.',trigger:'3+ wickets lost by end of powerplay with under 35',players:[{name:'Rilee Rossouw',role:'Anchor',cls:'anc',note:'Anchor role — minimum 15 balls before taking risks.'},{name:'Saud Shakeel',role:'Anchor',cls:'anc',note:'Anchor — minimum 15 balls before risks. Get to over 10 with 4+ wickets.'}]},
+  {id:'C',title:'Death Chase',color:'#F44336',cls:'c',desc:'Clear the boundary from ball 1 — all or nothing.',trigger:'Innings 2, over 15+, required rate above 12 per over',players:[{name:'Rilee Rossouw',role:'Aggressor',cls:'agg',note:'Accelerate NOW. Must clear boundary, no half-measures.'},{name:'Ben McDermott',role:'Aggressor',cls:'agg',note:'Already in — accelerate NOW.'},{name:'Usman Tariq',role:'Finisher',cls:'fin',note:'Play big shots. Tariq to clear the boundary.'}]},
+  {id:'D',title:'Conservative Build',color:'#00E5FF',cls:'d',desc:'Wickets in hand are the asset — build to over 15 then release.',trigger:'Low pitch score (CRR under 7.5 at over 12)',players:[{name:'Rilee Rossouw',role:'Anchor',cls:'anc',note:'Patience. Play straight, rotate strike, no loose shots before 12.'},{name:'Saud Shakeel',role:'Anchor',cls:'anc',note:'Play straight, rotate strike.'},{name:'Tom Curran',role:'Support',cls:'sup',note:'Solid contribution. Avoid big shot until over 14.'}]}
+];
+
+// Player positions — evenly spread across full ground, maximised radial separation
+// Covers both final XI (11 players) and opposition batting (8 players)
+const playerPos=[
+  {x:0,    z:-20},  // 0  fine leg — deep straight
+  {x:-14,  z:-15},  // 1  third man
+  {x:14,   z:-15},  // 2  deep backward point
+  {x:-20,  z:-4},   // 3  deep square leg
+  {x:20,   z:-4},   // 4  deep extra cover
+  {x:-19,  z:8},    // 5  long on
+  {x:19,   z:8},    // 6  long off
+  {x:-13,  z:17},   // 7  deep mid-wicket
+  {x:13,   z:17},   // 8  deep cover
+  {x:0,    z:20},   // 9  long on straight
+  {x:0,    z:-1},   // 10 mid pitch (bowler)
+];
+
+// ═══ TEAM & VENUE DATA ═══
+const teams={
+  'Quetta Gladiators':{abbr:'QG',color:'#8B5CF6',bg:'linear-gradient(135deg,#23074F,#8B5CF6)',logo:'assets/logos/quetta-gladiators.png'},
+  'Lahore Qalandars':{abbr:'LQ',color:'#00C853',bg:'linear-gradient(135deg,#003300,#00C853)',logo:''},
+  'Islamabad United':{abbr:'IU',color:'#F44336',bg:'linear-gradient(135deg,#4a0000,#F44336)',logo:''},
+  'Karachi Kings':{abbr:'KK',color:'#00E5FF',bg:'linear-gradient(135deg,#003344,#00E5FF)',logo:''},
+  'Peshawar Zalmi':{abbr:'PZ',color:'#FF8C00',bg:'linear-gradient(135deg,#3a1a00,#FF8C00)',logo:''},
+  'Multan Sultans':{abbr:'MS',color:'#FFD700',bg:'linear-gradient(135deg,#2a1a00,#FFD700)',logo:''},
+  'Rawalpindiz':{abbr:'RR',color:'#1565C0',bg:'linear-gradient(135deg,#001533,#1565C0)',logo:''},
+  'Hyderabad Kingsmen':{abbr:'HK',color:'#F57F17',bg:'linear-gradient(135deg,#2a1500,#F57F17)',logo:''}
+};
+const TEAM_ROSTERS={
+  'Quetta Gladiators':{
+    abbr:'QG',color:'#8B5CF6',bg:'linear-gradient(135deg,#23074F,#8B5CF6)',logo:'assets/logos/quetta-gladiators.png',
+    players:[
+      {n:'Sam Harper',             p:'assets/players/Quetta-gladiators/sam-harper.png',             role:'WK'  },
+      {n:'Saud Shakeel',           p:'assets/players/Quetta-gladiators/saud-shakeel.png',           role:'BAT' },
+      {n:'Bismillah Khan',         p:'assets/players/Quetta-gladiators/bismillah-khan.png',         role:'WK'  },
+      {n:'Bevon Jacobs',           p:'assets/players/Quetta-gladiators/bevon-jacobs.png',           role:'BAT' },
+      {n:'Usman Tariq',            p:'assets/players/Quetta-gladiators/usman-tariq.png',            role:'BAT' },
+      {n:'Ahsan Ali',              p:'assets/players/Quetta-gladiators/ahsan-ali.png',              role:'ALL' },
+      {n:'Jahanzaib Sultan',       p:'assets/players/Quetta-gladiators/jahanzaib-sultan.png',       role:'ALL' },
+      {n:'Ben McDermott',          p:'assets/players/Quetta-gladiators/ben-mcdermott.png',          role:'BAT' },
+      {n:'Tom Curran',             p:'assets/players/Quetta-gladiators/tom-curran.png',             role:'ALL' },
+      {n:'Alzarri Joseph',         p:'assets/players/Quetta-gladiators/alzarri-joseph.png',         role:'BOWL'},
+      {n:'Wasim Akram Jr',         p:'assets/players/Quetta-gladiators/wasim-akram-jr.png',         role:'BOWL'},
+      {n:'Hassan Nawaz',           p:'assets/players/Quetta-gladiators/hassan-nawaz.png',           role:'BOWL'},
+      {n:'Shamyl Hussain',         p:'assets/players/Quetta-gladiators/shamyl-hussain.png',         role:'BOWL'},
+      {n:'Khawaja Muhammad Nafay', p:'assets/players/Quetta-gladiators/khawaja-muhammad-nafay.png', role:'BOWL'},
+    ],
+    spinXI:[
+      {n:'Sam Harper',       p:'assets/players/Quetta-gladiators/sam-harper.png'      },
+      {n:'Saud Shakeel',     p:'assets/players/Quetta-gladiators/saud-shakeel.png'    },
+      {n:'Bismillah Khan',   p:'assets/players/Quetta-gladiators/bismillah-khan.png'  },
+      {n:'Bevon Jacobs',     p:'assets/players/Quetta-gladiators/bevon-jacobs.png'    },
+      {n:'Usman Tariq',      p:'assets/players/Quetta-gladiators/usman-tariq.png'     },
+      {n:'Ahsan Ali',        p:'assets/players/Quetta-gladiators/ahsan-ali.png'       },
+      {n:'Jahanzaib Sultan', p:'assets/players/Quetta-gladiators/jahanzaib-sultan.png'},
+      {n:'Tom Curran',       p:'assets/players/Quetta-gladiators/tom-curran.png'      },
+      {n:'Hassan Nawaz',     p:'assets/players/Quetta-gladiators/hassan-nawaz.png'    },
+      {n:'Shamyl Hussain',   p:'assets/players/Quetta-gladiators/shamyl-hussain.png'  },
+      {n:'Wasim Akram Jr',   p:'assets/players/Quetta-gladiators/wasim-akram-jr.png'  },
+    ],
+    paceXI:[
+      {n:'Sam Harper',             p:'assets/players/Quetta-gladiators/sam-harper.png'            },
+      {n:'Saud Shakeel',           p:'assets/players/Quetta-gladiators/saud-shakeel.png'          },
+      {n:'Bismillah Khan',         p:'assets/players/Quetta-gladiators/bismillah-khan.png'        },
+      {n:'Bevon Jacobs',           p:'assets/players/Quetta-gladiators/bevon-jacobs.png'          },
+      {n:'Usman Tariq',            p:'assets/players/Quetta-gladiators/usman-tariq.png'           },
+      {n:'Ben McDermott',          p:'assets/players/Quetta-gladiators/ben-mcdermott.png'         },
+      {n:'Tom Curran',             p:'assets/players/Quetta-gladiators/tom-curran.png'            },
+      {n:'Alzarri Joseph',         p:'assets/players/Quetta-gladiators/alzarri-joseph.png'        },
+      {n:'Wasim Akram Jr',         p:'assets/players/Quetta-gladiators/wasim-akram-jr.png'        },
+      {n:'Shamyl Hussain',         p:'assets/players/Quetta-gladiators/shamyl-hussain.png'        },
+      {n:'Khawaja Muhammad Nafay', p:'assets/players/Quetta-gladiators/khawaja-muhammad-nafay.png'},
+    ],
+    bowlers:['Alzarri Joseph','Wasim Akram Jr','Tom Curran','Hassan Nawaz','Shamyl Hussain','Khawaja Muhammad Nafay'],
+  },
+};
+
+// Pitch heatmap data per venue+opposition (simulated — last 10 matches wicket zones)
+// Each zone: {zone, count, severity} — zones: fullToss, yorker, goodLen, shortOfGood, short, wide
+function getPitchData(venue,opp){
+  // Seed based on venue+opp string for consistent data
+  const seed=(venue+opp).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rng=(n)=>((seed*9301+49297*n)%233280)/233280;
+  return {
+    fullToss: Math.round(rng(1)*8+1),
+    yorker:   Math.round(rng(2)*12+3),
+    goodLen:  Math.round(rng(3)*22+8),  // typically highest — good length most dangerous
+    shortOfGood: Math.round(rng(4)*18+5),
+    short:    Math.round(rng(5)*10+1),
+    wideOut:  Math.round(rng(6)*14+2),
+    wideIn:   Math.round(rng(7)*10+1),
+  };
+}
+
+// Brief / formation state
+let briefGenerated=false;
+let curBriefFormation=0; // 0=Primary XI, 1=Spin Heavy, 2=Pace Heavy
+let curOurTeam='Quetta Gladiators';
+let curOppTeam='Lahore Qalandars';
+let curVenue='National Stadium, Karachi';
+let briefData=null;
+let teamCaptain='';  // locked captain name — always in XI
+let metaData={};
+let tossRec={recommendation:'BAT FIRST',reasoning:'Dew factor significant in 2nd innings at this venue. Set a target and defend. Pitch will slow down under lights.'};
+
+// Enriched XI formations with roles for brief panel (idx 0=Primary, 1=Spin Heavy, 2=Pace Heavy)
+const formations=[
+  {idx:0,name:'Primary XI',color:'#4CAF50',tag:'PRIMARY',
+   players:[
+    {n:'Sam Harper',role:'WK'},{n:'Saud Shakeel',role:'BAT'},{n:'Bevon Jacobs',role:'BAT'},
+    {n:'Usman Tariq',role:'BAT'},{n:'Ahsan Ali',role:'ALL'},{n:'Jahanzaib Sultan',role:'ALL'},
+    {n:'Tom Curran',role:'ALL'},{n:'Hassan Nawaz',role:'BOWL'},{n:'Shamyl Hussain',role:'BOWL'},
+    {n:'Wasim Akram Jr',role:'BOWL'},{n:'Alzarri Joseph',role:'BOWL'}
+  ]},
+  {idx:1,name:'Spin Heavy',color:'#FFD700',tag:'SPIN',
+   players:[
+    {n:'Sam Harper',role:'WK'},{n:'Saud Shakeel',role:'BAT'},{n:'Bismillah Khan',role:'WK'},
+    {n:'Bevon Jacobs',role:'BAT'},{n:'Usman Tariq',role:'BAT'},{n:'Ahsan Ali',role:'ALL'},
+    {n:'Jahanzaib Sultan',role:'ALL'},{n:'Tom Curran',role:'ALL'},{n:'Hassan Nawaz',role:'BOWL'},
+    {n:'Shamyl Hussain',role:'BOWL'},{n:'Wasim Akram Jr',role:'BOWL'}
+  ]},
+  {idx:2,name:'Pace Heavy',color:'#F44336',tag:'PACE',
+   players:[
+    {n:'Sam Harper',role:'WK'},{n:'Saud Shakeel',role:'BAT'},{n:'Bismillah Khan',role:'WK'},
+    {n:'Bevon Jacobs',role:'BAT'},{n:'Usman Tariq',role:'BAT'},{n:'Ben McDermott',role:'BAT'},
+    {n:'Tom Curran',role:'ALL'},{n:'Alzarri Joseph',role:'BOWL'},{n:'Wasim Akram Jr',role:'BOWL'},
+    {n:'Shamyl Hussain',role:'BOWL'},{n:'Khawaja Muhammad Nafay',role:'BOWL'}
+  ]}
+];
+
+// ─── Load Meta (teams/venues/squads from API) ───
+function loadMeta(){
+  fetch('/api/prep-meta').then(r=>r.json()).then(data=>{
+    metaData=data;
+    renderSidebar(); // re-render with live dropdowns
+  }).catch(()=>{});
+}
+
+// ─── Map API brief response to UI state ───
+function mapBriefData(data, ourTeam){
+  briefData=data;
+  teamCaptain=data.captain||'';
+  // Toss recommendation
+  if(data.toss){
+    tossRec={recommendation:data.toss.recommendation||'BAT FIRST',reasoning:data.toss.reasoning||''};
+  }
+
+  const optColors=['#4CAF50','#FFD700','#F44336'];
+  const _tf=ourTeam?ourTeam.toLowerCase().replace(/ /g,'-'):'quetta-gladiators';
+
+  // XI options → xiOpts and formations
+  if(data.xi_options&&data.xi_options.length){
+    xiOpts.length=0; formations.length=0;
+    data.xi_options.forEach((opt,i)=>{
+      const plrs=(opt.players||[]).slice(0,11).map(p=>{
+        const nm=p.name||'';
+        return{n:nm,role:p.role||'BAT',p:`/assets/players/${_tf}/${nm.toLowerCase().replace(/ /g,'-')}.png`};
+      });
+      const fplrs=(opt.players||[]).slice(0,11).map(p=>({n:p.name||'',role:p.role||'BAT'}));
+      const nm=opt.label||'Option '+(i+1);
+      xiOpts.push({name:nm,color:optColors[i]||'#FFD700',players:plrs});
+      formations.push({idx:i,name:nm,color:optColors[i]||'#FFD700',players:fplrs});
+    });
+  }
+
+  // Over plan
+  if(data.over_plan&&data.over_plan.length){
+    overPlan.length=0;
+    data.over_plan.forEach(ov=>{
+      const ph=ov.phase==='PP'?'pp'
+        :(ov.phase==='Death')?'death'
+        :(ov.phase==='Pre-Death')?'predeath'
+        :'mid';
+      overPlan.push({over:ov.over,bowler:ov.bowler||'TBD',phase:ph,note:ov.note||'',rawPhase:ov.phase||''});
+    });
+  }
+
+  // Bowler allocation from bowler_summary
+  if(data.bowler_summary&&Object.keys(data.bowler_summary).length){
+    bowlerAlloc.length=0;
+    Object.entries(data.bowler_summary).forEach(([name,info])=>{
+      const ov_list=(data.over_plan||[]).filter(o=>o.bowler===name).map(o=>o.over);
+      bowlerAlloc.push({name,overs:ov_list,total:info.allocated_overs||ov_list.length});
+    });
+  }
+
+  // Opposition batting order
+  if(data.opposition&&data.opposition.length){
+    oppBat.length=0;
+    data.opposition.forEach(b=>{
+      const d=String(b.danger||'').toLowerCase();
+      oppBat.push({
+        name:b.name,danger:d==='high'?'high':d==='low'?'low':'med',
+        form:'',arrival:b.arrival||'',notes:b.note||'',
+        last10:{runs:0,sr:b.career_sr||0,avg:0}
+      });
+    });
+  }
+
+  // Matchup notes
+  if(data.matchup_notes&&data.matchup_notes.length){
+    matchupNotes.length=0;
+    data.matchup_notes.forEach(mn=>{
+      matchupNotes.push({conf:mn.conf||'med',balls:mn.balls||0,text:mn.note||`${mn.bowler} vs ${mn.batter}`});
+    });
+  }
+
+  // Contingency
+  if(data.contingencies&&data.contingencies.length){
+    contingency.length=0;
+    data.contingencies.forEach(c=>contingency.push(typeof c==='string'?c:JSON.stringify(c)));
+  }
+
+  // Claude coaching read (optional — only present when ANTHROPIC_API_KEY is set)
+  if(data.coaching_read){coachingRead=data.coaching_read;}
+
+  // Scenarios
+  if(data.scenarios&&data.scenarios.length){
+    scenarios.length=0;
+    const clsMap={A:'a',B:'b',C:'c',D:'d'};
+    data.scenarios.forEach(sc=>{
+      scenarios.push({
+        id:sc.id,title:sc.title,color:sc.color||'#FFD700',
+        cls:clsMap[sc.id]||'a',desc:sc.desc||'',trigger:sc.trigger||'',
+        players:(sc.players||[]).map(p=>({
+          name:p.name,role:p.role||'Support',
+          cls:p.role==='Aggressor'?'agg':p.role==='Anchor'?'anc':p.role==='Finisher'?'fin':'sup',
+          note:p.note||''
+        }))
+      });
+    });
+  }
+}
+
+// ─── Generate Brief — live API call ───
+function generateBrief(){
+  const ourSel=document.querySelector('#sidebar select[data-role="our-team"]');
+  const oppSel=document.querySelector('#sidebar select[data-role="opp-team"]');
+  const venSel=document.querySelector('#sidebar select[data-role="venue"]');
+  const dtSel=document.querySelector('#sidebar input[type="datetime-local"]');
+  curOurTeam=ourSel?ourSel.value:'Quetta Gladiators';
+  const ourTeam=curOurTeam;
+  curOppTeam=oppSel?oppSel.value:'Lahore Qalandars';
+  curVenue=venSel?venSel.value:'National Stadium, Karachi';
+  const dt=dtSel?dtSel.value:'2026-03-25T19:00';
+
+  // Collect selected squad from sidebar pills
+  const squad=[];
+  document.querySelectorAll('#sidebar .spl.on').forEach(el=>squad.push(el.textContent.trim()));
+
+  const ourData=teams[ourTeam]||teams['Quetta Gladiators'];
+  const oppData=teams[curOppTeam]||teams['Lahore Qalandars'];
+
+  // Update loading screen logos
+  const lsOur=document.getElementById('ls-our');
+  const lsOpp=document.getElementById('ls-opp');
+  lsOur.innerHTML=ourData.logo?`<img src="${ourData.logo}" style="width:54px;height:54px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 10px ${ourData.color}88)">`:ourData.abbr;
+  lsOur.style.background=ourData.bg;lsOur.style.borderColor=ourData.color+'55';
+  lsOpp.innerHTML=oppData.logo?`<img src="${oppData.logo}" style="width:54px;height:54px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 10px ${oppData.color}88)">`:oppData.abbr;
+  lsOpp.style.background=oppData.bg;lsOpp.style.borderColor=oppData.color+'55';
+  document.getElementById('ls-sub').textContent=`${ourData.abbr} vs ${oppData.abbr} — Match Brief`;
+
+  // Show loading screen, reset fill animation
+  const ls=document.getElementById('loading-screen');
+  const fillEl=document.getElementById('ls-fill');
+  ls.style.display='flex';
+  fillEl.style.animation='none';
+  fillEl.offsetHeight;
+  fillEl.style.animation='lsfill 2.2s ease-in-out forwards';
+
+  // Ensure at least 11 players in squad (fallback to fullSquad)
+  const finalSquad=squad.length>=11?squad:fullSquad.slice(0,16);
+
+  fetch('/api/prep-brief',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({our_team:ourTeam,opposition:curOppTeam,venue:curVenue,match_datetime:dt,squad:finalSquad})
+  }).then(r=>r.json()).then(data=>{
+    ls.style.display='none';
+    if(data.error){console.error('Brief API error:',data.error);}
+    else{
+      mapBriefData(data,ourTeam);
+      // ── Save brief to localStorage so Dugout can import it ──
+      try{
+        const _bowlers=(data.bowler_summary?Object.keys(data.bowler_summary):[])
+          .concat((data.xi_options&&data.xi_options[0]?data.xi_options[0].players||[]:[]
+            ).map(p=>p.name||'').filter(n=>n))
+          .filter((v,i,a)=>a.indexOf(v)===i);  // unique
+        const _xi=(data.xi_options&&data.xi_options[0]?data.xi_options[0].players||[]:[]
+          ).slice(0,11).map(p=>({name:p.name||'',role:p.role||'BAT'}));
+        localStorage.setItem('psl_prep_brief', JSON.stringify({
+          our_team: ourTeam,
+          opposition: curOppTeam,
+          venue: curVenue,
+          toss_rec: (data.toss&&data.toss.recommendation)||'BAT FIRST',
+          bowlers: _bowlers,
+          xi: _xi,
+          over_plan: data.over_plan||[],
+          ts: Date.now()
+        }));
+      }catch(e){console.warn('Could not save brief to localStorage:',e);}
+    }
+    briefGenerated=true;coachEval=null;evalLoading=false;aiCoaching=null;aiCoachLoading=false;
+    curBriefFormation=0;curXI=0;
+    renderTabs();renderSidebar();renderRight();renderOverlays();renderPL();
+    if(typeof refreshPitchHeatmap==='function') refreshPitchHeatmap();
+    // Fire AI coaching analysis async — pops into each tab as it arrives
+    _fireCoachAnalysis(ourTeam,curOppTeam,curVenue);
+  }).catch(err=>{
+    ls.style.display='none';
+    console.error('Brief generation failed:',err);
+    briefGenerated=true;coachEval=null;evalLoading=false;aiCoaching=null;aiCoachLoading=false;curBriefFormation=0;curXI=0;
+    renderTabs();renderSidebar();renderRight();renderOverlays();renderPL();
+  });
+}
+
+// ─── Pitch Heatmap — global canvas init (avoids template literal nesting) ───
+function phmInitCanvas(uid, zonesJSON, maxC, dotsJSON) {
+  var zones = JSON.parse(zonesJSON);
+  var dots  = JSON.parse(dotsJSON);
+  var canvas = document.getElementById(uid);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  // Sandy pitch base
+  var base = ctx.createLinearGradient(0,0,0,H);
+  base.addColorStop(0,'#B8934A'); base.addColorStop(0.5,'#D4B882'); base.addColorStop(1,'#B8934A');
+  ctx.fillStyle = base;
+  ctx.beginPath();
+  if(ctx.roundRect){ ctx.roundRect(0,0,W,H,10); } else { ctx.rect(0,0,W,H); }
+  ctx.fill();
+  ctx.save(); ctx.beginPath();
+  if(ctx.roundRect){ ctx.roundRect(0,0,W,H,10); } else { ctx.rect(0,0,W,H); }
+  ctx.clip();
+
+  // Build a full-height continuous heatmap using a single linear gradient
+  // Sample color at each y pixel by interpolating across all zones
+  function getColorAt(yFrac){
+    // Find which zone and interpolate
+    for(var i=0;i<zones.length;i++){
+      var z=zones[i];
+      if(yFrac>=z.y0 && yFrac<=z.y1){
+        var iv=z.count/maxC;
+        // Lerp toward neighbouring zone for smooth blending
+        var localT=(yFrac-z.y0)/(z.y1-z.y0); // 0..1 within this zone
+        var ivNext=(i<zones.length-1)?zones[i+1].count/maxC:iv;
+        var ivBlend=iv+(ivNext-iv)*Math.pow(localT,1.5);
+        return ivBlend;
+      }
+    }
+    return 0;
+  }
+
+  // Draw a full-height gradient using many thin horizontal strips (smooth)
+  var STEPS=H;
+  for(var py=0;py<STEPS;py++){
+    var yFrac=py/STEPS;
+    var iv=getColorAt(yFrac);
+    // Color: low=gold/green, mid=orange, high=red
+    var r,g,b;
+    if(iv<0.25){ r=200; g=150+iv*200; b=0; }
+    else if(iv<0.5){ var t=(iv-0.25)/0.25; r=200+t*55; g=Math.round(200-t*100); b=0; }
+    else if(iv<0.75){ var t=(iv-0.5)/0.25; r=255; g=Math.round(100-t*100); b=0; }
+    else { var t=(iv-0.75)/0.25; r=255; g=0; b=Math.round(t*30); }
+    var alpha=(0.18+iv*0.70).toFixed(2);
+    ctx.fillStyle='rgba('+r+','+g+','+b+','+alpha+')';
+    ctx.fillRect(0,py,W,1);
+  }
+
+  // Radial hot-spot overlays centered in each zone for depth
+  zones.forEach(function(z){
+    var y0=z.y0*H, y1=z.y1*H, yMid=(y0+y1)/2;
+    var iv=z.count/maxC;
+    if(iv<0.2) return;
+    var grd=ctx.createRadialGradient(W/2,yMid,0, W/2,yMid,W*0.55);
+    var alpha=(iv*0.38).toFixed(2);
+    grd.addColorStop(0,'rgba(255,'+(Math.round(80-iv*80))+',0,'+alpha+')');
+    grd.addColorStop(1,'rgba(255,0,0,0)');
+    ctx.fillStyle=grd; ctx.fillRect(0,y0,W,y1-y0);
+  });
+
+  // Dots removed — clean heatmap only
+
+  // Crease lines
+  ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=1.5;
+  [[W*0.12,0.135*H,W*0.88,0.135*H],[W*0.12,0.865*H,W*0.88,0.865*H]].forEach(function(l){
+    ctx.beginPath(); ctx.moveTo(l[0],l[1]); ctx.lineTo(l[2],l[3]); ctx.stroke();
+  });
+  // Stumps
+  ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=1.8;
+  [-6,0,6].forEach(function(ox){
+    [[W/2+ox,0.105*H,W/2+ox,0.148*H],[W/2+ox,0.852*H,W/2+ox,0.895*H]].forEach(function(l){
+      ctx.beginPath(); ctx.moveTo(l[0],l[1]); ctx.lineTo(l[2],l[3]); ctx.stroke();
+    });
+  });
+  ctx.restore();
+  ctx.strokeStyle='rgba(255,215,0,0.35)'; ctx.lineWidth=1;
+  ctx.strokeRect(0.5,0.5,W-1,H-1);
+  ctx.font='bold 7px Orbitron,Arial'; ctx.fillStyle='rgba(255,255,255,0.45)';
+  ctx.fillText('LEG',3,10); ctx.fillText('OFF',W-22,10);
+
+  // Hover tooltip
+  var tip    = document.getElementById(uid+'_tip');
+  var tipZ   = document.getElementById(uid+'_zone');
+  var tipW   = document.getElementById(uid+'_wkts');
+  var tipD   = document.getElementById(uid+'_desc');
+  canvas.addEventListener('mousemove', function(e){
+    var rect=canvas.getBoundingClientRect();
+    var yFrac=((e.clientY-rect.top)*(H/rect.height))/H;
+    var z=null;
+    for(var i=0;i<zones.length;i++){ if(yFrac>=zones[i].y0&&yFrac<=zones[i].y1){z=zones[i];break;} }
+    if(z){
+      tipZ.textContent=z.label;
+      tipW.textContent=z.count+' WICKETS';
+      tipD.textContent=z.desc;
+      var iv=z.count/maxC;
+      tipW.style.color=iv>0.75?'#F44336':iv>0.5?'#FF5722':iv>0.3?'#FFC107':'#4CAF50';
+      tip.style.display='block';
+      tip.style.top=Math.min(e.clientY-rect.top-20,180)+'px';
+    } else { tip.style.display='none'; }
+  });
+  canvas.addEventListener('mouseleave', function(){ tip.style.display='none'; });
+}
+
+function buildPitchHeatmapHTML(venue, opp){
+  var data    = getPitchData(venue||curVenue, opp||curOppTeam);
+  var zones   = [
+    {label:'FULL TOSS', desc:'Delivery reaching batter above waist height',            key:'fullToss',    y0:0.00,y1:0.12},
+    {label:'YORKER',    desc:'Full delivery aimed at the batters feet or crease',      key:'yorker',      y0:0.12,y1:0.26},
+    {label:'GOOD LEN',  desc:'Optimal length — highest wicket-taking zone',            key:'goodLen',     y0:0.26,y1:0.58},
+    {label:'SHORT/GD',  desc:'Back of length — forces awkward back-foot play',         key:'shortOfGood', y0:0.58,y1:0.78},
+    {label:'SHORT',     desc:'Bouncer territory — aimed at chest or head height',      key:'short',       y0:0.78,y1:1.00},
+  ];
+  var maxCount = Math.max.apply(null, zones.map(function(z){return data[z.key];}));
+  maxCount = maxCount||1;
+  var uid = 'phm_'+Date.now();
+
+  // Pre-generate dot positions
+  var dotPositions = zones.map(function(z,zi){
+    var dots=[], cnt=Math.min(data[z.key],15);
+    for(var i=0;i<cnt;i++){
+      var seed=(zi*100+i)*137.508;
+      dots.push({rx:0.18+((seed*73)%1)*0.64, ry:z.y0+0.08+((seed*41)%1)*(z.y1-z.y0-0.12)});
+    }
+    return dots;
+  });
+
+  var barsHTML = '';
+
+  var zonesData = encodeURIComponent(JSON.stringify(zones.map(function(z){return {label:z.label,desc:z.desc,y0:z.y0,y1:z.y1,count:data[z.key]};})));
+  var dotsData    = encodeURIComponent(JSON.stringify(dotPositions));
+
+  var html = '<div style="margin-bottom:4px">'
+    +'<div style="font-family:Rajdhani;font-size:7px;color:rgba(135,158,210,0.52);letter-spacing:1px;margin-bottom:6px">WICKET HEATMAP &middot; LAST 10 MATCHES &middot; '+((venue||curVenue).split(',')[0].toUpperCase())+'</div>'
+    +'<div>'
+    +'<div style="position:relative;width:100%">'
+    +'<canvas id="'+uid+'" width="220" height="380" data-zones="'+zonesData+'" data-dots="'+dotsData+'" data-max="'+maxCount+'" style="border-radius:8px;cursor:crosshair;display:block;width:100%;height:380px;margin-bottom:8px"></canvas>'
+    +'<div id="'+uid+'_tip" style="display:none;position:absolute;left:8px;top:8px;background:rgba(8,1,20,0.88);border:1px solid rgba(255,215,0,0.5);border-radius:8px;padding:8px 12px;min-width:150px;z-index:99;backdrop-filter:blur(12px);pointer-events:none">'
+    +'<div id="'+uid+'_zone" style="font-family:Orbitron;font-size:9px;font-weight:700;color:#FFD700;margin-bottom:4px"></div>'
+    +'<div id="'+uid+'_wkts" style="font-family:Rajdhani;font-size:13px;font-weight:700;color:#FF6B6B;margin-bottom:3px"></div>'
+    +'<div id="'+uid+'_desc" style="font-family:sans-serif;font-size:8px;color:rgba(255,255,255,0.6);line-height:1.4"></div>'
+    +'</div></div>'
+    
+    +'</div>'
+
+    // Init via requestAnimationFrame so canvas is in DOM
+
+    +'</div>';
+  setTimeout(function(){
+    var c = document.getElementById(uid);
+    if(c) phmInitCanvas(uid, decodeURIComponent(c.dataset.zones), maxCount, decodeURIComponent(c.dataset.dots));
+  }, 50);
+  return html;
+}
+
+// ─── Brief Sidebar Panel ───
+function renderBriefSidebar(){
+  const el=document.getElementById('sidebar');
+  const ourTeam=curOurTeam||'Quetta Gladiators';
+  const ourData=teams[ourTeam]||teams['Quetta Gladiators'];
+  const oppData=teams[curOppTeam]||teams['Lahore Qalandars'];
+  const f=formations.find(f=>f.idx===curBriefFormation)||formations[0];
+
+  el.innerHTML=`<div class="brief-panel">
+    <div class="bp-header">
+      <div class="bp-teams">
+        <div class="bp-logo" style="background:${ourData.bg}">${ourData.logo?`<img src="${ourData.logo}" style="width:24px;height:24px;object-fit:contain">`:ourData.abbr}</div>
+        <div>
+          <div class="bp-vs">${ourData.abbr} vs ${oppData.abbr}</div>
+          <div class="bp-venue">${curVenue.split(',')[0]}</div>
+        </div>
+        <div class="bp-logo" style="background:${oppData.bg}">${oppData.logo?`<img src="${oppData.logo}" style="width:24px;height:24px;object-fit:contain">`:oppData.abbr}</div>
+      </div>
+      <div class="bp-tabs">
+        ${formations.map(fm=>`<div class="bp-tab ${fm.idx===curBriefFormation?'act':''}" style="${fm.idx===curBriefFormation?'border-color:'+fm.color+'44;color:'+fm.color:''}" onclick="curBriefFormation=${fm.idx};curXI=${fm.idx};renderTabs();renderSidebar();renderRight();renderOverlays();renderPL()">${fm.name}</div>`).join('')}
+      </div>
+      ${(()=>{
+        const xiReason=aiCoaching&&aiCoaching.xi&&aiCoaching.xi[String(curBriefFormation)]
+          ? aiCoaching.xi[String(curBriefFormation)].reason : null;
+        if(xiReason) return `<div style="margin:8px 0 4px;padding:8px 10px;background:rgba(109,40,217,0.10);border-left:3px solid #8B5CF6;border-radius:0 6px 6px 0"><div style="font-family:Orbitron;font-size:7px;letter-spacing:1.5px;color:#A890FF;margin-bottom:4px">⚡ HEAD COACH — WHY THIS XI</div><div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)">${xiReason}</div></div>`;
+        if(aiCoachLoading) return `<div style="margin:8px 0 4px;padding:7px 10px;background:rgba(109,40,217,0.04);border-radius:6px"><div style="font-family:'Exo 2';font-size:9px;color:rgba(109,40,217,0.5);font-style:italic">⚡ Head coach is reviewing this XI…</div></div>`;
+        return '';
+      })()}
+    </div>
+    <div class="bp-body">
+      <div class="bp-section" style="color:${f.color}88">▸ ${f.name} Formation</div>
+      ${f.players.map((p,i)=>`
+        <div class="bp-player xi-on">
+          <span class="bp-num">${i+1}</span>
+          <span class="bp-pname">${p.n}</span>
+          <span class="bp-role ${p.role.toLowerCase()}">${p.role}</span>
+        </div>`).join('')}
+      <div class="bp-section" style="margin-top:12px">Opposition — ${oppData.abbr}</div>
+      ${oppBat.map((p,i)=>`
+        <div class="bp-player">
+          <span class="bp-num">${i+1}</span>
+          <span class="bp-pname">${p.name}</span>
+          <span class="bp-role bat">BAT</span>
+          <span class="bat-danger ${p.danger}" style="font-size:5px;padding:1px 4px">${p.danger.toUpperCase()}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══ ASYNC AI COACHING ANALYSIS ═══
+function _fireCoachAnalysis(ourTeam, opposition, venue){
+  if(aiCoachLoading) return;
+  aiCoachLoading=true;
+
+  const xiOptions=formations.slice(0,3).map((fm,idx)=>({
+    label:fm.name,
+    players:(xiOpts[idx]||xiOpts[0]).players.slice(0,11).map(p=>({
+      name:p.n||p.name||'', role:p.role||'BAT'
+    }))
+  }));
+  const bowlingPlan=overPlan.map(o=>({over:o.over,bowler:o.bowler,phase:o.phase,note:o.note||''}));
+  const oppOrder=oppBat.map(b=>({name:b.name,danger:b.danger,arrival:b.arrival||'',note:b.notes||''}));
+  const venueName=venue||(()=>{const el=document.querySelector('[data-role="venue"]');return el?el.value:'';})();
+
+  fetch('/api/coach-analysis',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      our_team:ourTeam||curOurTeam, opposition:opposition||curOppTeam,
+      venue:venueName, xi_options:xiOptions, bowling_plan:bowlingPlan,
+      opp_order:oppOrder, toss_rec:tossRec.recommendation||'',
+      weather_note:'', weather:(briefData&&briefData.weather)||null
+    })
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    aiCoachLoading=false;
+    if(!data.error){ aiCoaching=data; renderSidebar();renderRight();renderOverlays(); }
+  })
+  .catch(()=>{ aiCoachLoading=false; });
+}
+
+// helper: AI badge chip shown inside tab sections
+function _aiChip(){ return `<span style="font-family:Orbitron;font-size:7px;letter-spacing:1.5px;background:rgba(109,40,217,0.12);border:1px solid rgba(109,40,217,0.35);color:#6D28D9;border-radius:20px;padding:2px 7px;vertical-align:middle;margin-left:6px">⚡ AI COACH</span>`; }
+
+// helper: loading shimmer line
+function _aiLoading(){ return `<div style="font-family:'Exo 2';font-size:10px;color:rgba(109,40,217,0.45);font-style:italic;padding:4px 0">AI head coach analysis loading…</div>`; }
+
+// tooltip helpers
+function showAITip(name,role,note,evt){
+  const t=document.getElementById('ai-player-tip');
+  if(!t) return;
+  document.getElementById('ai-tip-name').textContent=name;
+  document.getElementById('ai-tip-role').textContent=role;
+  document.getElementById('ai-tip-note').textContent=note||'No AI note yet — generate brief first.';
+  t.style.display='block';
+  const x=Math.min(evt.clientX+14, window.innerWidth-260);
+  const y=Math.max(evt.clientY-10, 10);
+  t.style.left=x+'px'; t.style.top=y+'px';
+}
+function hideAITip(){ const t=document.getElementById('ai-player-tip'); if(t) t.style.display='none'; }
+
+// ── Bowling over tooltip (hover on bowler name in over-by-over sidebar) ──
+function showBowlTip(over, bowler, evt){
+  const t=document.getElementById('bowl-over-tip');
+  if(!t) return;
+  // Look up Groq's over_suggestions for this over number
+  const suggestions=(aiCoaching&&aiCoaching.bowling&&aiCoaching.bowling.over_suggestions)||[];
+  const match=suggestions.find(s=>String(s.over)===String(over));
+  document.getElementById('bot-over').textContent='Over '+over;
+  document.getElementById('bot-bowler').textContent=bowler;
+  if(match){
+    const isReplacement=(match.suggested&&match.suggested===bowler);
+    const isReplaced=(match.replacing&&match.replacing===bowler);
+    if(isReplacement){
+      document.getElementById('bot-groq').textContent='Added by Groq, replacing '+match.replacing;
+      document.getElementById('bot-reason').textContent=match.reason||'';
+    } else if(isReplaced){
+      document.getElementById('bot-groq').textContent='Groq suggests replacing with '+match.suggested;
+      document.getElementById('bot-reason').textContent=match.reason||'';
+    } else {
+      document.getElementById('bot-groq').textContent='Groq has a suggestion for this over';
+      document.getElementById('bot-reason').textContent=match.reason||'';
+    }
+  } else {
+    document.getElementById('bot-groq').textContent=aiCoachLoading?'Groq is evaluating the plan…':'Engine selection — no Groq swap suggested.';
+    document.getElementById('bot-reason').textContent='';
+  }
+  t.style.display='block';
+  const x=Math.min(evt.clientX+16, window.innerWidth-280);
+  const y=Math.max(evt.clientY-12, 10);
+  t.style.left=x+'px'; t.style.top=y+'px';
+}
+function hideBowlTip(){ const t=document.getElementById('bowl-over-tip'); if(t) t.style.display='none'; }
+
+// ═══ TAB RENDER ═══
+function renderTabs(){
+  // Tab row + sub-row live together in the vbar (top-center of viewport).
+  // The inner iframe nav is gone; outer Dash nav handles page navigation.
+  const tabRowHTML=`<div class="tab-row">${TABS.map((t,i)=>`<button class="tbtn ${i===curTab?'active':''}" onclick="switchTab(${i})">${t}</button>`).join('')}</div>`;
+  const viewBtns=`<button class="vb act" onclick="setView('3d',this)">3D-Perspective</button><button class="vb" onclick="setView('top',this)">Top Down</button>`;
+  const vbar=document.getElementById('vbar');
+  if(vbar){
+    if(curTab===0){
+      vbar.innerHTML=tabRowHTML+`<div class="xi-dot-row" style="gap:10px;margin-top:4px">${xiOpts.map((o,i)=>`<div class="xi-dot ${i===curXI?'act':''}" style="background:${o.color}" onclick="curXI=${i};curBriefFormation=${i};renderTabs();renderSidebar();renderRight();renderOverlays();renderPL()"><div class="tip">${o.name}</div></div>`).join('')}<div style="width:1px;height:14px;background:rgba(255,255,255,0.08);margin:0 2px"></div>${viewBtns}</div><div style="font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(135,158,210,0.48);margin-top:2px">${briefGenerated?(['🟢 Primary XI','🟡 Spin Heavy','🔴 Pace Heavy'][curXI]||'Playing XI Options'):'Playing XI Options'}</div>`;
+      vbar.classList.remove('hidden');
+    } else if(curTab===1){
+      vbar.innerHTML=tabRowHTML+`<div class="xi-dot-row" style="margin-top:4px">${viewBtns}</div>`;
+      vbar.classList.remove('hidden');
+    } else if(curTab<3){
+      vbar.innerHTML=tabRowHTML;
+      vbar.classList.remove('hidden');
+    } else {
+      vbar.classList.add('hidden');
+    }
+  }
+
+  // Full-layout tabs (batting scenarios / head coach eval)
+  document.getElementById('tab-area-full').innerHTML=tabRowHTML;
+}
+
+function switchTab(idx){
+  curTab=idx;renderTabs();
+  const is3=idx<3;
+  document.getElementById('layout-3col').classList.toggle('hidden',!is3);
+  document.getElementById('layout-full').classList.toggle('hidden',is3);
+  const zc=document.getElementById('zoom-ctrl');
+  const zh=document.getElementById('zoom-hint');
+  if(zc)zc.style.display=(idx===1)?'flex':'none';
+  if(zh)zh.style.display=(idx===1)?'block':'none';
+  if(is3){renderSidebar();renderRight();renderOverlays();updateScene();}
+  else if(idx===4) renderEval();
+  else renderScenarios();
+}
+
+// ═══ SIDEBAR ═══
+function renderSidebar(){
+  const el=document.getElementById('sidebar');
+  if(curTab===0){
+    if(briefGenerated){renderBriefSidebar();return;}
+    const allTeams=(metaData.teams&&metaData.teams.length)?metaData.teams:['Quetta Gladiators','Lahore Qalandars','Islamabad United','Karachi Kings','Peshawar Zalmi','Multan Sultans'];
+    const allVenues=(metaData.venues&&metaData.venues.length)?metaData.venues:['National Stadium, Karachi','Gaddafi Stadium, Lahore','Rawalpindi Cricket Stadium','Multan Cricket Stadium'];
+    const ourTeamDef=curOurTeam||'Quetta Gladiators';
+    const oppTeamDef=curOppTeam||'Lahore Qalandars';
+    const liveSquad=(metaData.squad_by_team&&metaData.squad_by_team[ourTeamDef])||fullSquad;
+    el.innerHTML=`<div class="st">Match Setup</div>
+    <span class="sl">Our Team</span><select class="ss" data-role="our-team" onchange="curOurTeam=this.value;renderSidebar()">${allTeams.map(t=>`<option${t===ourTeamDef?' selected':''}>${t}</option>`).join('')}</select>
+    <span class="sl">Opposition</span><select class="ss" data-role="opp-team" onchange="curOppTeam=this.value">${allTeams.filter(t=>t!==ourTeamDef).map(t=>`<option${t===oppTeamDef?' selected':''}>${t}</option>`).join('')}</select>
+    <span class="sl">Venue</span><select class="ss" data-role="venue">${allVenues.map(v=>`<option>${v}</option>`).join('')}</select>
+    <span class="sl">Date & Time</span><input class="ss" type="datetime-local" value="2026-03-25T19:00" style="font-size:9px">
+    <span class="sl">Squad (tap to toggle)</span>
+    <div class="sp">${liveSquad.map((n,i)=>`<span class="spl on" onclick="this.classList.toggle('on')">${n}</span>`).join('')}</div>
+    <button class="sbtn gold" onclick="generateBrief()">Generate Brief</button><button class="sbtn ghost" onclick="window.print()">Download PDF</button>`;
+  }
+  else if(curTab===1){
+    // Check if Groq has suggestions for each over
+    const overSuggestions=(aiCoaching&&aiCoaching.bowling&&aiCoaching.bowling.over_suggestions)||[];
+    const suggMap={};
+    overSuggestions.forEach(s=>{ suggMap[String(s.over)]=s; });
+    el.innerHTML=`<div class="st">Over-by-Over Plan</div>${overPlan.map(o=>{
+      const sug=suggMap[String(o.over)];
+      // Groq badge: show on bowler name if there's a suggestion for this over
+      const groqBadge=sug
+        ?`<span style="font-family:Rajdhani;font-size:6px;letter-spacing:1px;color:#FF8C00;background:rgba(255,140,0,0.1);border:1px solid rgba(255,140,0,0.35);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle">⚡ GROQ</span>`
+        :(aiCoachLoading?`<span style="font-family:Rajdhani;font-size:6px;color:rgba(109,40,217,0.35);margin-left:3px">…</span>`:'');
+      return `<div class="opi ${o.over===curOver?'act':''}" onclick="curOver=${o.over};renderSidebar();updateBars()">
+        <div class="opi-h"><span class="opi-o">Over ${o.over}</span><span class="opi-ph ${o.phase}">${o.phase==='pp'?'PP':o.phase==='mid'?'MID':o.phase==='predeath'?'PRE-D':'DEATH'}</span></div>
+        <div class="opi-b" onmouseenter="showBowlTip(${o.over},'${o.bowler.replace(/'/g,"\\'")}',event)" onmouseleave="hideBowlTip()" style="cursor:default">${o.bowler}${groqBadge}</div>
+        <div class="opi-n">${o.note}</div>
+      </div>`;
+    }).join('')}`;
+  }
+  else if(curTab===2)el.innerHTML=`<div class="st">Opposition Batting Order</div><div style="font-family:Rajdhani;font-size:9px;color:rgba(135,158,210,0.48);margin-bottom:8px">HYDERABAD KINGSMEN</div>${oppBat.map((b,i)=>`<div class="bat-item"><span class="bat-num">${i+1}</span><span class="bat-name">${b.name}</span><span class="bat-danger ${b.danger}">${b.danger.toUpperCase()}</span></div>`).join('')}`;
+}
+function toggleSquad(i,el){if(selectedSquad.has(i))selectedSquad.delete(i);else selectedSquad.add(i);el.classList.toggle('on');}
+
+// ═══ RIGHT PANEL ═══
+function renderRight(){
+  const el=document.getElementById('right-panel');
+  if(!briefGenerated){
+    el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 20px;text-align:center">
+      <div style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(109,40,217,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(109,40,217,0.4)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div style="font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2.5px;color:rgba(148,168,225,0.42);text-transform:uppercase;margin-bottom:8px">No Brief Generated</div>
+      <div style="font-family:'Exo 2';font-size:10px;color:rgba(138,162,218,0.38);line-height:1.6">Select match parameters and click<br><strong style="color:rgba(168,188,240,0.55)">Generate Brief</strong> to load analysis</div>
+    </div>`;
+    return;
+  }
+  if(curTab===0) el.innerHTML=renderXIRight();
+  else if(curTab===1) el.innerHTML=renderBowlRight();
+  else if(curTab===2) el.innerHTML=renderOppRight();
+}
+
+function renderXIRight(){
+  // Player roles for the current XI
+  const roleMap={
+    'Babar Azam':'bat','Saud Shakeel':'bat','Sarfaraz Ahmed':'wk',
+    'Di Warner':'bat','Shadab Khan':'all','W. Hasaranga':'all',
+    'Imad Wasim':'all','Zahid Mahmood':'bowl','Naseem Shah':'bowl',
+    'Rashid Khan':'all','Karv Bhan':'bowl','Rasa Yesea':'all',
+    'Rase Ronme':'bowl','Rashs Vassa':'bowl','Shaheen Afridi':'bowl',
+    'Iftikhar Ahmed':'all','Mohammad Nawaz':'all','Azam Khan':'bat'
+  };
+  const curPlayers=xiOpts[curXI].players;
+  const xiListHTML=curPlayers.map((p,i)=>{
+    const role=roleMap[p.n]||'bat';
+    const roleLabels={bat:'BAT',bowl:'BOWL',all:'ALL',wk:'WK'};
+    const isCap=teamCaptain&&p.n===teamCaptain;
+    return `<div class="xi-list-row" style="${isCap?'border-left:2px solid rgba(255,215,0,0.6);padding-left:4px':''}">
+      <span class="xi-list-num">${i+1}</span>
+      <span class="xi-list-name">${p.n}${isCap?` <span style="font-family:Orbitron;font-size:6px;font-weight:900;color:#FFD700;background:rgba(255,215,0,0.12);border-radius:2px;padding:1px 3px;vertical-align:middle;margin-left:2px;border:1px solid rgba(255,215,0,0.3)">C</span>`:''}</span>
+      <span class="xi-list-role ${role}">${roleLabels[role]}</span>
+    </div>`;
+  }).join('');
+
+  return `
+  ${(()=>{
+    const wv=aiCoaching&&aiCoaching.weather_verdict;
+    const w=briefData&&briefData.weather||{};
+    const wind_dir=w.wind_dir||'';
+    const wind_kph=w.wind_kph?Math.round(w.wind_kph):0;
+    // Animate arrows based on real wind direction
+    const windLabel=wind_kph?(wind_kph+' km/h'+(wind_dir?' '+wind_dir:'')):'—';
+    const bpChip=wv?_aiChip():(aiCoachLoading?`<span style="font-family:Exo 2;font-size:9px;color:rgba(0,191,255,0.5);font-style:italic;margin-left:6px">loading…</span>`:'');
+    const bpNote=wv&&wv.blueprint_note
+      ? `<div style="margin-top:8px;padding:8px 10px;background:rgba(0,191,255,0.06);border-left:3px solid rgba(0,191,255,0.5);border-radius:0 6px 6px 0">
+           <div style="font-family:Orbitron;font-size:7px;letter-spacing:1.5px;color:#00BFFF;margin-bottom:4px">⚡ HEAD COACH READ</div>
+           <div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)">${wv.blueprint_note}</div>
+         </div>`
+      : (aiCoachLoading?`<div style="margin-top:6px;font-family:'Exo 2';font-size:9px;color:rgba(0,191,255,0.45);font-style:italic">AI reading wind & field placement…</div>`:'');
+    return `<div class="rc"><div class="rt"><span class="d"></span>Interactive Blueprint${bpChip}</div>
+      <div class="wind-v">
+        ${[15,38,62,82].map((t,i)=>`<div class="wa" style="top:${t}%;left:${5+i*15}%;animation-delay:${i*.4}s"><svg viewBox="0 0 35 10"><path d="M0,5 L25,5" stroke="#00BFFF" stroke-width="1.5" fill="none" opacity="${.3+i*.1}"/><polygon points="25,2 33,5 25,8" fill="#00BFFF" opacity="${.3+i*.1}"/></svg></div>`).join('')}
+        <div style="position:absolute;bottom:3px;right:5px;font-family:Rajdhani;font-size:6px;color:rgba(0,191,255,0.5);font-weight:600">${windLabel}</div>
+      </div>
+      ${bpNote}
+    </div>`;
+  })()}
+  ${(()=>{
+    const w=briefData&&briefData.weather||{};
+    const wv=aiCoaching&&aiCoaching.weather_verdict;
+    const hum=w.humidity?Math.round(w.humidity)+'%':'—';
+    const tmp=w.temp?Math.round(w.temp)+'°C':'—';
+    const wind=w.wind_kph?Math.round(w.wind_kph)+' km/h'+(w.wind_dir?' '+w.wind_dir:''):'—';
+    const humOff=w.humidity?Math.max(0,100-Math.round(w.humidity)):50;
+    const tmpOff=w.temp?Math.max(0,100-Math.round(Math.min(w.temp,50)/50*100)):50;
+    const dewOver=w.dew_onset_over||0;
+    const swing=w.swing_bonus||1.0;
+    const spinPen=w.spinner_penalty||1.0;
+    const wxChip=wv?_aiChip():(aiCoachLoading?`<span style="font-family:Exo 2;font-size:9px;color:rgba(139,92,246,0.5);font-style:italic;margin-left:6px">loading…</span>`:'');
+
+    // Weather signal pills
+    const signals=[];
+    if(dewOver>0) signals.push(`<span style="font-family:Rajdhani;font-size:8px;letter-spacing:1px;background:rgba(109,40,217,0.12);border:1px solid rgba(109,40,217,0.3);color:#6D28D9;border-radius:4px;padding:2px 6px">DEW ov.${dewOver}</span>`);
+    if(swing>1.05) signals.push(`<span style="font-family:Rajdhani;font-size:8px;letter-spacing:1px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#00E5FF;border-radius:4px;padding:2px 6px">SWING ×${swing.toFixed(2)}</span>`);
+    if(spinPen<0.9) signals.push(`<span style="font-family:Rajdhani;font-size:8px;letter-spacing:1px;background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);color:#F44336;border-radius:4px;padding:2px 6px">SPIN −${Math.round((1-spinPen)*100)}%</span>`);
+
+    const aiXiBlock=wv&&wv.xi_impact
+      ? `<div style="margin-top:8px;padding:8px 10px;background:rgba(109,40,217,0.06);border-left:3px solid rgba(109,40,217,0.45);border-radius:0 6px 6px 0">
+           <div style="font-family:Orbitron;font-size:7px;letter-spacing:1.5px;color:#6D28D9;margin-bottom:3px">XI SELECTION IMPACT</div>
+           <div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)">${wv.xi_impact}</div>
+         </div>` : '';
+    const aiBowlBlock=wv&&wv.bowling_impact
+      ? `<div style="margin-top:6px;padding:8px 10px;background:rgba(0,229,255,0.04);border-left:3px solid rgba(0,229,255,0.4);border-radius:0 6px 6px 0">
+           <div style="font-family:Orbitron;font-size:7px;letter-spacing:1.5px;color:#00E5FF;margin-bottom:3px">BOWLING SEQUENCING IMPACT</div>
+           <div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)">${wv.bowling_impact}</div>
+         </div>` : '';
+    const alertBlock=wv&&wv.alert
+      ? `<div style="margin-top:6px;padding:6px 10px;background:rgba(244,67,54,0.06);border:1px solid rgba(244,67,54,0.25);border-radius:6px;font-family:Orbitron;font-size:8px;letter-spacing:1px;color:#F44336">${wv.alert}</div>` : '';
+    const loadingBlock=aiCoachLoading&&!wv
+      ? `<div style="margin-top:6px;font-family:'Exo 2';font-size:9px;color:rgba(109,40,217,0.45);font-style:italic">AI head coach is evaluating conditions for XI & bowling…</div>` : '';
+
+    return `<div class="rc"><div class="rt"><span class="d"></span>Weather Hub${wxChip}</div>
+      <div class="wm"><div class="wm-r"><svg viewBox="0 0 40 40"><circle class="tk" cx="20" cy="20" r="16"/><circle class="fl" cx="20" cy="20" r="16" stroke="#8B5CF6" stroke-dasharray="100" stroke-dashoffset="${humOff}"/></svg></div><div><div class="wm-v" style="color:#8B5CF6">${hum}</div><div class="wm-l">Humidity</div></div></div>
+      <div class="wm"><div class="wm-r"><svg viewBox="0 0 40 40"><circle class="tk" cx="20" cy="20" r="16"/><circle class="fl" cx="20" cy="20" r="16" stroke="#FFD700" stroke-dasharray="100" stroke-dashoffset="${tmpOff}"/></svg></div><div><div class="wm-v" style="color:#FFD700">${tmp}</div><div class="wm-l">Temperature</div></div></div>
+      <div class="wm"><div style="width:30px;height:30px;border-radius:50%;border:1.5px solid #4CAF50;background:rgba(76,175,80,0.06);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="wm-v" style="color:#4CAF50">${wind}</div><div class="wm-l">Wind</div></div></div>
+      ${signals.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${signals.join('')}</div>`:''}
+      ${aiXiBlock}${aiBowlBlock}${alertBlock}${loadingBlock}
+    </div>`;
+  })()}
+  <div class="rc"><div class="rt"><span class="d"></span>Soil Health</div>
+    <div style="text-align:center;padding:6px 0"><span class="soil-num">4.2</span><span class="soil-max">/5</span></div>
+    <div class="soil-conds">
+      <div class="soil-c"><div class="soil-ic"><img src="https://images.unsplash.com/photo-1580084256673-ed5f0dcb926e?w=100&h=100&fit=crop" alt="cracked"></div><div class="soil-lb">Cracked</div></div>
+      <div class="soil-c"><div class="soil-ic"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=100&h=100&fit=crop" alt="grass"></div><div class="soil-lb">Dry Grass</div></div>
+    </div>
+  </div>
+  <div class="rc"><div class="rt"><span class="d"></span>Playing XI — ${xiOpts[curXI].name}</div>
+    ${xiListHTML}
+  </div>`;
+}
+
+function renderBowlRight(){
+  // Tactical alert text — use AI contingency first line if available
+  const aiContFirst=(aiCoaching&&aiCoaching.bowling&&aiCoaching.bowling.contingencies&&aiCoaching.bowling.contingencies[0])
+    ? aiCoaching.bowling.contingencies[0]
+    : (contingency[0]||'Monitor opposition scoring rate and rotate bowlers accordingly.');
+
+  // Bowling phase overs count — 4 distinct phases
+  const ppCount=overPlan.filter(o=>o.phase==='pp').length;
+  const midCount=overPlan.filter(o=>o.phase==='mid').length;
+  const pdCount=overPlan.filter(o=>o.phase==='predeath').length;
+  const dthCount=overPlan.filter(o=>o.phase==='death').length;
+  const totalPlanOvers=ppCount+midCount+pdCount+dthCount;
+
+  // Build a bowler→phase-type map for allocation color coding
+  const bowlerPhaseMap={};
+  overPlan.forEach(o=>{
+    if(!bowlerPhaseMap[o.bowler]) bowlerPhaseMap[o.bowler]=new Set();
+    bowlerPhaseMap[o.bowler].add(o.phase);
+  });
+
+  const bc=aiCoaching&&aiCoaching.bowling;
+  const phases=[
+    {key:'pp',label:'POWERPLAY',col:'#00E5FF'},
+    {key:'mid',label:'MIDDLE OVERS',col:'#FFD700'},
+    {key:'death',label:'DEATH OVERS',col:'#F44336'}
+  ];
+
+  return `
+  <div class="rc">
+    <div class="rt"><span class="d"></span>Wicket Heatmap</div>
+    <div style="max-height:260px;overflow-y:auto;padding-right:2px" class="rc-scroll">
+      ${buildPitchHeatmapHTML()}
+    </div>
+  </div>
+  <div class="tac-alert" style="border-radius:12px;padding:10px 13px">
+    <div class="tac-alert-t">⚠ TACTICAL ALERT</div>
+    <div class="tac-alert-body">${aiContFirst}</div>
+  </div>
+
+  <div class="rc">
+    <div class="rt"><span class="d"></span>Bowling Phase Summary</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:3px;text-align:center;margin-top:2px">
+      <div style="padding:5px 2px;background:rgba(0,229,255,0.04);border-radius:6px;border:1px solid rgba(0,229,255,0.08)">
+        <div style="font-family:Orbitron;font-size:13px;font-weight:800;color:#00E5FF">${ppCount}</div>
+        <div style="font-family:Rajdhani;font-size:5.5px;letter-spacing:1px;color:rgba(135,158,210,0.52)">PP</div>
+      </div>
+      <div style="padding:5px 2px;background:rgba(255,215,0,0.03);border-radius:6px;border:1px solid rgba(255,215,0,0.06)">
+        <div style="font-family:Orbitron;font-size:13px;font-weight:800;color:#FFD700">${midCount}</div>
+        <div style="font-family:Rajdhani;font-size:5.5px;letter-spacing:1px;color:rgba(135,158,210,0.52)">MID</div>
+      </div>
+      <div style="padding:5px 2px;background:rgba(255,140,0,0.04);border-radius:6px;border:1px solid rgba(255,140,0,0.08)">
+        <div style="font-family:Orbitron;font-size:13px;font-weight:800;color:#FF8C00">${pdCount}</div>
+        <div style="font-family:Rajdhani;font-size:5.5px;letter-spacing:1px;color:rgba(135,158,210,0.52)">PRE-D</div>
+      </div>
+      <div style="padding:5px 2px;background:rgba(244,67,54,0.04);border-radius:6px;border:1px solid rgba(244,67,54,0.06)">
+        <div style="font-family:Orbitron;font-size:13px;font-weight:800;color:#F44336">${dthCount}</div>
+        <div style="font-family:Rajdhani;font-size:5.5px;letter-spacing:1px;color:rgba(135,158,210,0.52)">DEATH</div>
+      </div>
+    </div>
+    ${totalPlanOvers!==20?`<div style="font-family:Exo 2;font-size:8px;color:#F44336;margin-top:4px;text-align:center">⚠ Plan covers ${totalPlanOvers}/20 overs</div>`:''}
+  </div>
+
+  <div class="rc">
+    <div class="rt"><span class="d"></span>Bowler Allocation</div>
+    <div class="rc-scroll">
+      ${bowlerAlloc.map(b=>{
+        const phases=bowlerPhaseMap[b.name]||new Set();
+        const hasDeath=phases.has('death')||phases.has('predeath');
+        const hasPP=phases.has('pp');
+        const roleTag=hasDeath?'<span style="font-family:Rajdhani;font-size:6px;letter-spacing:1px;color:#F44336;background:rgba(244,67,54,0.1);border-radius:3px;padding:1px 4px;margin-left:3px">DEATH</span>'
+          :hasPP?'<span style="font-family:Rajdhani;font-size:6px;letter-spacing:1px;color:#00E5FF;background:rgba(0,229,255,0.1);border-radius:3px;padding:1px 4px;margin-left:3px">PP</span>':'';
+        const warnTag=b.total===1?'<span style="font-family:Rajdhani;font-size:6px;color:#FF8C00;margin-left:3px">⚠ 1 over</span>':'';
+        return `<div class="ba-row">
+          <div style="flex:1;min-width:0"><span class="ba-name">${b.name}</span>${roleTag}${warnTag}</div>
+          <div class="ba-overs">${b.overs.map(o=>`<span class="ba-ov">${o}</span>`).join('')}</div>
+          <span class="ba-total">${b.total}ov</span>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <div class="rc">
+    <div class="rt"><span class="d"></span>Phase Breakdown ${bc?_aiChip():(aiCoachLoading?`<span style="font-family:Exo 2;font-size:9px;color:rgba(109,40,217,0.45);font-style:italic">loading…</span>`:'')}</div>
+    <div class="rc-scroll">
+      ${bc
+        ? phases.map(ph=>bc[ph.key]?`<div style="margin-bottom:9px;padding:8px 10px;background:rgba(0,0,0,0.025);border-left:3px solid ${ph.col}55;border-radius:0 6px 6px 0">
+            <div style="font-family:Orbitron;font-size:7px;letter-spacing:1.5px;color:${ph.col};margin-bottom:4px">${ph.label}</div>
+            <div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78)">${bc[ph.key]}</div>
+          </div>`:'').join('')
+        : (aiCoachLoading?_aiLoading():'<div style="font-family:Exo 2;font-size:9px;color:rgba(138,162,218,0.45)">Generate brief to load AI phase analysis</div>')
+      }
+    </div>
+  </div>
+  `;
+}
+
+function renderOppRight(){
+  const aiOpp=aiCoaching&&aiCoaching.opposition ? aiCoaching.opposition : null;
+  const titleChip=aiOpp?_aiChip():(aiCoachLoading?`<span style="font-family:Exo 2;font-size:9px;color:rgba(109,40,217,0.5);font-style:italic;margin-left:6px">loading…</span>`:'');
+  return `<div class="rc"><div class="rt"><span class="d"></span>Key Notes & Arrival${titleChip}</div>
+    <div class="rc-scroll" style="max-height:calc(100vh - 140px)">
+      ${oppBat.map(b=>{
+        const aiNote=aiOpp&&aiOpp[b.name] ? aiOpp[b.name] : null;
+        return `<div class="kn ${b.danger}">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="kn-conf ${b.danger}">${b.name}</div>
+            <span class="arr-badge">Arrives: ${b.arrival}</span>
+          </div>
+          ${aiNote
+            ? `<div style="font-family:'Exo 2';font-size:10px;line-height:1.55;color:rgba(185,205,248,0.78);margin-top:4px;padding-left:6px;border-left:2px solid rgba(109,40,217,0.45)">${aiNote}</div>`
+            : `<div class="kn-text">${b.notes}</div>`
+          }
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══ OVERLAYS ═══
+function renderOverlays(){
+  const el=document.getElementById('overlays');
+  const plEl=document.getElementById('player-labels');
+  const zlEl=document.getElementById('zl');
+
+  if(!briefGenerated){
+    el.innerHTML='';
+    plEl.style.display='none';
+    zlEl.classList.add('hidden');
+    return;
+  }
+
+  if(curTab===0){
+    const coachBlock=coachingRead?`<div style="margin-top:10px;padding:10px 12px;background:rgba(109,40,217,0.10);border:1px solid rgba(109,40,217,0.28);border-radius:9px"><div style="font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A890FF;margin-bottom:6px">⚡ COACH'S BRIEF — Claude Sonnet 4.6</div><div style="font-family:'Exo 2';font-size:10px;line-height:1.6;color:rgba(185,205,248,0.80)">${coachingRead}</div></div>`:'';
+    el.innerHTML=`<div class="toss-card"><div class="toss-t"><span class="d"></span>Toss Recommendation</div><div class="toss-rec">${tossRec.recommendation||'BAT FIRST'}</div><div class="toss-why">${tossRec.reasoning||'Dew factor significant in 2nd innings at this venue. Set a target and defend.'}</div></div>${coachBlock}`;
+    plEl.style.display='block';zlEl.classList.add('hidden');renderPL();
+  } else if(curTab===1){
+    const aiContingencies=aiCoaching&&aiCoaching.bowling&&aiCoaching.bowling.contingencies
+      ? aiCoaching.bowling.contingencies : null;
+    const contNotes=(aiContingencies||contingency).slice(1); // skip [0] — shown in right panel alert
+    const contChip=aiContingencies?` ${_aiChip()}`:(aiCoachLoading?`<span style="font-family:Exo 2;font-size:9px;color:rgba(109,40,217,0.5);font-style:italic;margin-left:4px">loading…</span>`:'');
+    el.innerHTML=`<div class="cont-card"><div class="cont-t">Contingency Notes${contChip}</div>${contNotes.map(n=>`<div class="cont-item"><span style="color:#FFC107">⚡</span><span class="cont-text">${n}</span></div>`).join('')}</div>`;
+    plEl.style.display='none';zlEl.classList.remove('hidden');
+    zlEl.innerHTML='<span><span class="zd" style="background:#F44336"></span>Fine Leg 7%</span><span><span class="zd" style="background:#FF8C00"></span>Square Leg 10%</span><span><span class="zd" style="background:#00E5FF"></span>Mid Wicket 15%</span><span><span class="zd" style="background:#4CAF50"></span>Long On 13%</span><span><span class="zd" style="background:#FFD700"></span>Long Off 22%</span><span><span class="zd" style="background:#8B5CF6"></span>Cover 12%</span>';
+  } else if(curTab===2){
+    el.innerHTML=`<div class="matchup-overlay">${matchupNotes.map(n=>`<div class="mn-card ${n.conf}"><span class="mn-lvl ${n.conf}">${n.conf==='high'?'High':'Medium'}</span><span class="mn-balls">${n.balls} balls</span><div class="mn-txt">${n.text}</div></div>`).join('')}</div>`;
+    plEl.style.display='block';zlEl.classList.add('hidden');renderOppPL();
+  }
+}
+
+function renderPL(){
+  const el=document.getElementById('player-labels');
+  const ps=xiOpts[curXI].players;
+  const roleMap={BAT:'bat',BOWL:'bowl',ALL:'all',WK:'wk'};
+  const aiPlayers=aiCoaching&&aiCoaching.xi&&aiCoaching.xi[String(curXI)]
+    ? aiCoaching.xi[String(curXI)].players||{} : {};
+  el.innerHTML=ps.map((p,i)=>{
+    const role=roleMap[p.role]||'bat';
+    const roleLbl=p.role||'BAT';
+    const surname=p.n.split(' ').pop();
+    const initials=p.n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const aiNote=aiPlayers[p.n]||'';
+    const hasAI=!!aiNote;
+    const isCap=teamCaptain&&p.n===teamCaptain;
+    return `<div class="pl" id="pl-${i}"
+      onmouseenter="showAITip('${p.n.replace(/'/g,"\\'")}','${roleLbl} · Position ${i+1}${isCap?' · Captain':''}','${aiNote.replace(/'/g,"\\'").replace(/"/g,'&quot;')}',event)"
+      onmouseleave="hideAITip()">
+      <div class="pl-card" style="${isCap?'border-color:rgba(255,215,0,0.7);box-shadow:0 0 10px rgba(255,215,0,0.25)':hasAI?'border-color:rgba(109,40,217,0.5)':''}">
+        <span class="pl-num">${i+1}</span>
+        <span class="pl-role ${role}">${roleLbl}</span>
+        ${isCap?`<span style="position:absolute;top:3px;left:3px;font-family:Orbitron;font-size:7px;font-weight:900;color:#FFD700;background:rgba(26,10,58,0.75);border-radius:3px;padding:1px 3px;z-index:5;line-height:1.3">C</span>`:hasAI?`<span style="position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:#6D28D9;z-index:5"></span>`:''}
+        <div class="pl-placeholder" style="display:flex">
+          <div class="pl-placeholder-init">${initials}</div>
+        </div>
+        <div class="pl-gradient"></div>
+        <div class="pl-info">
+          <span class="pl-surname">${surname}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderOppPL(){
+  const el=document.getElementById('player-labels');
+  el.innerHTML=oppBat.map((b,i)=>{
+    const surname=b.name.split(' ').pop();
+    const initials=b.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const imgSrc=b.p||`https://i.pravatar.cc/200?img=${70+i}`;
+    return `<div class="pl" id="pl-${i}">
+      <div class="pl-card" style="border-color:rgba(${b.danger==='high'?'244,67,54':b.danger==='med'?'255,193,7':'76,175,80'},0.5)">
+        <span class="pl-num">${i+1}</span>
+        <span class="pl-danger ${b.danger}" style="position:absolute;top:4px;right:5px;z-index:4">${b.danger.toUpperCase()}</span>
+        <div class="pl-placeholder" style="display:flex">
+          <div class="pl-placeholder-init">${initials}</div>
+        </div>
+        <div class="pl-gradient"></div>
+        <div class="pl-info">
+          <span class="pl-surname">${surname}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ HEAD COACH EVAL TAB ═══
+function renderEval(){
+  const el=document.getElementById('scenarios-content');
+
+  if(!briefGenerated){
+    el.innerHTML=`<div style="text-align:center;padding:60px 20px;font-family:Exo 2;color:rgba(145,168,225,0.55);font-size:13px">Generate a brief first, then run the evaluation.</div>`;
+    return;
+  }
+
+  if(evalLoading){
+    el.innerHTML=`<div style="text-align:center;padding:60px 20px">
+      <div style="font-family:Orbitron;font-size:11px;letter-spacing:3px;color:#6D28D9;animation:pulse 1.4s infinite">ANALYSING BRIEF...</div>
+      <div style="font-family:Exo 2;font-size:10px;color:rgba(145,168,225,0.55);margin-top:8px">AI is reading the XI, bowling plan, opposition, and scenarios</div>
+    </div>`;
+    return;
+  }
+
+  if(!coachEval){
+    el.innerHTML=`<div style="text-align:center;padding:50px 20px">
+      <div style="font-family:Orbitron;font-size:10px;letter-spacing:2px;color:rgba(155,178,232,0.55);margin-bottom:16px">NO EVALUATION GENERATED YET</div>
+      <button onclick="runCoachEval()" style="font-family:Orbitron;font-size:10px;letter-spacing:2px;background:linear-gradient(135deg,#6D28D9,#4C1D95);color:#FFD700;border:none;padding:12px 28px;border-radius:8px;cursor:pointer;text-transform:uppercase">
+        ⚡ Run Head Coach Evaluation
+      </button>
+      <div style="font-family:Exo 2;font-size:9px;color:rgba(138,162,218,0.42);margin-top:10px">Powered by Groq Llama 3.3 70B · evaluates XI, bowling plan, opposition & scenarios</div>
+    </div>`;
+    return;
+  }
+
+  // Render evaluation cards
+  const scoreColor=s=>s>=8?'#22C55E':s>=6?'#F59E0B':'#EF4444';
+  const scoreLabel=s=>s>=8?'STRONG':'MARGINAL';
+
+  function moduleCard(title,icon,data,type){
+    if(!data) return '';
+    const score=data.score||0;
+    const col=scoreColor(score);
+    if(type==='scenarios'){
+      return `<div style="background:rgba(7,12,28,0.78);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px 18px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:18px">${icon}</span>
+          <span style="font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(200,218,255,0.85);text-transform:uppercase">${title}</span>
+          <span style="margin-left:auto;background:${col}22;border:1px solid ${col}55;border-radius:20px;padding:3px 10px;font-family:Orbitron;font-size:9px;font-weight:700;color:${col}">${score}/10 · ${scoreLabel(score)}</span>
+        </div>
+        <div style="font-family:'Exo 2';font-size:11px;line-height:1.7;color:rgba(178,198,248,0.75)">${data.content||''}</div>
+      </div>`;
+    }
+    return `<div style="background:rgba(7,12,28,0.78);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px 18px;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:18px">${icon}</span>
+        <span style="font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(200,218,255,0.85);text-transform:uppercase">${title}</span>
+        <span style="margin-left:auto;background:${col}22;border:1px solid ${col}55;border-radius:20px;padding:3px 10px;font-family:Orbitron;font-size:9px;font-weight:700;color:${col}">${score}/10 · ${scoreLabel(score)}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:rgba(22,163,74,0.06);border:1px solid rgba(34,197,94,0.18);border-radius:8px;padding:10px 12px">
+          <div style="font-family:Orbitron;font-size:8px;letter-spacing:1.5px;color:#22C55E;margin-bottom:6px">✓ JUSTIFIED</div>
+          <div style="font-family:'Exo 2';font-size:11px;line-height:1.65;color:rgba(178,198,248,0.75)">${data.justified||''}</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(239,68,68,0.18);border-radius:8px;padding:10px 12px">
+          <div style="font-family:Orbitron;font-size:8px;letter-spacing:1.5px;color:#EF4444;margin-bottom:6px">✗ CONCERNS</div>
+          <div style="font-family:'Exo 2';font-size:11px;line-height:1.65;color:rgba(178,198,248,0.75)">${data.concerns||''}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const verdictHtml=coachEval.verdict?`<div style="background:linear-gradient(135deg,rgba(109,40,217,0.12),rgba(76,29,149,0.08));border:1px solid rgba(139,92,246,0.30);border-radius:12px;padding:16px 18px;margin-bottom:12px;box-shadow:0 0 24px rgba(109,40,217,0.12)">
+    <div style="font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:2px;color:#A890FF;margin-bottom:10px">⚡ OVERALL VERDICT</div>
+    <div style="font-family:'Exo 2';font-size:12px;line-height:1.7;color:rgba(185,205,248,0.82)">${coachEval.verdict}</div>
+  </div>`:'';
+
+  el.innerHTML=`
+    <div style="max-width:1100px;margin:0 auto;padding:0 16px 24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:Orbitron;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(175,195,245,0.65)">HEAD COACH EVALUATION</div>
+        <button onclick="coachEval=null;renderEval()" style="font-family:Exo 2;font-size:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:6px;padding:5px 12px;cursor:pointer;color:rgba(168,188,240,0.60)">↺ Re-evaluate</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>${moduleCard('Final Playing XI','🧑‍🤝‍🧑',coachEval.xi,'split')}</div>
+        <div>${moduleCard('Bowling Plan','🎯',coachEval.bowling,'split')}</div>
+        <div>${moduleCard('Opposition Threats','🔍',coachEval.opposition,'split')}</div>
+        <div>${moduleCard('Batting Scenarios','📋',coachEval.scenarios,'scenarios')}</div>
+      </div>
+      ${verdictHtml}
+      <div style="text-align:center;font-family:Exo 2;font-size:9px;color:rgba(138,162,218,0.38);margin-top:4px">Powered by Groq Llama 3.3 70B — T20 Specialist Coach Persona</div>
+    </div>`;
+}
+
+function runCoachEval(){
+  if(!briefGenerated||evalLoading) return;
+  evalLoading=true;
+  renderEval();
+
+  // Build payload from current brief state
+  const curXiOpt=xiOpts[curBriefFormation]||xiOpts[0]||{players:[]};
+  const xiPlayers=(curXiOpt.players||[]).slice(0,11).map((p,i)=>({
+    position:i+1, name:p.n||p.name||'', role:p.role||''
+  }));
+  const bowlingPlan=overPlan.map(o=>({
+    over:o.over, bowler:o.bowler, phase:o.phase, note:o.note||''
+  }));
+  // Build bowler allocation from overPlan
+  const allocMap={};
+  overPlan.forEach(o=>{
+    if(!allocMap[o.bowler]) allocMap[o.bowler]={bowler:o.bowler,overs_list:[],total:0};
+    allocMap[o.bowler].overs_list.push(o.over);
+    allocMap[o.bowler].total++;
+  });
+  const bowlerAlloc=Object.values(allocMap);
+
+  const oppOrder=oppBat.map((b,i)=>({
+    position:i+1, name:b.name, danger:b.danger||'', note:b.notes||''
+  }));
+  const scenarioData=scenarios.map(s=>({
+    id:s.id, title:s.title, trigger:s.trigger||'',
+    players:(s.players||[]).slice(0,4).map(p=>({name:p.name,role:p.role}))
+  }));
+
+  const ourTeam=curOurTeam||'';
+  const opposition=curOppTeam||'';
+  const venue=(()=>{const el=document.querySelector('[data-role="venue"]');return el?el.value:'';})();
+  const weatherNote=(()=>{const el=document.querySelector('.weather-note');return el?el.textContent.trim():'';})();
+
+  fetch('/api/coach-eval',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      our_team:ourTeam, opposition, venue,
+      xi:xiPlayers, bowling_plan:bowlingPlan, bowler_alloc:bowlerAlloc,
+      opp_order:oppOrder, scenarios:scenarioData,
+      toss_rec:tossRec.recommendation||'', weather_note:weatherNote,
+      contingencies:contingency
+    })
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    evalLoading=false;
+    if(data.error){
+      coachEval={verdict:'AI evaluation unavailable: '+data.error};
+    } else {
+      coachEval=data;
+    }
+    renderEval();
+  })
+  .catch(err=>{
+    evalLoading=false;
+    coachEval={verdict:'Network error: '+err.message};
+    renderEval();
+  });
+}
+
+function renderScenarios(){
+  document.getElementById('scenarios-content').innerHTML=`
+    <div class="scenarios-grid">${scenarios.map(s=>`<div class="sc-card ${s.cls}"><div class="sc-title" style="color:${s.color}">${s.title}<span class="sc-tag">[${s.id}]</span></div><div class="sc-desc">${s.desc}</div><div class="sc-trigger"><strong>Trigger:</strong> ${s.trigger}</div>${s.players.map((p,i)=>`<div class="sc-player"><span class="sc-pnum">${i+1}</span><div><span class="sc-pname">${p.name}</span><span class="sc-prole ${p.cls}">${p.role}</span><div class="sc-pnote">${p.note}</div></div></div>`).join('')}</div>`).join('')}</div>
+    <div style="font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#FFD700;margin:16px 0 12px;display:flex;align-items:center;gap:6px"><span style="width:5px;height:5px;border-radius:50%;background:#FFD700"></span>Key Matchup Notes</div>
+    <div class="matchup-bar">${matchupNotes.map(n=>`<div class="mn ${n.conf}"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="mn-level ${n.conf}">${n.conf==='high'?'High':'Medium'}</span><span class="mn-balls">${n.balls} balls</span></div><div class="mn-text">${n.text}</div></div>`).join('')}</div>`;
+}
+
+// ═══ 120-BALL BOUNDARY PROBABILITY RING ═══
+// Boundary probability per ball (0–1). Models T20 cricket patterns:
+// PP overs 1-6 (balls 1-36): high aggression, esp. ball 1-6 (first over)
+// Middle overs 7-15 (balls 37-90): consolidation with selective hitting
+// Death overs 16-20 (balls 91-120): escalating aggression peaks
+function genBallProbs(){
+  const probs=[];
+  for(let b=0;b<120;b++){
+    const ov=Math.floor(b/6); // 0-based over index
+    let base,noise;
+    if(ov<6){ // Powerplay
+      // First over: new ball, field restrictions — high boundary chance
+      if(ov===0) base=0.45+Math.sin(b*0.9)*0.12;
+      else if(ov<3) base=0.35+Math.sin(b*0.7+1)*0.1;
+      else base=0.28+Math.sin(b*0.6)*0.09; // overs 4-6: settle in
+      noise=0.06;
+    } else if(ov<10){ // Mid overs early: conservation
+      base=0.18+Math.sin(b*0.4+2)*0.07;
+      noise=0.05;
+    } else if(ov<14){ // Mid overs late: rebuild acceleration
+      const prog=(ov-10)/4;
+      base=0.20+prog*0.14+Math.sin(b*0.5)*0.06;
+      noise=0.06;
+    } else if(ov===14||ov===15){ // Pre-death ramp
+      base=0.38+Math.sin(b*0.8)*0.08;
+      noise=0.07;
+    } else { // Death overs 16-20: maximum aggression
+      const prog=(ov-15)/5;
+      base=0.52+prog*0.28+Math.sin(b*1.2)*0.1;
+      // Last 2 overs go maximum
+      if(ov>=18) base=Math.min(0.92,base+0.12);
+      noise=0.08;
+    }
+    probs.push(Math.max(0.05,Math.min(0.97,base+(Math.random()*2-1)*noise)));
+  }
+  return probs;
+}
+const ballProbs=genBallProbs();
+
+function drawBallRing(){
+  const canvas=document.getElementById('ball-ring-canvas');
+  if(!canvas)return;
+  const W=canvas.offsetWidth||canvas.parentElement.clientWidth;
+  const H=canvas.offsetHeight||canvas.parentElement.clientHeight;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  
+  const cx=W/2, cy=H*0.52; // center slightly below midpoint (matches 3D field center)
+  // Ring radius: fits nicely over the 3D boundary ring
+  const ringR=Math.min(W,H)*0.30;
+  const barMaxH=Math.min(W,H)*0.055; // max bar length (outward from ring)
+  const barW=Math.max(2, (2*Math.PI*ringR/120)*0.72); // ~72% fill
+  
+  // Draw faint ring guide
+  ctx.beginPath();ctx.arc(cx,cy,ringR,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=1;ctx.stroke();
+  
+  // Phase arc backgrounds
+  const phases=[
+    {start:0,end:36,color:'rgba(0,229,255,0.04)'},   // PP
+    {start:36,end:90,color:'rgba(255,215,0,0.03)'},   // Mid
+    {start:90,end:120,color:'rgba(244,67,54,0.05)'}   // Death
+  ];
+  phases.forEach(ph=>{
+    const a0=(ph.start/120)*Math.PI*2-Math.PI/2;
+    const a1=(ph.end/120)*Math.PI*2-Math.PI/2;
+    ctx.beginPath();ctx.arc(cx,cy,ringR+barMaxH+4,a0,a1);
+    ctx.arc(cx,cy,ringR-4,a1,a0,true);
+    ctx.closePath();ctx.fillStyle=ph.color;ctx.fill();
+  });
+
+  // Phase separator lines
+  [0,36,90].forEach(b=>{
+    const a=(b/120)*Math.PI*2-Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*(ringR-8),cy+Math.sin(a)*(ringR-8));
+    ctx.lineTo(cx+Math.cos(a)*(ringR+barMaxH+10),cy+Math.sin(a)*(ringR+barMaxH+10));
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=0.8;ctx.stroke();
+  });
+
+  // Phase labels
+  const phaseLabels=[
+    {ball:18,label:'POWERPLAY',color:'rgba(0,229,255,0.6)'},
+    {ball:63,label:'MIDDLE',color:'rgba(255,215,0,0.5)'},
+    {ball:105,label:'DEATH',color:'rgba(244,67,54,0.65)'}
+  ];
+  phaseLabels.forEach(pl=>{
+    const a=(pl.ball/120)*Math.PI*2-Math.PI/2;
+    const lr=ringR+barMaxH+18;
+    ctx.save();ctx.translate(cx+Math.cos(a)*lr,cy+Math.sin(a)*lr);ctx.rotate(a+Math.PI/2);
+    ctx.font='500 8px Rajdhani, sans-serif';ctx.letterSpacing='2px';
+    ctx.fillStyle=pl.color;ctx.textAlign='center';ctx.fillText(pl.label,0,0);ctx.restore();
+  });
+
+  // Over tick marks
+  for(let ov=0;ov<20;ov++){
+    const a=(ov*6/120)*Math.PI*2-Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*(ringR-6),cy+Math.sin(a)*(ringR-6));
+    ctx.lineTo(cx+Math.cos(a)*(ringR+2),cy+Math.sin(a)*(ringR+2));
+    ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=ov%5===0?1.2:0.6;ctx.stroke();
+    // Over number every 5
+    if(ov%5===0&&ov>0){
+      const nr=ringR-14;
+      ctx.font='bold 7px Orbitron, sans-serif';
+      ctx.fillStyle='rgba(255,255,255,0.18)';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(ov,cx+Math.cos(a)*nr,cy+Math.sin(a)*nr);
+    }
+  }
+
+  // Draw 120 bars
+  ballProbs.forEach((p,b)=>{
+    const a=(b/120)*Math.PI*2-Math.PI/2;
+    const h=p*barMaxH;
+    const r0=ringR, r1=ringR+h;
+    const hw=barW/2;
+    // Perpendicular angle for bar width
+    const pa=a+Math.PI/2;
+    const x0=cx+Math.cos(a)*r0, y0=cy+Math.sin(a)*r0;
+    const x1=cx+Math.cos(a)*r1, y1=cy+Math.sin(a)*r1;
+    // Bar color by probability
+    let col;
+    if(p<0.25) col='rgba(76,175,80,0.85)';
+    else if(p<0.50) col=`rgba(255,215,0,0.88)`;
+    else if(p<0.75) col=`rgba(255,140,0,0.88)`;
+    else col=`rgba(244,67,54,0.90)`;
+    
+    ctx.beginPath();
+    ctx.moveTo(x0+Math.cos(pa)*hw, y0+Math.sin(pa)*hw);
+    ctx.lineTo(x0-Math.cos(pa)*hw, y0-Math.sin(pa)*hw);
+    ctx.lineTo(x1-Math.cos(pa)*hw, y1-Math.sin(pa)*hw);
+    ctx.lineTo(x1+Math.cos(pa)*hw, y1+Math.sin(pa)*hw);
+    ctx.closePath();
+    ctx.fillStyle=col;ctx.fill();
+    
+    // Glow tip for high probability balls
+    if(p>0.65){
+      ctx.beginPath();ctx.arc(x1,y1,barW*0.7,0,Math.PI*2);
+      ctx.fillStyle=p>0.80?'rgba(244,67,54,0.5)':'rgba(255,140,0,0.35)';ctx.fill();
+    }
+  });
+  
+  // Center label
+  ctx.font='bold 9px Orbitron, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('120 BALLS',cx,cy-6);
+  ctx.font='500 7px Rajdhani, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  ctx.fillText('BOUNDARY RISK',cx,cy+6);
+}
+
+// Redraw ring on resize
+window.addEventListener('resize',()=>{
+  if(curTab===1)setTimeout(drawBallRing,50);
+});
+
+
+// ── Stubs (allow UI to run even before Three.js is initialised) ──
+function updateScene(){}
+function updateBars(){}
+function animate(){}
+function refreshPitchHeatmap(){}
+
+// ── Pre-Three.js UI init (runs even if Three.js fails) ──
+renderTabs();switchTab(0);loadMeta();
+const _zc2=document.getElementById('zoom-ctrl');const _zh2=document.getElementById('zoom-hint');
+if(_zc2)_zc2.style.display='none';if(_zh2)_zh2.style.display='none';
+
+// ── Three.js scene (wrapped in try-catch for resilience) ──
+try{
+const container=document.getElementById('cc');
+let W=window.innerWidth,H=window.innerHeight-52;
+const scene=new THREE.Scene();
+
+// ── Gradient night-stadium sky ──
+(function(){
+  const S=4,H=1024;
+  const sc=document.createElement('canvas'); sc.width=S; sc.height=H;
+  const sx=sc.getContext('2d');
+  const sg=sx.createLinearGradient(0,0,0,H);
+  sg.addColorStop(0.00,'#040810');   // deep zenith — almost black-blue
+  sg.addColorStop(0.22,'#07102A');   // upper sky — dark navy
+  sg.addColorStop(0.50,'#0E1E3C');   // mid sky — deep blue
+  sg.addColorStop(0.74,'#182840');   // horizon glow
+  sg.addColorStop(1.00,'#1E2C3A');   // ground fog
+  sx.fillStyle=sg; sx.fillRect(0,0,S,H);
+  scene.background=new THREE.CanvasTexture(sc);
+})();
+
+// ── Star field ──
+(function(){
+  const sPos=[];
+  for(let i=0;i<900;i++){
+    const phi=Math.random()*Math.PI*2;
+    const cosT=0.35+Math.random()*0.65;  // upper hemisphere only
+    const sinT=Math.sqrt(1-cosT*cosT);
+    const r=180+Math.random()*80;
+    sPos.push(r*sinT*Math.cos(phi), Math.abs(r*cosT)+10, r*sinT*Math.sin(phi));
+  }
+  const sGeo=new THREE.BufferGeometry();
+  sGeo.setAttribute('position',new THREE.Float32BufferAttribute(sPos,3));
+  const sMat=new THREE.PointsMaterial({color:0xC8D8F0,size:0.55,transparent:true,opacity:0.65,sizeAttenuation:true});
+  scene.add(new THREE.Points(sGeo,sMat));
+})();
+
+scene.fog=new THREE.Fog(0x0C1828, 115, 295);
+
+// Camera — broadcast angle: elevated, looking down into stadium bowl
+const camera=new THREE.PerspectiveCamera(50,W/H,0.1,400);
+camera.position.set(0,58,85);
+camera.lookAt(0,0,0);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setClearColor(0x07102A,1.0);
+renderer.shadowMap.enabled=false;
+renderer.setSize(W,H);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.domElement.style.position='absolute';
+renderer.domElement.style.top='0';
+renderer.domElement.style.left='0';
+container.appendChild(renderer.domElement);
+window.addEventListener('resize',()=>{
+  W=window.innerWidth;H=window.innerHeight-52;
+  camera.aspect=W/H;camera.updateProjectionMatrix();
+  renderer.setSize(W,H);
+});
+
+// ── LIGHTING — night stadium ──
+scene.add(new THREE.AmbientLight(0x1A2848, 0.55));  // cool dark ambient
+const moonLight=new THREE.DirectionalLight(0x8AB0D0, 0.35);
+moonLight.position.set(-35,80,-45); scene.add(moonLight);
+const fillLight=new THREE.DirectionalLight(0xB0C0E8, 0.22);
+fillLight.position.set(25,40,25); scene.add(fillLight);
+// Warm overhead flood — simulates stadium floodlights
+const floodCenter=new THREE.PointLight(0xFFEEB0, 1.6, 130);
+floodCenter.position.set(0,42,0); scene.add(floodCenter);
+// Rim lights from tower positions — give specular pop on seats
+const rimColors=[0xFFD080,0xFFD080,0xFFD080,0xFFD080,0xFFD080,0xFFD080];
+for(let ri=0;ri<6;ri++){
+  const ra=(ri/6)*Math.PI*2;
+  const rl=new THREE.PointLight(rimColors[ri],0.45,90);
+  rl.position.set(Math.cos(ra)*50,28,Math.sin(ra)*50); scene.add(rl);
+}
+
+// ══════════════════════════════════════════
+// GROUND PLANE — full flat base, page color
+// ══════════════════════════════════════════
+// Ground plane — deep red gradient with glass sheen, covers full scene floor
+(()=>{
+  const gw=512, gh=512;
+  const gc=document.createElement('canvas');
+  gc.width=gw; gc.height=gh;
+  const gx=gc.getContext('2d');
+
+  // Dark concourse base
+  gx.fillStyle='#18202C';
+  gx.fillRect(0,0,gw,gh);
+
+  // Very subtle warm radial — slight warmth toward center
+  const radGrad=gx.createRadialGradient(gw/2,gh/2,0, gw/2,gh/2,gw*0.85);
+  radGrad.addColorStop(0,   'rgba(40,55,80,0.55)');
+  radGrad.addColorStop(0.4, 'rgba(28,38,58,0.35)');
+  radGrad.addColorStop(1,   'rgba(10,16,28,0.0)');
+  gx.fillStyle=radGrad; gx.fillRect(0,0,gw,gh);
+
+  // Glass sheen — bright diagonal highlight across surface
+  const sheenGrad=gx.createLinearGradient(0,0,gw,gh);
+  sheenGrad.addColorStop(0,   'rgba(255,255,255,0.0)');
+  sheenGrad.addColorStop(0.25,'rgba(255,255,255,0.0)');
+  sheenGrad.addColorStop(0.42,'rgba(255,255,255,0.55)');
+  sheenGrad.addColorStop(0.50,'rgba(255,255,255,0.70)');
+  sheenGrad.addColorStop(0.58,'rgba(255,255,255,0.55)');
+  sheenGrad.addColorStop(0.75,'rgba(255,255,255,0.0)');
+  sheenGrad.addColorStop(1,   'rgba(255,255,255,0.0)');
+  gx.fillStyle=sheenGrad; gx.fillRect(0,0,gw,gh);
+
+  // Second softer sheen — perpendicular direction for depth
+  const sheen2=gx.createLinearGradient(gw,0,0,gh);
+  sheen2.addColorStop(0,   'rgba(255,255,255,0.0)');
+  sheen2.addColorStop(0.4, 'rgba(255,255,255,0.12)');
+  sheen2.addColorStop(0.6, 'rgba(255,255,255,0.06)');
+  sheen2.addColorStop(1,   'rgba(255,255,255,0.0)');
+  gx.fillStyle=sheen2; gx.fillRect(0,0,gw,gh);
+
+  // Edge vignette — very soft white-to-slightly-cool at corners
+  const vigGrad=gx.createRadialGradient(gw/2,gh/2,gw*0.45, gw/2,gh/2,gw*0.9);
+  vigGrad.addColorStop(0,'rgba(230,232,242,0)');
+  vigGrad.addColorStop(1,'rgba(210,215,235,0.35)');
+  gx.fillStyle=vigGrad; gx.fillRect(0,0,gw,gh);
+
+  const groundTex=new THREE.CanvasTexture(gc);
+  groundTex.wrapS=THREE.RepeatWrapping;
+  groundTex.wrapT=THREE.RepeatWrapping;
+  groundTex.repeat.set(6,6);
+
+  const groundPlane=new THREE.Mesh(
+    new THREE.PlaneGeometry(2000,2000),
+    new THREE.MeshBasicMaterial({map:groundTex, side:THREE.DoubleSide})
+  );
+  groundPlane.rotation.x=-Math.PI/2;
+  groundPlane.position.y=-0.2;
+  scene.add(groundPlane);
+})();
+
+// ══════════════════════════════════════════
+// CRICKET FIELD — r=12.5, sits at y=0
+// ══════════════════════════════════════════
+
+// Outfield top — green circle
+const outfield=new THREE.Mesh(
+  new THREE.CircleGeometry(22,128),
+  new THREE.MeshPhongMaterial({color:0x2E7D32,emissive:0x061006,emissiveIntensity:0.1,shininess:4})
+);
+outfield.rotation.x=-Math.PI/2; outfield.position.y=0.5;
+scene.add(outfield);
+
+// Mowing stripe texture
+(()=>{
+  const sz=512,cv=document.createElement('canvas');
+  cv.width=cv.height=sz;
+  const cx2=cv.getContext('2d'),c=sz/2,R=sz/2;
+  cx2.fillStyle='#1C4A18'; cx2.fillRect(0,0,sz,sz);
+  for(let i=18;i>=0;i--){
+    const r=((i+1)/18)*R;
+    cx2.beginPath();cx2.arc(c,c,r,0,Math.PI*2);
+    // Night-lit green: slightly brighter alternating mowing stripes
+    cx2.fillStyle=i%2===0?'#286A22':'#184814';cx2.fill();
+  }
+  for(let s=0;s<22;s+=2){
+    cx2.save();cx2.beginPath();cx2.arc(c,c,R,0,Math.PI*2);cx2.clip();
+    cx2.fillStyle='rgba(60,130,50,0.07)';cx2.fillRect(s*(sz/22),0,sz/22,sz);
+    cx2.restore();
+  }
+  // Night glint — subtle highlight stripe from floodlights
+  cx2.save();cx2.globalCompositeOperation='screen';
+  const glint=cx2.createLinearGradient(0,sz*0.2,sz,sz*0.8);
+  glint.addColorStop(0,'rgba(255,255,200,0)');glint.addColorStop(0.5,'rgba(255,255,200,0.04)');glint.addColorStop(1,'rgba(255,255,200,0)');
+  cx2.fillStyle=glint;cx2.arc(c,c,R,0,Math.PI*2);cx2.fill();
+  cx2.restore();
+  const t=new THREE.CanvasTexture(cv);
+  outfield.material=new THREE.MeshPhongMaterial({map:t,shininess:3,specular:new THREE.Color(0x0A1A08)});
+})();
+
+// Outfield side wall — prevents any angle from seeing green bleed
+const ofWall=new THREE.Mesh(
+  new THREE.CylinderGeometry(22,22,0.4,128,1,false),
+  new THREE.MeshPhongMaterial({color:0x1A4A1A,side:THREE.DoubleSide})
+);
+ofWall.position.y=0.22; scene.add(ofWall);
+
+// Infield
+const infield=new THREE.Mesh(
+  new THREE.CircleGeometry(12,96),
+  new THREE.MeshPhongMaterial({color:0x245820,emissive:0x081408,emissiveIntensity:0.1,shininess:3})
+);
+infield.rotation.x=-Math.PI/2; infield.position.y=0.52;
+scene.add(infield);
+
+// Boundary rope
+const bR=new THREE.Mesh(
+  new THREE.TorusGeometry(22,0.06,8,128),
+  new THREE.MeshBasicMaterial({color:0x1A0005})
+);
+bR.rotation.x=Math.PI/2; bR.position.y=0.55; scene.add(bR);
+
+// 30-yard circle
+const iR=new THREE.Mesh(
+  new THREE.TorusGeometry(12,0.04,6,96),
+  new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.4})
+);
+iR.rotation.x=Math.PI/2; iR.position.y=0.55; scene.add(iR);
+
+// ── 3D PITCH WITH HEATMAP TEXTURE — zones mapped from getPitchData ──
+const pitchM = (()=>{
+  const pw=128, ph=512; // canvas: narrow width, tall height (pitch is 2×6.5 ratio)
+  const pc=document.createElement('canvas');
+  pc.width=pw; pc.height=ph;
+  const px2=pc.getContext('2d');
+
+  // Get current pitch data
+  const d=getPitchData(curVenue, curOppTeam);
+  const maxVal=Math.max(d.fullToss,d.yorker,d.goodLen,d.shortOfGood,d.short,1);
+
+  // Zones top→bottom (batting end at top):
+  // fullToss (0-8%), yorker (8-20%), goodLen (20-50%), shortOfGood (50-75%), short (75-100%)
+  const zones=[
+    {key:'fullToss',  y0:0.00, y1:0.08},
+    {key:'yorker',    y0:0.08, y1:0.20},
+    {key:'goodLen',   y0:0.20, y1:0.50},
+    {key:'shortOfGood',y0:0.50,y1:0.75},
+    {key:'short',     y0:0.75, y1:1.00},
+  ];
+
+  // Color scale: low=sandy, mid=orange, high=red
+  function heatColor(intensity){
+    if(intensity<0.3) return `rgba(${Math.round(197+30*intensity)},${Math.round(168-80*intensity)},${Math.round(125-90*intensity)},1)`;
+    if(intensity<0.6) return `rgba(${Math.round(255)},${Math.round(140-100*(intensity-0.3)/0.3)},${Math.round(30-30*(intensity-0.3)/0.3)},1)`;
+    return `rgba(${Math.round(255)},${Math.round(40-40*(intensity-0.6)/0.4)},${Math.round(0)},1)`;
+  }
+
+  // Sandy base
+  px2.fillStyle='#C5A87D'; px2.fillRect(0,0,pw,ph);
+
+  // Draw each zone
+  zones.forEach(z=>{
+    const intensity=d[z.key]/maxVal;
+    const y0=Math.round(z.y0*ph), y1=Math.round(z.y1*ph);
+    const h2=y1-y0;
+    // Zone gradient — center brighter
+    const grad=px2.createLinearGradient(0,y0,0,y1);
+    const col=heatColor(intensity);
+    grad.addColorStop(0,  col.replace(',1)',',0.3)'));
+    grad.addColorStop(0.5,col.replace(',1)',`,${0.3+intensity*0.65})`));
+    grad.addColorStop(1,  col.replace(',1)',',0.3)'));
+    px2.fillStyle=grad;
+    px2.fillRect(4,y0,pw-8,h2);
+
+    // Horizontal zone separator line
+    px2.strokeStyle='rgba(255,255,255,0.25)';
+    px2.lineWidth=1;
+    px2.beginPath(); px2.moveTo(0,y1); px2.lineTo(pw,y1); px2.stroke();
+
+    // Intensity dots cluster
+    const dotCount=Math.round(intensity*8);
+    for(let k=0;k<dotCount;k++){
+      const dx=pw*0.2+Math.random()*pw*0.6;
+      const dy=y0+h2*0.15+Math.random()*h2*0.7;
+      const alpha=0.4+intensity*0.5;
+      px2.fillStyle=`rgba(255,255,255,${alpha.toFixed(2)})`;
+      px2.beginPath(); px2.arc(dx,dy,2+intensity*2.5,0,Math.PI*2); px2.fill();
+    }
+  });
+
+  // Crease lines
+  px2.strokeStyle='rgba(255,255,255,0.85)'; px2.lineWidth=3;
+  [0.135, 0.865].forEach(yf=>{
+    const y=yf*ph;
+    px2.beginPath(); px2.moveTo(8,y); px2.lineTo(pw-8,y); px2.stroke();
+  });
+  // Popping crease (inner)
+  px2.lineWidth=1.5;
+  [0.16, 0.84].forEach(yf=>{
+    const y=yf*ph;
+    px2.beginPath(); px2.moveTo(8,y); px2.lineTo(pw-8,y); px2.stroke();
+  });
+  // Centre line
+  px2.strokeStyle='rgba(255,255,255,0.20)'; px2.lineWidth=1;
+  px2.beginPath(); px2.moveTo(pw/2,0); px2.lineTo(pw/2,ph); px2.stroke();
+  // Stump holes
+  [-0.22,0,0.22].forEach(ox=>{
+    [0.145,0.855].forEach(yf=>{
+      px2.fillStyle='rgba(80,40,0,0.7)';
+      px2.beginPath(); px2.arc(pw/2+ox*pw,yf*ph,3,0,Math.PI*2); px2.fill();
+    });
+  });
+
+  const pitchTex=new THREE.CanvasTexture(pc);
+  const mesh=new THREE.Mesh(
+    new THREE.BoxGeometry(2,0.06,6.5),
+    new THREE.MeshPhongMaterial({map:pitchTex, shininess:8})
+  );
+  mesh.position.y=0.56;
+  scene.add(mesh);
+  return mesh;
+})();
+
+// Function to refresh pitch heatmap when venue/opp changes
+function refreshPitchHeatmap(){
+  if(!pitchM) return;
+  // Rebuild texture — reuse same approach
+  const pw=128,ph=512;
+  const pc=document.createElement('canvas'); pc.width=pw; pc.height=ph;
+  const px2=pc.getContext('2d');
+  const d=getPitchData(curVenue,curOppTeam);
+  const maxVal=Math.max(d.fullToss,d.yorker,d.goodLen,d.shortOfGood,d.short,1);
+  const zones=[{key:'fullToss',y0:0,y1:0.08},{key:'yorker',y0:0.08,y1:0.20},{key:'goodLen',y0:0.20,y1:0.50},{key:'shortOfGood',y0:0.50,y1:0.75},{key:'short',y0:0.75,y1:1}];
+  function heatColor(v){if(v<0.3)return`rgba(${Math.round(197+30*v)},${Math.round(168-80*v)},${Math.round(125-90*v)},1)`;if(v<0.6)return`rgba(255,${Math.round(140-100*(v-0.3)/0.3)},${Math.round(30-30*(v-0.3)/0.3)},1)`;return`rgba(255,${Math.round(40-40*(v-0.6)/0.4)},0,1)`;}
+  px2.fillStyle='#C5A87D'; px2.fillRect(0,0,pw,ph);
+  zones.forEach(z=>{
+    const intensity=d[z.key]/maxVal;
+    const y0=Math.round(z.y0*ph),y1=Math.round(z.y1*ph),h2=y1-y0;
+    const grad=px2.createLinearGradient(0,y0,0,y1);
+    const col=heatColor(intensity);
+    grad.addColorStop(0,col.replace(',1)',',0.3)'));grad.addColorStop(0.5,col.replace(',1)',`,${(0.3+intensity*0.65).toFixed(2)})`));grad.addColorStop(1,col.replace(',1)',',0.3)'));
+    px2.fillStyle=grad;px2.fillRect(4,y0,pw-8,h2);
+    const dc=Math.round(intensity*8);
+    for(let k=0;k<dc;k++){px2.fillStyle=`rgba(255,255,255,${(0.4+intensity*0.5).toFixed(2)})`;px2.beginPath();px2.arc(pw*0.2+Math.random()*pw*0.6,y0+h2*0.15+Math.random()*h2*0.7,2+intensity*2.5,0,Math.PI*2);px2.fill();}
+    px2.strokeStyle='rgba(255,255,255,0.25)';px2.lineWidth=1;px2.beginPath();px2.moveTo(0,y1);px2.lineTo(pw,y1);px2.stroke();
+  });
+  px2.strokeStyle='rgba(255,255,255,0.85)';px2.lineWidth=3;[0.135,0.865].forEach(yf=>{px2.beginPath();px2.moveTo(8,yf*ph);px2.lineTo(pw-8,yf*ph);px2.stroke();});
+  pitchM.material.map=new THREE.CanvasTexture(pc);
+  pitchM.material.needsUpdate=true;
+}
+
+// ══════════════════════════════════════════
+// STADIUM — ring of stands around field
+// ══════════════════════════════════════════
+// Layout (all radii):
+//   Rope:       12.5
+//   Apron:      12.5 → 14  (sandy)
+//   Ad boards:  14   (dark, h=1.2)
+//   Lower stand:14 → 24  (green seats, h raked 0→5)
+//   Upper stand:24 → 33  (orange seats, h raked 5→11)
+//   Outer wall: 33   (concrete, h=11)
+
+const matConc  = new THREE.MeshPhongMaterial({color:0xD4CAB4,shininess:8});
+const matConc2 = new THREE.MeshPhongMaterial({color:0xC4BAA4,shininess:6});
+const matGrn   = new THREE.MeshPhongMaterial({color:0x1C5420,shininess:6,transparent:true,opacity:0.98});
+const matCrm   = new THREE.MeshPhongMaterial({color:0xEAE4D4,shininess:4,transparent:true,opacity:0.95});
+const matOrg   = new THREE.MeshPhongMaterial({color:0xAA3408,shininess:6,transparent:true,opacity:0.98});
+const matAd    = new THREE.MeshPhongMaterial({color:0x0E1828,shininess:4});
+const matSteel = new THREE.MeshPhongMaterial({color:0xD0C8B8,shininess:40,specular:new THREE.Color(0x706858)});
+
+// Green outfield extension — fills r=22→33.5 outfield to adboard edge
+const apron=new THREE.Mesh(
+  new THREE.RingGeometry(22,23.5,80),
+  new THREE.MeshPhongMaterial({color:0x1E6020,emissive:0x030A03,emissiveIntensity:0.06,shininess:3,side:THREE.DoubleSide})
+);
+apron.rotation.x=-Math.PI/2; apron.position.y=0.55; scene.add(apron);
+
+// Ad boards — full 360 dark cylinder
+const adboards=new THREE.Mesh(
+  new THREE.CylinderGeometry(23,22.8,1.2,80,1,true),
+  new THREE.MeshPhongMaterial({color:0x0E1828,shininess:4,side:THREE.DoubleSide})
+);
+adboards.position.y=0.6; scene.add(adboards);
+// white stripe on top of adboards
+const adTop=new THREE.Mesh(
+  new THREE.TorusGeometry(22.9,0.07,4,80),
+  new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.7})
+);
+adTop.rotation.x=Math.PI/2; adTop.position.y=1.2; scene.add(adTop);
+
+// ══════════════════════════════════════════════════════
+// LOWER SEATING BOWL — 14 full-perimeter stepped rows
+// r = 23.6 → 33.2  |  y = 1.2 → 5.0
+// Three-color alternating scheme: deep maroon / navy / forest
+// ══════════════════════════════════════════════════════
+(()=>{
+  const SEG_L=128, ROWS_L=14;
+  // Premium alternating seat colors
+  const seatCols=[
+    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 0-2
+    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 3-5
+    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 6-8
+    0x8B1A28, 0x0D2248, 0x1A4A2A,  // row 9-11
+    0x8B1A28, 0x0D2248              // row 12-13
+  ];
+
+  // Narrow concrete ledge between adboards and lower bowl
+  const lowerBase=new THREE.Mesh(
+    new THREE.CylinderGeometry(23.5,23.2,0.9,SEG_L,1,true),
+    new THREE.MeshPhongMaterial({color:0x2A3040,shininess:20,side:THREE.DoubleSide})
+  );
+  lowerBase.position.y=0.75; scene.add(lowerBase);
+
+  for(let i=0;i<ROWS_L;i++){
+    const t=i/ROWS_L;
+    const r  = 23.6 + t*9.6;   // r: 23.6 → 33.2
+    const y  = 1.2  + t*3.8;   // y: 1.2  → 5.0
+    const rH = 0.44;            // riser height
+    const tD = 0.72;            // tread depth
+    const col=seatCols[i];
+
+    // Seat riser — coloured face visible from field
+    const riser=new THREE.Mesh(
+      new THREE.CylinderGeometry(r,r,rH,SEG_L,1,true),
+      new THREE.MeshPhongMaterial({
+        color:col, shininess:55, side:THREE.DoubleSide,
+        emissive:new THREE.Color(col).multiplyScalar(0.18),
+        specular:new THREE.Color(0x666688)
+      })
+    );
+    riser.position.y=y+rH/2; scene.add(riser);
+
+    // Concrete tread step
+    const tread=new THREE.Mesh(
+      new THREE.RingGeometry(r,r+tD,SEG_L),
+      new THREE.MeshPhongMaterial({color:0x4A5060,shininess:10,side:THREE.DoubleSide})
+    );
+    tread.rotation.x=-Math.PI/2;
+    tread.position.y=y+rH+0.01; scene.add(tread);
+  }
+
+  // Concourse walkway ring between lower and upper tiers
+  const concRing=new THREE.Mesh(
+    new THREE.RingGeometry(33.2,33.9,SEG_L),
+    new THREE.MeshPhongMaterial({color:0x383E4A,shininess:12,side:THREE.DoubleSide})
+  );
+  concRing.rotation.x=-Math.PI/2;
+  concRing.position.y=5.1; scene.add(concRing);
+
+  // Section divider pillars every 30° (12 pillars)
+  for(let p=0;p<12;p++){
+    const ang=(p/12)*Math.PI*2;
+    const px2=Math.cos(ang)*28.4, pz2=Math.sin(ang)*28.4;
+    const pillar=new THREE.Mesh(
+      new THREE.BoxGeometry(0.28,4.2,0.28),
+      new THREE.MeshPhongMaterial({color:0x505868,shininess:25})
+    );
+    pillar.position.set(px2,3.2,pz2);
+    pillar.lookAt(new THREE.Vector3(0,3.2,0));
+    scene.add(pillar);
+  }
+
+  // Low-level field-side perimeter wall (LED banner base)
+  const perimWall=new THREE.Mesh(
+    new THREE.CylinderGeometry(23.2,23.0,0.6,SEG_L,1,true),
+    new THREE.MeshPhongMaterial({color:0x181E2C,shininess:30,side:THREE.DoubleSide})
+  );
+  perimWall.position.y=1.6; scene.add(perimWall);
+})();
+
+// ══════════════════════════════════════════════════════
+// STADIUM SEATING — Upper tier (9 rows)
+// ══════════════════════════════════════════════════════
+
+(()=>{
+  const UPPER_ROWS = 9;
+  const SEG = 80;
+
+  // Ground extension handled by apron above
+
+  // Boundary retaining wall — now sits between lower bowl and upper tier
+  const boundWall = new THREE.Mesh(
+    new THREE.CylinderGeometry(33.8,33.8,1.2,SEG,1,true),
+    new THREE.MeshPhongMaterial({color:0x3A3E4E,shininess:20,side:THREE.DoubleSide})
+  );
+  boundWall.position.y=5.65; scene.add(boundWall);
+
+  // Top ledge cap on boundary wall
+  const boundCap = new THREE.Mesh(
+    new THREE.TorusGeometry(33.8,0.18,4,SEG),
+    new THREE.MeshPhongMaterial({color:0x8888A8,shininess:35})
+  );
+  boundCap.rotation.x=Math.PI/2; boundCap.position.y=6.25; scene.add(boundCap);
+
+  // ── PSL INTELLIGENCE BANNER — animated scrolling text ──
+  (()=>{
+    // High-res canvas — small repeat unit for sharp text
+    const bW=1024, bH=96;
+    const bc=document.createElement('canvas');
+    bc.width=bW; bc.height=bH;
+    const bx=bc.getContext('2d');
+
+    function drawBannerFrame(offset){
+      bx.clearRect(0,0,bW,bH);
+
+      // Semi-transparent dark background
+      bx.fillStyle='rgba(5,2,20,0.50)';
+      bx.fillRect(0,0,bW,bH);
+
+      // Gold top/bottom border
+      bx.fillStyle='rgba(255,210,0,0.75)';
+      bx.fillRect(0,0,bW,3);
+      bx.fillRect(0,bH-3,bW,3);
+
+      // Text — crisp, not too large relative to canvas
+      bx.font='bold 38px "Orbitron","Arial Black",Arial';
+      bx.textBaseline='middle';
+      bx.fillStyle='#FFD700';
+      bx.shadowColor='rgba(255,180,0,0.55)';
+      bx.shadowBlur=8;
+
+      const text=' PSL INTELLIGENCE  ·  ';
+      const tw=bx.measureText(text).width;
+
+      // Offset drives animation
+      let x=(offset % tw) - tw;
+      while(x < bW + tw){
+        bx.fillText(text, x, bH/2);
+        x += tw;
+      }
+      bx.shadowBlur=0;
+    }
+
+    drawBannerFrame(0);
+    const bannerTex=new THREE.CanvasTexture(bc);
+    bannerTex.wrapS=THREE.ClampToEdgeWrapping;
+    bannerTex.wrapT=THREE.ClampToEdgeWrapping;
+
+    const bannerMat=new THREE.MeshBasicMaterial({
+      map:bannerTex,
+      transparent:true,
+      opacity:0.97,
+      side:THREE.DoubleSide,
+      depthWrite:false
+    });
+
+    const banner=new THREE.Mesh(
+      new THREE.CylinderGeometry(33.7,33.7,1.6,SEG,1,true),
+      bannerMat
+    );
+    banner.position.y=2.25;
+    scene.add(banner);
+
+    // Animate banner scroll — update canvas texture every frame
+    let scrollOffset=0;
+    const origAnimate=animate;
+    window._bannerAnimated=true;
+    window._bannerUpdate=function(){
+      scrollOffset+=1.8; // px per frame scroll speed
+      drawBannerFrame(scrollOffset);
+      bannerTex.needsUpdate=true;
+    };
+  })();
+
+  // Upper tier — orange/cream
+  // Use CylinderGeometry for risers so both inner+outer faces lit correctly
+  for(let i=0;i<UPPER_ROWS;i++){
+    const t0=i/UPPER_ROWS, t1=(i+1)/UPPER_ROWS;
+    const r0=33.9+t0*8.5, r1=33.9+t1*8.5;
+    const y0=4.8+t0*9.0,  y1=4.8+t1*9.0;
+    const riserH=(y1-y0)*0.88;
+    const treadD=(r1-r0)*0.55;
+    // Alternate: deep maroon / dark navy for upper premium tier
+    const col=i%3===0 ? 0x7A1522 : (i%3===1 ? 0x0E2240 : 0x7A1522);
+
+    // Riser — CylinderGeometry (same top/bottom radius = vertical wall ring)
+    const riser=new THREE.Mesh(
+      new THREE.CylinderGeometry(r0+0.05, r0+0.05, riserH, SEG, 1, true),
+      new THREE.MeshPhongMaterial({color:col, shininess:45, side:THREE.DoubleSide,
+        emissive:new THREE.Color(col).multiplyScalar(0.20), specular:new THREE.Color(0xAA8870)})
+    );
+    riser.position.y = y0 + riserH/2;
+    scene.add(riser);
+
+    // Tread — flat concrete ring on top of riser
+    const tread=new THREE.Mesh(
+      new THREE.RingGeometry(r0, r0+treadD, SEG),
+      new THREE.MeshPhongMaterial({color:0xCCC4B4, shininess:6, side:THREE.DoubleSide})
+    );
+    tread.rotation.x=-Math.PI/2;
+    tread.position.y=y0+riserH+0.01;
+    scene.add(tread);
+  }
+
+  // Upper backing — dark structural wall
+  const uFill=new THREE.Mesh(
+    new THREE.CylinderGeometry(42.5,33.8,8.0,SEG,1,true),
+    new THREE.MeshPhongMaterial({color:0x282030,shininess:8,side:THREE.DoubleSide})
+  );
+  uFill.position.y=6.5; scene.add(uFill);
+
+  const uWall=new THREE.Mesh(
+    new THREE.CylinderGeometry(33.9,33.9,3.0,SEG,1,true),
+    new THREE.MeshPhongMaterial({color:0x2C2438,shininess:8,side:THREE.DoubleSide})
+  );
+  uWall.position.y=5.0; scene.add(uWall);
+
+  // Outer wall — rustic red metallic panel texture
+  (()=>{
+    const mw=256, mh=256;
+    const mc=document.createElement('canvas');
+    mc.width=mw; mc.height=mh;
+    const mx=mc.getContext('2d');
+
+    // Base — deep dark charcoal metallic
+    const baseGrad=mx.createLinearGradient(0,0,mw,0);
+    baseGrad.addColorStop(0,   '#18202E');
+    baseGrad.addColorStop(0.3, '#222A3C');
+    baseGrad.addColorStop(0.6, '#1C2438');
+    baseGrad.addColorStop(1,   '#18202E');
+    mx.fillStyle=baseGrad; mx.fillRect(0,0,mw,mh);
+
+    // Vertical panel seams — darker lines dividing metal sheets
+    const panelW=32;
+    for(let p=0;p<mw;p+=panelW){
+      mx.fillStyle='rgba(0,0,0,0.35)'; mx.fillRect(p,0,2,mh);
+      // Highlight edge on right side of each panel
+      mx.fillStyle='rgba(100,130,200,0.12)'; mx.fillRect(p+2,0,3,mh);
+    }
+
+    // Horizontal rivet rows — metallic studs along each panel
+    const rivetSpacing=28;
+    for(let ry=14;ry<mh;ry+=rivetSpacing){
+      for(let rx=8;rx<mw;rx+=panelW){
+        // Rivet shadow
+        mx.beginPath(); mx.arc(rx,ry,3.5,0,Math.PI*2);
+        mx.fillStyle='rgba(0,0,0,0.5)'; mx.fill();
+        // Rivet highlight
+        mx.beginPath(); mx.arc(rx-0.8,ry-0.8,2,0,Math.PI*2);
+        mx.fillStyle='rgba(255,160,120,0.7)'; mx.fill();
+      }
+    }
+
+    // Subtle horizontal scratches — worn metal look
+    for(let s=0;s<40;s++){
+      const sy=Math.random()*mh;
+      const sx=Math.random()*mw;
+      const sw=10+Math.random()*60;
+      mx.fillStyle=`rgba(255,180,140,${0.03+Math.random()*0.06})`;
+      mx.fillRect(sx,sy,sw,1);
+    }
+
+    // Vertical wear streaks — rust/water stains
+    for(let s=0;s<12;s++){
+      const sx=Math.random()*mw;
+      const streakH=20+Math.random()*80;
+      const sy=Math.random()*(mh-streakH);
+      const sg=mx.createLinearGradient(0,sy,0,sy+streakH);
+      sg.addColorStop(0,'rgba(160,60,40,0)');
+      sg.addColorStop(0.5,'rgba(180,70,40,0.12)');
+      sg.addColorStop(1,'rgba(160,60,40,0)');
+      mx.fillStyle=sg; mx.fillRect(sx,sy,4,streakH);
+    }
+
+    const metalTex=new THREE.CanvasTexture(mc);
+    metalTex.wrapS=THREE.RepeatWrapping;
+    metalTex.wrapT=THREE.RepeatWrapping;
+    metalTex.repeat.set(22,2.5);
+
+    const outerWall=new THREE.Mesh(
+      new THREE.CylinderGeometry(43.0,42.6,15.5,SEG,1,true),
+      new THREE.MeshPhongMaterial({
+        map:metalTex,
+        shininess:55,
+        specular:new THREE.Color(0xFF8060),
+        side:THREE.DoubleSide
+      })
+    );
+    outerWall.position.y=6.0; scene.add(outerWall);
+  })();
+
+  // Wall top cap
+  const wallCap=new THREE.Mesh(
+    new THREE.TorusGeometry(42.8,0.4,6,SEG),
+    new THREE.MeshPhongMaterial({color:0xE8E0D0,shininess:22})
+  );
+  wallCap.rotation.x=Math.PI/2; wallCap.position.y=11.5; scene.add(wallCap);
+
+  // ── CANOPY ROOF — tilted 45° inward from top of outer brick wall ──
+  // Built as a truncated cone (CylinderGeometry) angled inward.
+  // Outer edge: r=42.8 at y=11.5 (top of brick wall)
+  // Inner edge: r=33.5 at y=16.9 (tilts inward+upward at 30°)
+  // 30°: horizontal=9.3, rise=9.3*tan(30°)=5.4, inner y=11.5+5.4=16.9
+
+  // Canopy top surface — dark grey steel/metal
+  const canopyTop = new THREE.Mesh(
+    new THREE.CylinderGeometry(40.5, 42.8, 1.33, SEG, 1, true),
+    new THREE.MeshPhongMaterial({
+      color: 0x3A4A3C,
+      emissive: 0x0A0E0A,
+      emissiveIntensity: 0.05,
+      shininess: 25,
+      side: THREE.DoubleSide
+    })
+  );
+  // Tilt by offsetting y: outer bottom y=11.5, inner top y=11.5+9.3=20.8
+  canopyTop.position.y = 11.5 + 1.33/2;
+  scene.add(canopyTop);
+
+  // Canopy underside — lighter colour visible from field below
+  const canopyUnder = new THREE.Mesh(
+    new THREE.CylinderGeometry(40.8, 42.5, 1.1, SEG, 1, true),
+    new THREE.MeshPhongMaterial({
+      color: 0x8A9A8C,
+      emissive: 0x060A06,
+      emissiveIntensity: 0.04,
+      shininess: 12,
+      side: THREE.BackSide
+    })
+  );
+  canopyUnder.position.y = 11.5 + 1.1/2;
+  scene.add(canopyUnder);
+
+  // Canopy front-facing copy — same geometry with FrontSide so near camera sees it
+  const canopyFront = new THREE.Mesh(
+    new THREE.CylinderGeometry(40.5, 42.8, 1.33, SEG, 1, true),
+    new THREE.MeshPhongMaterial({
+      color: 0x3A4A3C,
+      emissive: 0x0A0E0A,
+      emissiveIntensity: 0.05,
+      shininess: 25,
+      side: THREE.FrontSide
+    })
+  );
+  canopyFront.position.y = 11.5 + 1.33/2;
+  scene.add(canopyFront);
+
+  // Canopy front fascia beam — white edge at the inner lip
+  const canopyFascia = new THREE.Mesh(
+    new THREE.TorusGeometry(40.5, 0.35, 6, SEG),
+    new THREE.MeshPhongMaterial({color:0xEEE8DC, shininess:30})
+  );
+  canopyFascia.rotation.x = Math.PI/2;
+  canopyFascia.position.y = 12.83;
+  scene.add(canopyFascia);
+
+  // Canopy outer edge cap — sits on top of brick wall
+  const canopyOuter = new THREE.Mesh(
+    new THREE.TorusGeometry(42.8, 0.3, 6, SEG),
+    new THREE.MeshPhongMaterial({color:0x4A5A4C, shininess:20})
+  );
+  canopyOuter.rotation.x = Math.PI/2;
+  canopyOuter.position.y = 11.5;
+  scene.add(canopyOuter);
+})();
+
+// Outer sandy concourse ring beyond wall
+const concourse=new THREE.Mesh(
+  new THREE.RingGeometry(43.0,48,64),
+  new THREE.MeshPhongMaterial({color:0xC4B898,shininess:3,side:THREE.DoubleSide})
+);
+concourse.rotation.x=-Math.PI/2; concourse.position.y=0.0; scene.add(concourse);
+
+// ── WALKING TRACK — rubberised athletics track around outer wall ──
+// Dark reddish-brown track surface (r=43→47.5)
+const trackSurface=new THREE.Mesh(
+  new THREE.RingGeometry(43.2,47.5,80),
+  new THREE.MeshPhongMaterial({color:0x7A3A2A,emissive:0x1A0800,emissiveIntensity:0.05,shininess:8,side:THREE.DoubleSide})
+);
+trackSurface.rotation.x=-Math.PI/2; trackSurface.position.y=0.06; scene.add(trackSurface);
+
+// Track lane dividers — 3 white dashed rings
+[44.2,45.3,46.4].forEach(r=>{
+  const lane=new THREE.Mesh(
+    new THREE.TorusGeometry(r,0.06,4,80),
+    new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.7})
+  );
+  lane.rotation.x=Math.PI/2; lane.position.y=0.12; scene.add(lane);
+});
+
+// Inner edge line (white border at wall base)
+const trackInner=new THREE.Mesh(
+  new THREE.TorusGeometry(43.3,0.1,4,80),
+  new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.85})
+);
+trackInner.rotation.x=Math.PI/2; trackInner.position.y=0.12; scene.add(trackInner);
+
+// Outer edge line
+const trackOuter=new THREE.Mesh(
+  new THREE.TorusGeometry(47.4,0.1,4,80),
+  new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.85})
+);
+trackOuter.rotation.x=Math.PI/2; trackOuter.position.y=0.12; scene.add(trackOuter);
+
+// 6 floodlight towers — panels use canvas sprite for always-correct appearance
+// Build a canvas texture for the LED panel face
+(()=>{
+  // Build LED panel texture — dark housing with bright white LEDs in grid
+  const panelCanvas = document.createElement('canvas');
+  panelCanvas.width = 512; panelCanvas.height = 256;
+  const pc = panelCanvas.getContext('2d');
+
+  // Dark steel housing
+  pc.fillStyle = '#0E151E';
+  pc.fillRect(0, 0, 512, 256);
+
+  // Subtle grid lines dividing cells
+  pc.strokeStyle = '#1A2530';
+  pc.lineWidth = 2;
+  const rows = 3, cols = 8;
+  const cellW = 512/cols, cellH = 256/rows;
+  for(let r=0;r<=rows;r++){ pc.beginPath(); pc.moveTo(0,r*cellH); pc.lineTo(512,r*cellH); pc.stroke(); }
+  for(let c=0;c<=cols;c++){ pc.beginPath(); pc.moveTo(c*cellW,0); pc.lineTo(c*cellW,256); pc.stroke(); }
+
+  // LEDs — centered in each cell
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      const lx = c*cellW + cellW/2;
+      const ly = r*cellH + cellH/2;
+      const radius = Math.min(cellW,cellH)*0.34;
+
+      // Big outer glow
+      const grd = pc.createRadialGradient(lx,ly,0,lx,ly,radius*2.2);
+      grd.addColorStop(0,'rgba(200,230,255,0.5)');
+      grd.addColorStop(1,'rgba(200,230,255,0)');
+      pc.fillStyle=grd; pc.beginPath(); pc.arc(lx,ly,radius*2.2,0,Math.PI*2); pc.fill();
+
+      // LED body
+      const led = pc.createRadialGradient(lx-radius*0.25,ly-radius*0.25,0,lx,ly,radius);
+      led.addColorStop(0,'#FFFFFF');
+      led.addColorStop(0.4,'#E8F4FF');
+      led.addColorStop(0.8,'#B0C8E8');
+      led.addColorStop(1,'#6080A0');
+      pc.fillStyle=led; pc.beginPath(); pc.arc(lx,ly,radius,0,Math.PI*2); pc.fill();
+
+      // Specular highlight
+      pc.fillStyle='rgba(255,255,255,0.9)';
+      pc.beginPath(); pc.arc(lx-radius*0.28,ly-radius*0.28,radius*0.22,0,Math.PI*2); pc.fill();
+    }
+  }
+
+  // Outer housing border
+  pc.strokeStyle='#334455'; pc.lineWidth=8;
+  pc.strokeRect(4,4,504,248);
+
+  const panelTex = new THREE.CanvasTexture(panelCanvas);
+
+  for(let i=0; i<6; i++){
+    const a  = (i/6)*Math.PI*2;
+    const px = Math.cos(a)*52, pz = Math.sin(a)*52;
+    const tg = new THREE.Group();
+    tg.position.set(px, 0, pz);
+    scene.add(tg);
+
+    // ── Pole ──
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12,0.30,26,10),
+      new THREE.MeshPhongMaterial({color:0x7888A0,shininess:40})
+    );
+    pole.position.y = 13; tg.add(pole);
+
+    // Cross braces
+    for(let lv=0; lv<4; lv++){
+      const br = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04,0.04,2.6,5),
+        new THREE.MeshPhongMaterial({color:0x6878A0})
+      );
+      br.position.set(0, 6+lv*5, 0);
+      br.rotation.z = Math.PI/4; tg.add(br);
+      const br2 = br.clone(); br2.rotation.z = -Math.PI/4; tg.add(br2);
+    }
+
+    const fieldDir = new THREE.Vector3(-px, 0, -pz).normalize();
+    const armLen = 5.0;
+    // arm removed — was piercing through panel sprite
+
+    // ── Panel — Sprite (always faces camera, correct orientation always) ──
+    const spriteMat = new THREE.SpriteMaterial({
+      map: panelTex,
+      transparent: true,
+      opacity: 0.97
+    });
+    const panelSprite = new THREE.Sprite(spriteMat);
+    const panelPos = new THREE.Vector3(
+      px + fieldDir.x * armLen,
+      24.5,
+      pz + fieldDir.z * armLen
+    );
+    panelSprite.position.copy(panelPos);
+    panelSprite.scale.set(6.0, 3.5, 1);
+    scene.add(panelSprite);
+
+    // ── Dark housing box behind the sprite ──
+    const housing = new THREE.Mesh(
+      new THREE.BoxGeometry(5.0, 3.0, 0.4),
+      new THREE.MeshPhongMaterial({color:0x111820,shininess:10})
+    );
+    housing.position.copy(panelPos);
+    housing.position.y += 0.0;
+    // Face toward field
+    housing.lookAt(new THREE.Vector3(0, housing.position.y, 0));
+    scene.add(housing);
+
+    // Stadium floodlight point lights — warm white, high range
+    const pl = new THREE.PointLight(0xFFEED0, 0.90, 110);
+    pl.position.copy(panelPos);
+    scene.add(pl);
+    const pl2 = new THREE.PointLight(0xFFE8B0, 0.40, 80);
+    pl2.position.set(px*0.4, 18, pz*0.4);
+    scene.add(pl2);
+  }
+})();
+
+// stub for legacy ref
+const stadiumG=new THREE.Group();
+
+// Glow ring — soft purple halo instead of green
+// glow ring removed — was showing as white circle
+
+// Wind system — arrow lines with swarms of mist particles, boosted for visibility
+const windG=new THREE.Group();windG.visible=false;scene.add(windG);
+const windDots=[];
+const windDir=new THREE.Vector3(1,0,0.3).normalize(); // NE direction
+
+// 12 wind stream lines with arrow heads — more streams, higher opacity
+const windStreams=[];
+for(let i=0;i<12;i++){
+  const sx=-16+Math.random()*32, sz=-14+Math.random()*28, y=1.5+Math.random()*7;
+  const pts=[];
+  for(let j=0;j<8;j++){
+    pts.push(new THREE.Vector3(sx+j*2.8*windDir.x, y+Math.sin(j*0.7)*0.5, sz+j*2.8*windDir.z));
+  }
+  const geo=new THREE.BufferGeometry().setFromPoints(pts);
+  const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0x7986CB,transparent:true,opacity:0.18+Math.random()*0.14}));
+  windG.add(line);
+  // Arrow head — bigger cone, more visible
+  const cone=new THREE.Mesh(
+    new THREE.ConeGeometry(0.22,0.7,6),
+    new THREE.MeshBasicMaterial({color:0x9FA8DA,transparent:true,opacity:0.55})
+  );
+  cone.rotation.z=-Math.PI/2;
+  const endPt=pts[pts.length-1];
+  cone.position.copy(endPt);
+  windG.add(cone);
+  windStreams.push({line,cone,pts,baseY:y,phase:Math.random()*Math.PI*2});
+}
+
+// 500 mist particles — larger, brighter, well spread across ground
+for(let i=0;i<500;i++){
+  const streamIdx=Math.floor(Math.random()*12);
+  const stream=windStreams[streamIdx];
+  const ptIdx=Math.floor(Math.random()*stream.pts.length);
+  const ref=stream.pts[ptIdx];
+  const ox=(Math.random()-0.5)*6;
+  const oy=(Math.random()-0.5)*3;
+  const oz=(Math.random()-0.5)*5;
+  const dot=new THREE.Mesh(
+    new THREE.SphereGeometry(0.06+Math.random()*0.1,5,5),
+    new THREE.MeshBasicMaterial({color:0xB3BCF5,transparent:true,opacity:0.18+Math.random()*0.28})
+  );
+  const bx=ref.x+ox, by=ref.y+oy, bz=ref.z+oz;
+  dot.position.set(bx,by,bz);
+  windG.add(dot);
+  windDots.push({
+    mesh:dot,
+    baseX:bx, baseY:by, baseZ:bz,
+    speed:0.4+Math.random()*1.8,
+    drift:3+Math.random()*5,
+    phase:Math.random()*Math.PI*2,
+  });
+}
+
+// 120-ball bars around field — one per ball, height & color from boundary probability
+const barG=new THREE.Group();barG.visible=false;scene.add(barG);
+const bars=[];
+const BAR_RADIUS=23.5; // sit just outside new boundary rope (r=22)
+const BAR_MAX_H=7;   // max 3D height units
+for(let b=0;b<120;b++){
+  const a=(b/120)*Math.PI*2;
+  const prob=ballProbs[b];
+  const h=0.3+prob*BAR_MAX_H;
+  // Color matches canvas ring: green/gold/orange/red
+  let col;
+  if(prob<0.25)      col=0x4CAF50;
+  else if(prob<0.50) col=0xFFD700;
+  else if(prob<0.75) col=0xFF8C00;
+  else               col=0xF44336;
+  const bx=Math.cos(a)*BAR_RADIUS, bz=Math.sin(a)*BAR_RADIUS;
+  const mesh=new THREE.Mesh(
+    new THREE.BoxGeometry(0.55,h,0.55),
+    new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:0.35,transparent:true,opacity:0.88})
+  );
+  mesh.position.set(bx,0.15+h/2,bz);
+  barG.add(mesh);
+  bars.push({mesh,baseH:h,prob,angle:a,ball:b});
+}
+
+// Bowling zones
+const bzG=new THREE.Group();bzG.visible=false;scene.add(bzG);
+[{z:-2,c:0x8B5CF6,o:.12},{z:.5,c:0xFF8C00,o:.1},{z:2.8,c:0xF44336,o:.15}].forEach(d=>{
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(1.8,2),new THREE.MeshBasicMaterial({color:d.c,transparent:true,opacity:d.o,side:THREE.DoubleSide}));
+  p.rotation.x=-Math.PI/2;p.position.set(0,0.22,d.z);bzG.add(p);
+});
+// Bowl cluster dots
+[{x:-0.3,z:-1.8,c:0x8B5CF6},{x:0.2,z:-1.2,c:0x8B5CF6},{x:0.5,z:0.3,c:0xFF8C00},{x:-0.3,z:0.8,c:0xFF8C00},{x:0.1,z:2.5,c:0xF44336},{x:-0.4,z:2.8,c:0xF44336},{x:0.3,z:-0.5,c:0x8B5CF6},{x:-0.5,z:1.5,c:0xFF8C00}].forEach(d=>{
+  const m=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),new THREE.MeshBasicMaterial({color:d.c}));
+  m.position.set(d.x,0.35,d.z);bzG.add(m);
+});
+
+function updateScene(){
+  barG.visible=curTab===1;
+  bzG.visible=curTab===1;
+  const ps=curTab===1?2.5:1;
+  pitchM.scale.set(ps,1,ps);
+}
+function updateBars(){
+  // Pulse bars based on selected over — highlight that over's 6 balls brighter
+  bars.forEach(b=>{
+    const ballOver=Math.floor(b.ball/6)+1;
+    const boost=(ballOver===curOver)?0.4:0;
+    b.mesh.scale.y=1+boost;
+    b.mesh.material.emissiveIntensity=0.35+boost;
+  });
+}
+// Camera locked at reference screenshot angle — further back to show full stadium
+// 3D perspective: Y=42, orbit=52 | Top Down: Y=60, orbit=1
+const DEF_Y=58, DEF_ORBIT=85;
+let targetY=DEF_Y, targetZ=DEF_ORBIT, orbitRadius=DEF_ORBIT;
+let baseY=DEF_Y, baseZ=DEF_ORBIT, zoomLevel=1;
+
+function setView(v,el){
+  document.querySelectorAll('.vb').forEach(b=>b.classList.remove('act'));
+  el.classList.add('act');
+  if(v==='top'){targetY=40;orbitRadius=1;}
+  else{targetY=DEF_Y;orbitRadius=DEF_ORBIT;}
+}
+function applyZoom(){} // scroll zoom disabled
+function zoomStep(){}
+function zoomReset(){}
+
+// Wheel scroll disabled — fixed camera angle on all tabs
+container.addEventListener('wheel',function(e){e.preventDefault();},{passive:false});
+
+function updatePL(){
+  if(curTab>2)return;
+  const rect=container.getBoundingClientRect();
+  const ps=curTab===2?oppBat:xiOpts[curXI].players;
+  ps.forEach((p,i)=>{
+    if(i>=playerPos.length)return;
+    const pos=playerPos[i];
+    const v=new THREE.Vector3(pos.x,1.5,pos.z);v.project(camera);
+    const x=(v.x*.5+.5)*rect.width,y=(-v.y*.5+.5)*rect.height;
+    const el=document.getElementById(`pl-${i}`);
+    // Centre horizontally on card (62px wide), anchor bottom at player feet
+    if(el){el.style.left=(x-31)+'px';el.style.top=(y-92)+'px';el.style.opacity=v.z<1?1:0;}
+  });
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  const t=Date.now()*.001;
+  // Smooth camera to target
+  camera.position.y+=(targetY-camera.position.y)*0.03;
+  camera.position.z+=(targetZ-camera.position.z)*0.03;
+  // Auto-rotate on ALL tabs — gentle circular orbit
+  camera.position.x=Math.sin(t*0.06)*orbitRadius;
+  camera.position.z=Math.cos(t*0.06)*orbitRadius;
+  camera.lookAt(0,0,0);
+  // gR removed
+  // Wind dots flow
+  windDots.forEach(d=>{
+    const travel=((t*d.speed+d.phase)%d.drift)/d.drift;
+    d.mesh.position.x=d.baseX+travel*d.drift*windDir.x;
+    d.mesh.position.z=d.baseZ+travel*d.drift*windDir.z;
+    d.mesh.position.y=d.baseY+Math.sin(t*0.8+d.phase)*0.3;
+    const fade=travel<0.1?travel/0.1:travel>0.85?(1-travel)/0.15:1;
+    d.mesh.material.opacity=(0.06+Math.sin(t*2+d.phase)*0.04)*fade;
+  });
+  // Wind stream lines gentle sway
+  windStreams.forEach(s=>{
+    s.line.position.y=Math.sin(t*0.4+s.phase)*0.3;
+    s.cone.position.y=s.pts[s.pts.length-1].y+Math.sin(t*0.4+s.phase)*0.3;
+  });
+  // Gentle breathing pulse on 120 bars (bowling tab only)
+  if(curTab===1){
+    bars.forEach(b=>{
+      const ballOver=Math.floor(b.ball/6)+1;
+      const isSelected=(ballOver===curOver);
+      const breath=isSelected
+        ? 1+Math.sin(t*2.5+b.angle)*0.25
+        : 1+Math.sin(t*1.2+b.angle*2)*0.06;
+      b.mesh.scale.y=breath;
+    });
+  }
+  renderer.render(scene,camera);
+  updatePL();
+  if(window._bannerUpdate) window._bannerUpdate();
+}
+
+animate();
+}catch(e){
+  console.error('THREE.js scene failed:',e);
+  const cc=document.getElementById('cc');
+  if(cc)cc.insertAdjacentHTML('afterbegin',`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Orbitron;font-size:9px;color:rgba(244,67,54,0.8);text-align:center;z-index:99;background:rgba(255,240,240,0.8);padding:12px 20px;border-radius:10px;border:1px solid rgba(244,67,54,0.3)">3D SCENE ERROR<br><span style="font-size:7px;color:rgba(100,20,20,0.6)">${e.message}</span></div>`);
+}
+// Fade zoom hint after 4s when visible
+setTimeout(()=>{const h=document.getElementById('zoom-hint');if(h&&curTab===1)h.style.opacity='0';},4000);
+applyZoom();
+(function(){const badge=document.getElementById('nav-team-badge');const qgData=typeof TEAM_ROSTERS!=='undefined'&&TEAM_ROSTERS['Quetta Gladiators'];if(badge&&qgData&&qgData.logo){badge.innerHTML=`<img src="${qgData.logo}" style="width:22px;height:22px;object-fit:contain;border-radius:50%">`;}})();
+document.addEventListener('error',function(e){if(e.target.tagName!=='IMG')return;e.target.style.display='none';const wrap=e.target.parentElement;if(!wrap)return;const ph=wrap.querySelector('.portrait-placeholder,.ph-icon,.ph-label');if(ph)ph.style.display='flex';const ini=wrap.querySelector('[data-initials]');if(ini)ini.style.display='flex';},true);
+</script>
+</body>
+</html>

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSL Players</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:#080114;color:#fff}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 15% 10%,rgba(139,92,246,0.12) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 85% 90%,rgba(255,140,0,0.06) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:50px;background:rgba(8,1,20,0.92);backdrop-filter:blur(30px);border-bottom:1px solid rgba(255,255,255,0.04)}
+.nav-brand{display:flex;align-items:center;gap:8px}
+.nav-logo{font-family:Orbitron;font-size:16px;font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,#FFD700,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:2px}
+.nl{font-family:Rajdhani;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:5px 16px;border-radius:18px;text-decoration:none;transition:all .2s;border:1px solid transparent}
+.nl:hover{color:rgba(255,255,255,0.6)}
+.nl.active{color:#FFD700;background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.15)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.team-badge{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#23074F,#8B5CF6);border:1.5px solid rgba(255,215,0,0.3);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:8px;font-weight:900;color:#FFD700}
+
+.main{display:grid;grid-template-columns:240px 1fr 280px;height:calc(100vh - var(--nav-h,50px));margin-top:var(--nav-h,50px);position:relative;z-index:1}
+
+.sidebar{background:rgba(255,255,255,0.02);backdrop-filter:blur(16px);border-right:1px solid rgba(255,255,255,0.04);padding:16px 12px;display:flex;flex-direction:column;overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.squad-title{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:10px}
+.team-filter{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.team-pill{font-family:Rajdhani;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:transparent;color:rgba(255,255,255,0.3);cursor:pointer;transition:all .2s}
+.team-pill:hover{border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.6)}
+.team-pill.active{background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.25);color:#FFD700}
+.search-bar{position:relative;margin-bottom:14px}
+.search-bar input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:9px 12px 9px 32px;color:#fff;font-family:'Exo 2';font-size:12px;outline:none;transition:border-color .2s}
+.search-bar input:focus{border-color:rgba(255,215,0,0.3)}
+.search-bar input::placeholder{color:rgba(255,255,255,0.25)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:rgba(255,255,255,0.25)}
+.search-count{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:Orbitron;font-size:8px;font-weight:700;color:#FFD700;background:rgba(255,215,0,0.1);padding:2px 7px;border-radius:10px}
+.roster{display:flex;flex-direction:column;gap:2px;flex:1}
+.roster-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:all .2s;border:1px solid transparent;position:relative}
+.roster-item:hover{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.04)}
+.roster-item.active{background:rgba(255,215,0,0.05);border-color:rgba(255,215,0,0.15)}
+.roster-av{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:10px;font-weight:700;border:1.5px solid rgba(255,215,0,0.25);position:relative;overflow:hidden}
+.roster-item.active .roster-av{border-color:rgba(255,215,0,0.5)}
+.roster-check{display:none;position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:#4CAF50;font-size:7px;color:#fff;align-items:center;justify-content:center;font-weight:700}
+.roster-item.active .roster-check{display:flex}
+.roster-name{font-family:Rajdhani;font-size:13px;font-weight:600;color:#fff}
+.roster-role{font-family:Rajdhani;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+.roster-arrow{margin-left:auto;color:rgba(255,215,0,0.4);font-size:14px;display:none}
+.roster-item.active .roster-arrow{display:block}
+.squad-count{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center}
+.squad-count-label{font-family:Rajdhani;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.25)}
+.squad-count-val{font-family:Orbitron;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5)}
+
+.center{position:relative;overflow:hidden}
+#canvas-container{width:100%;height:100%;position:relative}
+#canvas-container canvas{display:block}
+.scene-top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:15;pointer-events:none}
+.scene-top>*{pointer-events:all}
+.view-select{display:flex;gap:6px}
+.vs-btn{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:5px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(8,1,20,0.7);color:rgba(255,255,255,0.45);cursor:pointer;backdrop-filter:blur(8px);transition:all .2s}
+.vs-btn:hover{border-color:rgba(255,215,0,0.2);color:#FFD700}
+.vs-btn.active{background:rgba(139,92,246,0.12);color:#8B5CF6;border-color:rgba(139,92,246,0.25)}
+.info-bar{position:absolute;top:44px;left:12px;z-index:15;pointer-events:all}
+.info-pill{font-family:Rajdhani;font-size:10px;font-weight:500;letter-spacing:1px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.info-pill .dot{width:6px;height:6px;border-radius:50%;background:#4CAF50}
+.innings-badge{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:1.5px;color:rgba(255,215,0,0.6);background:rgba(255,215,0,0.06);padding:3px 10px;border-radius:4px;display:inline-block}
+
+.phase-card{margin-top:10px;padding:12px 14px;background:rgba(255,255,255,0.025);backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(255,140,0,0.15);border-radius:12px;width:200px;position:relative}
+.phase-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,0,0.3),transparent)}
+.phase-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.phase-label{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(0,229,255,0.7);width:62px;flex-shrink:0}
+.phase-track{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.phase-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+.phase-val{font-family:Orbitron;font-size:9px;font-weight:700;color:rgba(255,255,255,0.6);width:28px;text-align:right}
+
+.bowl-card{position:absolute;top:44px;right:12px;z-index:15;pointer-events:all;padding:12px 14px;width:200px;background:rgba(255,255,255,0.025);backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(139,92,246,0.2);border-radius:12px;transition:opacity .3s,border-color .3s}
+.bowl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.3),transparent)}
+.bowl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bowl-cell{text-align:center;padding:6px 4px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.bowl-cell-v{font-family:Orbitron;font-size:14px;font-weight:800;line-height:1.1}
+.bowl-cell-l{font-family:Rajdhani;font-size:7px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-top:2px}
+.bowl-bar-row{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.bowl-bar-label{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);width:58px;flex-shrink:0}
+.bowl-bar-track{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.bowl-bar-fill{height:100%;border-radius:2px;transition:width 0.6s ease}
+.bowl-bar-val{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(255,255,255,0.5);width:24px;text-align:right}
+
+.ww-label{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFD700;background:rgba(255,140,0,0.12);padding:5px 14px;border-radius:14px;border:1px solid rgba(255,140,0,0.25)}
+
+.bottom-overlay{position:absolute;bottom:0;left:0;right:0;z-index:15;pointer-events:none;display:flex;align-items:flex-end;padding:16px;gap:14px}
+.bottom-overlay>*{pointer-events:all}
+
+.fut-card{width:200px;flex-shrink:0;background:linear-gradient(160deg,#23074F,#0E0226,#1A0845);border:2px solid rgba(255,215,0,0.35);border-radius:14px;padding:12px;position:relative;overflow:hidden;box-shadow:0 0 25px rgba(255,215,0,0.08)}
+.fut-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#FFD700,#FF8C00,#FFD700,transparent)}
+.fut-photo{width:100%;height:140px;border-radius:10px;background:linear-gradient(160deg,#23074F,rgba(139,92,246,0.35));margin-bottom:8px;position:relative;overflow:hidden;border:1.5px solid rgba(255,215,0,0.2);display:flex;align-items:center;justify-content:center}
+.fut-photo::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(transparent,rgba(0,0,0,0.7))}
+.fut-initials-display{font-family:Orbitron;font-size:36px;font-weight:900}
+.fut-pos{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:Orbitron;font-size:12px;font-weight:900;color:#FFD700;z-index:2;letter-spacing:3px}
+.fut-hexes{display:flex;justify-content:center;gap:10px;margin-top:6px}
+.fut-hex{width:70px;height:78px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.fut-hex-bg{position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,215,0,0.12),rgba(255,140,0,0.06));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+.fut-hex-bdr{position:absolute;inset:-1px;background:linear-gradient(160deg,#FFD700,#FF8C00);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);opacity:.3}
+.fut-hex-v{font-family:Orbitron;font-size:20px;font-weight:900;color:#fff;position:relative;z-index:2}
+.fut-hex-l{font-family:Rajdhani;font-size:6px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FFD700;position:relative;z-index:2;margin-top:2px;text-align:center}
+
+.player-info{flex:1;background:rgba(255,255,255,0.025);backdrop-filter:blur(16px);border:1px solid rgba(255,140,0,0.15);border-radius:12px;padding:14px 18px;max-width:320px;position:relative}
+.player-info::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,0,0.3),transparent);border-radius:12px 12px 0 0}
+.pi-label{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:2px}
+.pi-name{font-family:Orbitron;font-size:18px;font-weight:900;letter-spacing:1px;color:#fff}
+.pi-team{font-family:Rajdhani;font-size:13px;color:#FFD700;letter-spacing:1px}
+.pi-role{font-family:Rajdhani;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35)}
+.pi-stats-title{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:10px 0 6px}
+.pi-stats-row{display:flex;gap:16px}
+.pi-stat{text-align:left}
+.pi-stat-v{font-family:Orbitron;font-size:22px;font-weight:800}
+.pi-stat-l{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35)}
+.pi-bars{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.pi-bar{display:flex;align-items:center;gap:8px}
+.pi-bar-label{font-family:Rajdhani;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.35);width:55px}
+.pi-bar-track{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.pi-bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.pi-bar-val{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(255,255,255,0.5);width:20px;text-align:right}
+
+.right-panel{background:rgba(255,255,255,0.02);backdrop-filter:blur(16px);border-left:1px solid rgba(255,255,255,0.04);padding:16px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.right-panel::-webkit-scrollbar{width:3px}
+.right-panel::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.rp-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:14px;position:relative}
+.rp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,0,0.2),transparent);border-radius:12px 12px 0 0}
+.rp-title{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFD700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rp-title .d{width:4px;height:4px;border-radius:50%;background:#FFD700}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ins-cell{padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.ins-cell-t{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:4px}
+.ins-cell-v{font-family:Orbitron;font-size:16px;font-weight:700}
+
+.zone-legend{position:absolute;bottom:16px;right:16px;z-index:15;pointer-events:all;display:flex;flex-wrap:wrap;gap:4px 12px;background:rgba(8,1,20,0.6);backdrop-filter:blur(10px);padding:8px 12px;border-radius:8px;max-width:420px}
+.zl-item{display:flex;align-items:center;gap:4px;font-family:Rajdhani;font-size:9px;color:rgba(255,255,255,0.45)}
+.zl-dot{width:6px;height:6px;border-radius:50%}
+.zl-pct{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(255,255,255,0.6)}
+.hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Rajdhani;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.1);pointer-events:none;z-index:11}
+
+.loading-overlay{position:fixed;inset:0;background:#080114;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
+.loading-overlay.hidden{opacity:0;pointer-events:none}
+.loading-ring{width:50px;height:50px;border:3px solid rgba(255,215,0,0.15);border-top-color:#FFD700;border-radius:50%;animation:spin .8s linear infinite}
+.loading-text{font-family:Orbitron;font-size:14px;font-weight:700;letter-spacing:4px;color:#FFD700;margin-top:20px}
+.loading-sub{font-family:Rajdhani;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.3);margin-top:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 15px rgba(255,215,0,0.1))}50%{filter:drop-shadow(0 0 30px rgba(255,215,0,0.2))}}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-ring"></div>
+  <div class="loading-text">LOADING SQUAD</div>
+  <div class="loading-sub">Fetching PSL 2026 player data...</div>
+</div>
+
+<nav class="nav" id="main-nav">
+  <div class="nav-brand"><span class="nav-logo">TALAASH</span></div>
+  <div class="nav-links">
+    <a href="/prep"   class="nl">Prep Room</a>
+    <a href="/dugout" class="nl">Dugout</a>
+    <a href="#"       class="nl active">Players</a>
+  </div>
+  <div class="nav-right"><div class="team-badge" id="team-badge">PSL</div></div>
+</nav>
+
+<div class="main" id="main-grid">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="squad-title">Squad Browser</div>
+    <div class="team-filter" id="team-filter"></div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search player" id="squad-search" oninput="renderRoster()">
+      <span class="search-count" id="squad-count">0</span>
+    </div>
+    <div class="roster" id="roster"></div>
+    <div class="squad-count">
+      <span class="squad-count-label">Players Loaded</span>
+      <span class="squad-count-val" id="squad-size">—</span>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <div id="canvas-container">
+      <div class="scene-top">
+        <div class="view-select">
+          <button class="vs-btn active" onclick="setView('perspective',this)">3D-Perspective ⚾</button>
+          <button class="vs-btn" onclick="setView('top',this)">Top Down</button>
+        </div>
+        <div class="ww-label">Wagon Wheel</div>
+      </div>
+
+      <!-- Phase SR — top left -->
+      <div class="info-bar">
+        <div class="info-pill"><span class="dot"></span>PSL 2026 · ALL MATCHES · HOME + AWAY</div>
+        <div class="innings-badge" id="innings-badge">— INNINGS TRACKED</div>
+        <div class="phase-card">
+          <div style="font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFD700;margin-bottom:8px;display:flex;align-items:center;gap:5px">
+            <span style="width:4px;height:4px;border-radius:50%;background:#FFD700;display:inline-block"></span>Phase Strike Rate
+          </div>
+          <div class="phase-row">
+            <span class="phase-label">Powerplay</span>
+            <div class="phase-track"><div class="phase-fill" id="pp-fill" style="width:0%;background:linear-gradient(90deg,#00E5FF,#0097A7)"></div></div>
+            <span class="phase-val" id="pp-val">—</span>
+          </div>
+          <div class="phase-row">
+            <span class="phase-label" style="color:#FFD700">Middle</span>
+            <div class="phase-track"><div class="phase-fill" id="mid-fill" style="width:0%;background:linear-gradient(90deg,#FF8C00,#FFD700)"></div></div>
+            <span class="phase-val" id="mid-val">—</span>
+          </div>
+          <div class="phase-row">
+            <span class="phase-label" style="color:#F44336">Death</span>
+            <div class="phase-track"><div class="phase-fill" id="death-fill" style="width:0%;background:linear-gradient(90deg,#F44336,#FF6A00)"></div></div>
+            <span class="phase-val" id="death-val">—</span>
+          </div>
+          <div style="font-family:Rajdhani;font-size:7px;color:rgba(255,255,255,0.2);margin-top:4px;text-align:right">Max scale: 220 SR</div>
+        </div>
+      </div>
+
+      <!-- Bowling stats — top right -->
+      <div class="bowl-card" id="bowl-hud">
+        <div style="font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B5CF6;margin-bottom:10px;display:flex;align-items:center;gap:5px">
+          <span style="width:4px;height:4px;border-radius:50%;background:#8B5CF6;display:inline-block"></span>Bowling Breakdown
+        </div>
+        <div class="bowl-grid">
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-wkts" style="color:#FFD700">—</div><div class="bowl-cell-l">Wickets</div></div>
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-econ" style="color:#4CAF50">—</div><div class="bowl-cell-l">Economy</div></div>
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-sr"   style="color:#00E5FF">—</div><div class="bowl-cell-l">Bowl SR</div></div>
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-avg"  style="color:#FF8C00">—</div><div class="bowl-cell-l">Bowl Avg</div></div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)">
+          <div style="font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:5px">Career</div>
+          <div style="display:flex;gap:10px">
+            <div>
+              <span style="font-family:Orbitron;font-size:12px;font-weight:800;color:#FFD700" id="bk-runs">—</span>
+              <span style="font-family:Rajdhani;font-size:8px;color:rgba(255,255,255,0.3);margin-left:4px">Bat Runs</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:6px">
+          <div class="bowl-bar-row">
+            <span class="bowl-bar-label">Dot Ball %</span>
+            <div class="bowl-bar-track"><div class="bowl-bar-fill" id="bk-dot-fill" style="width:0%;background:linear-gradient(90deg,#8B5CF6,#6D28D9)"></div></div>
+            <span class="bowl-bar-val" id="bk-dot-val">—</span>
+          </div>
+          <div class="bowl-bar-row">
+            <span class="bowl-bar-label">Boundary %</span>
+            <div class="bowl-bar-track"><div class="bowl-bar-fill" id="bk-bnd-fill" style="width:0%;background:linear-gradient(90deg,#F44336,#FF6A00)"></div></div>
+            <span class="bowl-bar-val" id="bk-bnd-val">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-legend" id="zone-legend"></div>
+      <div class="hint">DRAG TO ORBIT · SCROLL TO ZOOM</div>
+
+      <!-- Bottom overlay -->
+      <div class="bottom-overlay">
+        <div class="fut-card" style="animation:glow 4s ease infinite">
+          <div class="fut-photo">
+            <img id="fut-photo-img" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;display:none" alt="" onerror="this.style.display='none';document.getElementById('fut-initials').style.display='flex'">
+            <div class="fut-initials-display" id="fut-initials" style="color:#FFD700">—</div>
+            <div class="fut-pos" id="fut-pos">—</div>
+          </div>
+          <div class="fut-hexes">
+            <div class="fut-hex"><div class="fut-hex-bdr"></div><div class="fut-hex-bg"></div><div class="fut-hex-v" id="fut-bat">—</div><div class="fut-hex-l">Batting<br>Power</div></div>
+            <div class="fut-hex"><div class="fut-hex-bdr"></div><div class="fut-hex-bg"></div><div class="fut-hex-v" id="fut-bowl">—</div><div class="fut-hex-l">Bowling<br>Power</div></div>
+          </div>
+        </div>
+        <div class="player-info">
+          <div class="pi-label">Player Info</div>
+          <div class="pi-name" id="pi-name">SELECT A PLAYER</div>
+          <div class="pi-team" id="pi-team">—</div>
+          <div class="pi-role" id="pi-role">—</div>
+          <div class="pi-stats-title" id="pi-stats-title">Career Stats</div>
+          <div class="pi-stats-row">
+            <div class="pi-stat"><div class="pi-stat-v" style="color:#FFD700" id="pi-v1">—</div><div class="pi-stat-l" id="pi-l1">—</div></div>
+            <div class="pi-stat"><div class="pi-stat-v" style="color:#4CAF50" id="pi-v2">—</div><div class="pi-stat-l" id="pi-l2">—</div></div>
+            <div class="pi-stat"><div class="pi-stat-v" style="color:#00E5FF" id="pi-v3">—</div><div class="pi-stat-l" id="pi-l3">—</div></div>
+          </div>
+          <div class="pi-bars">
+            <div class="pi-bar"><span class="pi-bar-label">Batting</span><div class="pi-bar-track"><div class="pi-bar-fill" id="pi-bat-fill" style="width:0%;background:linear-gradient(90deg,#FFD700,#FF8C00)"></div></div><span class="pi-bar-val" id="pi-bat-val">0</span></div>
+            <div class="pi-bar"><span class="pi-bar-label">Bowling</span><div class="pi-bar-track"><div class="pi-bar-fill" id="pi-bowl-fill" style="width:0%;background:linear-gradient(90deg,#00E5FF,#0097A7)"></div></div><span class="pi-bar-val" id="pi-bowl-val">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-card">
+      <div class="rp-title"><span class="d"></span>Career Statistics</div>
+      <div class="ins-grid">
+        <div class="ins-cell"><div class="ins-cell-t">Bat Average</div><div class="ins-cell-v" style="color:#FFD700" id="cs-avg">—</div></div>
+        <div class="ins-cell"><div class="ins-cell-t">Strike Rate</div><div class="ins-cell-v" style="color:#00E5FF" id="cs-sr">—</div></div>
+        <div class="ins-cell"><div class="ins-cell-t">Wickets</div><div class="ins-cell-v" style="color:#8B5CF6" id="cs-wkts">—</div></div>
+        <div class="ins-cell"><div class="ins-cell-t">Economy</div><div class="ins-cell-v" style="color:#4CAF50" id="cs-econ">—</div></div>
+        <div class="ins-cell"><div class="ins-cell-t">Boundary %</div><div class="ins-cell-v" style="color:#FF8C00" id="cs-bnd">—</div></div>
+        <div class="ins-cell"><div class="ins-cell-t">Dot Ball %</div><div class="ins-cell-v" style="color:#F44336" id="cs-dot">—</div></div>
+      </div>
+    </div>
+
+    <div class="rp-card" id="t20-card">
+      <div class="rp-title"><span class="d"></span>T20 Performance – Last 3 Seasons</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:#F44336"></div><span style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.5)">2023</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:#FFD700"></div><span style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.5)">2024</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:#4CAF50"></div><span style="font-family:Rajdhani;font-size:10px;color:rgba(255,255,255,0.5)">2025</span></div>
+      </div>
+      <div style="display:flex;justify-content:center" id="radar-container"></div>
+      <div style="margin-top:10px" id="yoy-stats"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── IFRAME DETECTION ───
+if (window.self !== window.top) {
+  document.getElementById('main-nav').style.display = 'none';
+  // Zero out internal nav spacing — outer Dash page handles the offset
+  document.documentElement.style.setProperty('--nav-h', '0px');
+}
+
+// ─── STATE ───
+let squad = [], selectedIdx = 0, activeTeam = 'ALL';
+
+// ─── ZONE CONFIG ───
+const zoneColorHex = ["#F44336","#FF8C00","#00E5FF","#4CAF50","#FFD700","#FF6A00","#8B5CF6","#E91E63"];
+const zoneColors   = [0xF44336, 0xFF8C00, 0x00E5FF, 0x4CAF50, 0xFFD700, 0xFF6A00, 0x8B5CF6, 0xE91E63];
+const zoneNames    = ["Fine Leg","Square Leg","Mid Wicket","Long On","Long Off","Cover","Point","Third Man"];
+const zoneKeys     = ["fl","sl","mw","lo","lf","cv","pt","tm"];
+const zoneAngles   = [0, 45, 90, 135, 180, 225, 270, 315];
+
+document.getElementById('zone-legend').innerHTML = zoneNames.map((n,i) =>
+  `<div class="zl-item"><div class="zl-dot" style="background:${zoneColorHex[i]}"></div>${n} <span class="zl-pct" id="zl-${i}">—</span></div>`
+).join('');
+
+// ─── LOAD DATA ───
+async function loadData() {
+  try {
+    const r = await fetch('/api/players-data');
+    const d = await r.json();
+    squad = (d.players || []).filter(p => p.name);
+  } catch(e) { squad = []; }
+  document.getElementById('squad-size').textContent = squad.length;
+  buildTeamFilter(); renderRoster();
+  if (squad.length > 0) selectPlayer(0);
+  const ol = document.getElementById('loading-overlay');
+  ol.classList.add('hidden'); setTimeout(() => ol.remove(), 600);
+}
+
+function buildTeamFilter() {
+  const teams = ['ALL', ...new Set(squad.map(p => p.team).filter(Boolean))].sort();
+  document.getElementById('team-filter').innerHTML = teams.map(t =>
+    `<button class="team-pill ${t === activeTeam ? 'active' : ''}" onclick="setTeam('${t}')">${t === 'ALL' ? 'ALL' : t.split(' ').map(w=>w[0]).join('').slice(0,3)}</button>`
+  ).join('');
+}
+function setTeam(t) { activeTeam = t; buildTeamFilter(); renderRoster(); }
+
+function renderRoster() {
+  const filter = (document.getElementById('squad-search').value || '').toLowerCase();
+  const filtered = squad.filter(p =>
+    (activeTeam === 'ALL' || p.team === activeTeam) && (!filter || p.name.toLowerCase().includes(filter))
+  );
+  document.getElementById('squad-count').textContent = filtered.length;
+  document.getElementById('roster').innerHTML = filtered.map(p => {
+    const ri = squad.indexOf(p), isActive = ri === selectedIdx;
+    return `<div class="roster-item ${isActive ? 'active' : ''}" onclick="selectPlayer(${ri})">
+      <div class="roster-av" style="background:${p.color}22;color:${p.color}">
+        ${p.photo ? `<img src="/${p.photo}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;border-radius:50%" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">` : ''}
+        <span style="font-family:Orbitron;font-size:10px;font-weight:700;display:${p.photo?'none':'flex'};align-items:center;justify-content:center;width:100%;height:100%">${p.initials}</span>
+        <span class="roster-check">✓</span>
+      </div>
+      <div><div class="roster-name">${p.name}</div><div class="roster-role">${p.role}</div></div>
+      <span class="roster-arrow">›</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── SELECT PLAYER ───
+function selectPlayer(idx) {
+  selectedIdx = idx; const p = squad[idx]; if (!p) return;
+  renderRoster();
+
+  // FUT card
+  const _photoEl = document.getElementById('fut-photo-img');
+  const _initEl  = document.getElementById('fut-initials');
+  if (p.photo) {
+    _photoEl.src = '/' + p.photo;
+    _photoEl.style.display = 'block';
+    _initEl.style.display  = 'none';
+    _photoEl.onerror = () => {
+      const jpeg = '/' + p.photo.replace('.png', '.jpeg');
+      if (_photoEl.src.indexOf('.jpeg') === -1) { _photoEl.src = jpeg; }
+      else { _photoEl.style.display = 'none'; _initEl.style.display = 'flex'; }
+    };
+  } else {
+    _photoEl.style.display = 'none';
+    _initEl.style.display  = 'flex';
+  }
+  _initEl.textContent = p.initials || '—';
+  _initEl.style.color = p.color || '#FFD700';
+  document.getElementById('fut-pos').textContent = p.pos || '—';
+  document.getElementById('fut-bat').textContent  = p.bat_rating  || 0;
+  document.getElementById('fut-bowl').textContent = p.bowl_rating || 0;
+  document.getElementById('innings-badge').textContent = (p.bat_innings || '—') + ' INNINGS TRACKED';
+
+  // Player info
+  document.getElementById('pi-name').textContent = p.name.toUpperCase();
+  document.getElementById('pi-team').textContent = p.team || '—';
+  document.getElementById('pi-role').textContent = p.role || '—';
+  const isBowler = p.role === 'Bowler';
+  const isAR = p.role === 'All-Rounder' || p.role === 'All-rounder';
+  if (isBowler) {
+    document.getElementById('pi-stats-title').textContent = 'Bowling Stats';
+    document.getElementById('pi-v1').textContent = p.bowl_wickets || 0;   document.getElementById('pi-l1').textContent = 'Wickets';
+    document.getElementById('pi-v2').textContent = p.bowl_economy || '—'; document.getElementById('pi-l2').textContent = 'Economy';
+    document.getElementById('pi-v3').textContent = p.bowl_sr      || '—'; document.getElementById('pi-l3').textContent = 'Bowl SR';
+  } else {
+    document.getElementById('pi-stats-title').textContent = isAR ? 'Key Stats' : 'Batting Stats';
+    document.getElementById('pi-v1').textContent = p.bat_avg || '—'; document.getElementById('pi-l1').textContent = 'Average';
+    document.getElementById('pi-v2').textContent = p.bat_sr  || '—'; document.getElementById('pi-l2').textContent = 'Strike Rate';
+    document.getElementById('pi-v3').textContent = isAR ? (p.bowl_wickets || 0) : (p.bat_bnd || '—');
+    document.getElementById('pi-l3').textContent = isAR ? 'Wickets' : 'Boundary%';
+  }
+  document.getElementById('pi-bat-fill').style.width  = (p.bat_rating  || 0) + '%';
+  document.getElementById('pi-bat-val').textContent   = p.bat_rating  || 0;
+  document.getElementById('pi-bowl-fill').style.width = (p.bowl_rating || 0) + '%';
+  document.getElementById('pi-bowl-val').textContent  = p.bowl_rating || 0;
+
+  // Phase SR
+  const maxSR = 220;
+  const ppSR = p.pp_sr||0, midSR = p.mid_sr||0, deathSR = p.death_sr||0;
+  document.getElementById('pp-fill').style.width    = Math.min(100, ppSR/maxSR*100).toFixed(1) + '%';
+  document.getElementById('pp-val').textContent     = ppSR > 0 ? ppSR : '—';
+  document.getElementById('mid-fill').style.width   = Math.min(100, midSR/maxSR*100).toFixed(1) + '%';
+  document.getElementById('mid-val').textContent    = midSR > 0 ? midSR : '—';
+  document.getElementById('death-fill').style.width = Math.min(100, deathSR/maxSR*100).toFixed(1) + '%';
+  document.getElementById('death-val').textContent  = deathSR > 0 ? deathSR : '—';
+
+  // Bowling HUD card (top right)
+  const hasBowl = (p.bowl_wickets || 0) > 0;
+  const hudCard = document.getElementById('bowl-hud');
+  hudCard.style.opacity = hasBowl ? '1' : '0.4';
+  hudCard.style.borderColor = hasBowl ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.05)';
+  document.getElementById('bk-wkts').textContent = p.bowl_wickets || '—';
+  document.getElementById('bk-econ').textContent = p.bowl_economy || '—';
+  document.getElementById('bk-sr').textContent   = p.bowl_sr      || '—';
+  document.getElementById('bk-avg').textContent  = p.bowl_avg     || '—';
+  document.getElementById('bk-runs').textContent = p.bat_runs     || '—';
+  const dotPct = p.bowl_dot || 0, bndPct = p.bowl_bnd || 0;
+  document.getElementById('bk-dot-fill').style.width = dotPct + '%';
+  document.getElementById('bk-dot-val').textContent  = dotPct > 0 ? dotPct + '%' : '—';
+  document.getElementById('bk-bnd-fill').style.width = bndPct + '%';
+  document.getElementById('bk-bnd-val').textContent  = bndPct > 0 ? bndPct + '%' : '—';
+
+  // Right panel career stats
+  document.getElementById('cs-avg').textContent  = p.bat_avg  || '—';
+  document.getElementById('cs-sr').textContent   = p.bat_sr   || '—';
+  document.getElementById('cs-wkts').textContent = p.bowl_wickets !== undefined ? p.bowl_wickets : '—';
+  document.getElementById('cs-econ').textContent = p.bowl_economy || '—';
+  document.getElementById('cs-bnd').textContent  = p.bat_bnd ? p.bat_bnd + '%' : '—';
+  document.getElementById('cs-dot').textContent  = p.bat_dot ? p.bat_dot + '%' : '—';
+
+  // T20 radar + YoY
+  buildT20Radar(p); buildYoYStats(p);
+
+  // 3D
+  rebuildBars(p.zones || {});
+  buildHeatmap(p.bowl_heatmap || null);
+}
+
+// ─── T20 RADAR ───
+function buildT20Radar(player) {
+  const el = document.getElementById('radar-container');
+  const t20 = player.t20, card = document.getElementById('t20-card');
+  const seasons = [2023, 2024, 2025];
+  const hasData = t20 && seasons.some(y => t20[y]);
+  if (!hasData) { card.style.display = 'none'; el.innerHTML = ''; return; }
+  card.style.display = 'block';
+  const axes = [{label:'BAT AVG',max:60},{label:'STRIKE RT',max:180},{label:'WICKETS',max:30},{label:'ECONOMY',max:10,inv:true},{label:'BOUNDARY',max:50},{label:'DOT BALL',max:50,inv:true}];
+  const yearDefs = [{yr:2023,color:'#F44336',fill:'rgba(244,67,54,0.08)'},{yr:2024,color:'#FFD700',fill:'rgba(255,215,0,0.06)'},{yr:2025,color:'#4CAF50',fill:'rgba(76,175,80,0.10)'}];
+  const cx=120,cy=110,r=78,n=axes.length;
+  let svg = `<svg width="240" height="240" viewBox="0 0 240 240">`;
+  for(let ring=1;ring<=3;ring++){const rr=r*ring/3;let pts=[];for(let i=0;i<n;i++){const a=(Math.PI*2*i/n)-Math.PI/2;pts.push(`${cx+Math.cos(a)*rr},${cy+Math.sin(a)*rr}`);}svg+=`<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,${0.06-ring*0.01})" stroke-width="${ring===1?1:0.5}"/>`;}
+  for(let i=0;i<n;i++){const a=(Math.PI*2*i/n)-Math.PI/2;svg+=`<line x1="${cx}" y1="${cy}" x2="${cx+Math.cos(a)*r}" y2="${cy+Math.sin(a)*r}" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>`;}
+  yearDefs.forEach(yd=>{const d=t20&&t20[yd.yr];if(!d)return;const vals=[d.avg/axes[0].max,d.sr/axes[1].max,d.wkts/axes[2].max,axes[3].inv?1-d.econ/axes[3].max:d.econ/axes[3].max,d.bnd/axes[4].max,axes[5].inv?1-d.dot/axes[5].max:d.dot/axes[5].max];let pts=[];for(let i=0;i<n;i++){const a=(Math.PI*2*i/n)-Math.PI/2;const v=Math.min(1,Math.max(0,vals[i]));pts.push(`${cx+Math.cos(a)*r*v},${cy+Math.sin(a)*r*v}`);}svg+=`<polygon points="${pts.join(' ')}" fill="${yd.fill}" stroke="${yd.color}" stroke-width="1.8"/>`;for(let i=0;i<n;i++){const a=(Math.PI*2*i/n)-Math.PI/2;const v=Math.min(1,Math.max(0,vals[i]));svg+=`<circle cx="${cx+Math.cos(a)*r*v}" cy="${cy+Math.sin(a)*r*v}" r="2.5" fill="${yd.color}" opacity="0.85"/>`;}});
+  const ld=r+18;for(let i=0;i<n;i++){const a=(Math.PI*2*i/n)-Math.PI/2;const lx=cx+Math.cos(a)*ld,ly=cy+Math.sin(a)*ld;const anch=lx<cx-8?'end':lx>cx+8?'start':'middle';svg+=`<text x="${lx}" y="${ly+3}" text-anchor="${anch}" fill="rgba(255,255,255,0.5)" font-size="7" font-family="Rajdhani" font-weight="600" letter-spacing="0.8">${axes[i].label}</text>`;}
+  svg+=`</svg>`; el.innerHTML=svg;
+}
+
+function buildYoYStats(player) {
+  const el=document.getElementById('yoy-stats'), t20=player.t20;
+  if(!t20){el.innerHTML='';return;}
+  const metrics=[{key:'avg',label:'Avg',fmt:v=>v.toFixed(1)},{key:'sr',label:'SR',fmt:v=>v.toFixed(1)},{key:'wkts',label:'Wkts',fmt:v=>v},{key:'econ',label:'Econ',fmt:v=>v.toFixed(2),lb:true}];
+  const years=[2023,2024,2025];
+  const first=years.find(y=>t20[y]),last=[...years].reverse().find(y=>t20[y]);
+  if(!first||!last||first===last){el.innerHTML='';return;}
+  let html='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px">';
+  metrics.forEach(m=>{const vF=t20[first]?t20[first][m.key]:null,vL=t20[last]?t20[last][m.key]:null;if(vF===null||vL===null)return;const diff=vL-vF,improved=m.lb?diff<0:diff>0;const ac=improved?'#4CAF50':'#F44336',sign=diff>0?'+':'';html+=`<div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.03)"><div style="font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3)">${m.label}</div><div style="font-family:Orbitron;font-size:14px;font-weight:700;color:#FFD700;margin:2px 0">${m.fmt(vL)}</div><div style="font-size:9px;color:${ac}">${improved?'↑':'↓'} ${sign}${m.fmt(diff)}</div></div>`;});
+  html+='</div>'; el.innerHTML=html;
+}
+
+// ─── THREE.JS SCENE ───
+const container=document.getElementById('canvas-container');
+const scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x080114,0.015);
+const camera=new THREE.PerspectiveCamera(45,1,0.1,1000); camera.position.set(30,25,30); camera.lookAt(0,0,0);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.8;
+container.appendChild(renderer.domElement);
+function resizeRenderer(){const w=container.clientWidth,h=container.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);renderer.setPixelRatio(Math.min(devicePixelRatio,2));}
+resizeRenderer(); window.addEventListener('resize',resizeRenderer);
+
+scene.add(new THREE.AmbientLight(0x1a0845,0.6));
+const spot=new THREE.SpotLight(0x8B5CF6,2,100,Math.PI/4,0.5,1); spot.position.set(0,50,0); spot.castShadow=true; spot.shadow.mapSize.set(2048,2048); scene.add(spot);
+const goldL=new THREE.PointLight(0xFFD700,0.8,60); goldL.position.set(20,15,20); scene.add(goldL);
+const purpL=new THREE.PointLight(0x23074F,0.5,80); purpL.position.set(-20,10,-20); scene.add(purpL);
+
+const grnd=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x080114,roughness:0.95})); grnd.rotation.x=-Math.PI/2; grnd.position.y=-0.5; scene.add(grnd);
+const fR=18;
+const fld=new THREE.Mesh(new THREE.CircleGeometry(fR,64),new THREE.MeshStandardMaterial({color:0x1a5c1a,roughness:0.8})); fld.rotation.x=-Math.PI/2; scene.add(fld);
+for(let i=-fR;i<fR;i+=2.4){const s=new THREE.Mesh(new THREE.PlaneGeometry(fR*2,1.2),new THREE.MeshStandardMaterial({color:i%4.8<2.4?0x1e6b1e:0x1a5c1a,transparent:true,opacity:0.4}));s.rotation.x=-Math.PI/2;s.position.set(0,0.01,i);scene.add(s);}
+const bnd=new THREE.Mesh(new THREE.RingGeometry(fR-0.15,fR+0.15,128),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:0.6,side:THREE.DoubleSide})); bnd.rotation.x=-Math.PI/2; bnd.position.y=0.02; scene.add(bnd);
+const bgl=new THREE.Mesh(new THREE.RingGeometry(fR-0.5,fR+0.5,128),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:0.08,side:THREE.DoubleSide})); bgl.rotation.x=-Math.PI/2; bgl.position.y=0.01; scene.add(bgl);
+
+const pitchW=4,pitchD=10;
+const pit=new THREE.Mesh(new THREE.BoxGeometry(pitchW,0.1,pitchD),new THREE.MeshStandardMaterial({color:0xC4A87C,roughness:0.7})); pit.position.y=0.05; scene.add(pit);
+for(const z of[-(pitchD/2-0.5),pitchD/2-0.5]){const c=new THREE.Mesh(new THREE.BoxGeometry(pitchW-0.5,0.02,0.06),new THREE.MeshBasicMaterial({color:0xffffff}));c.position.set(0,0.11,z);scene.add(c);}
+for(const s of[-(pitchD/2-0.5),pitchD/2-0.5])for(const x of[-0.2,0,0.2]){const st=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1,8),new THREE.MeshStandardMaterial({color:0xD4A574}));st.position.set(x,0.6,s);scene.add(st);}
+
+// ─── SMOOTH GRADIENT HEATMAP ───
+const heatmapGroup=new THREE.Group(); scene.add(heatmapGroup);
+let heatmapTexture=null;
+const HM_W=256,HM_H=512;
+
+function buildHeatmap(heatmapData) {
+  while(heatmapGroup.children.length>0){const c=heatmapGroup.children[0];if(c.geometry)c.geometry.dispose();if(c.material){if(c.material.map)c.material.map.dispose();c.material.dispose();}heatmapGroup.remove(c);}
+  if(!heatmapData)return;
+  let maxVal=0; heatmapData.forEach(row=>row.forEach(v=>{if(v>maxVal)maxVal=v;}));
+  if(maxVal===0)return;
+
+  const canvas=document.createElement('canvas'); canvas.width=HM_W; canvas.height=HM_H;
+  const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,HM_W,HM_H);
+  const colCount=3,rowCount=6,cellW=HM_W/colCount,cellH=HM_H/rowCount;
+  const blobR=Math.max(cellW,cellH)*0.9;
+
+  for(let row=0;row<rowCount;row++){for(let col=0;col<colCount;col++){const val=heatmapData[row][col];if(val===0)continue;const intensity=val/maxVal;const cx=(col+0.5)*cellW,cy=(row+0.5)*cellH;
+    let r,g,b;
+    if(intensity<0.25){r=60;g=40;b=200;}else if(intensity<0.45){r=0;g=180;b=220;}else if(intensity<0.65){r=255;g=200;b=0;}else if(intensity<0.85){r=255;g=120;b=0;}else{r=255;g=40;b=20;}
+    const alpha=0.35+intensity*0.55;
+    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,blobR);
+    grad.addColorStop(0,`rgba(${r},${g},${b},${alpha})`);grad.addColorStop(0.3,`rgba(${r},${g},${b},${alpha*0.7})`);grad.addColorStop(0.6,`rgba(${r},${g},${b},${alpha*0.3})`);grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
+    ctx.fillStyle=grad; ctx.fillRect(cx-blobR,cy-blobR,blobR*2,blobR*2);
+  }}
+
+  // Hot core highlights
+  for(let row=0;row<rowCount;row++){for(let col=0;col<colCount;col++){const val=heatmapData[row][col],intensity=val/maxVal;if(intensity<0.5)continue;const cx=(col+0.5)*cellW,cy=(row+0.5)*cellH,iR=blobR*0.3;
+    const g2=ctx.createRadialGradient(cx,cy,0,cx,cy,iR);const ca=(intensity-0.5)*0.8;
+    g2.addColorStop(0,`rgba(255,255,200,${ca})`);g2.addColorStop(0.5,`rgba(255,180,50,${ca*0.5})`);g2.addColorStop(1,`rgba(255,100,0,0)`);
+    ctx.fillStyle=g2;ctx.fillRect(cx-iR,cy-iR,iR*2,iR*2);
+  }}
+
+  // Blur pass
+  const imgD=ctx.getImageData(0,0,HM_W,HM_H),blur=ctx.createImageData(HM_W,HM_H);
+  const d=imgD.data,bd=blur.data,blurR=3;
+  for(let y=0;y<HM_H;y++){for(let x=0;x<HM_W;x++){let rs=0,gs=0,bs=0,as=0,cnt=0;for(let dy=-blurR;dy<=blurR;dy++){for(let dx=-blurR;dx<=blurR;dx++){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<HM_W&&ny>=0&&ny<HM_H){const idx=(ny*HM_W+nx)*4;rs+=d[idx];gs+=d[idx+1];bs+=d[idx+2];as+=d[idx+3];cnt++;}}}const idx=(y*HM_W+x)*4;bd[idx]=rs/cnt;bd[idx+1]=gs/cnt;bd[idx+2]=bs/cnt;bd[idx+3]=as/cnt;}}
+  ctx.putImageData(blur,0,0);
+
+  if(heatmapTexture)heatmapTexture.dispose();
+  heatmapTexture=new THREE.CanvasTexture(canvas);
+  heatmapTexture.minFilter=THREE.LinearFilter; heatmapTexture.magFilter=THREE.LinearFilter;
+
+  const hmMesh=new THREE.Mesh(new THREE.PlaneGeometry(pitchW-0.2,pitchD-0.6),new THREE.MeshBasicMaterial({map:heatmapTexture,transparent:true,opacity:0.85,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+  hmMesh.rotation.x=-Math.PI/2; hmMesh.position.set(0,0.12,0); heatmapGroup.add(hmMesh);
+
+  // Wicket labels for significant zones
+  const cellW2=(pitchW-0.4)/3,cellD2=(pitchD-1.0)/6;
+  for(let row=0;row<rowCount;row++){for(let col=0;col<colCount;col++){const val=heatmapData[row][col];if(val<2)continue;const intensity=val/maxVal;
+    const xPos=(col-1)*cellW2,zPos=-(pitchD/2-0.5)+(row+0.5)*cellD2;
+    const lc=document.createElement('canvas');lc.width=80;lc.height=48;const lx=lc.getContext('2d');
+    lx.fillStyle='rgba(8,1,20,0.75)';lx.beginPath();lx.roundRect(4,4,72,40,8);lx.fill();
+    lx.strokeStyle=intensity>0.6?'rgba(255,140,0,0.4)':'rgba(255,255,255,0.15)';lx.lineWidth=1;lx.beginPath();lx.roundRect(4,4,72,40,8);lx.stroke();
+    lx.fillStyle=intensity>0.6?'#FFD700':'#FFFFFF';lx.font='900 22px sans-serif';lx.textAlign='center';lx.fillText(val+'W',40,32);
+    const lt=new THREE.CanvasTexture(lc);lt.minFilter=THREE.LinearFilter;
+    const ls=new THREE.Sprite(new THREE.SpriteMaterial({map:lt,transparent:true,opacity:0.9,depthTest:false}));
+    ls.position.set(xPos,0.6+intensity*0.3,zPos);ls.scale.set(1.3,0.8,1);ls.renderOrder=1000;heatmapGroup.add(ls);
+  }}
+
+  // Length labels
+  const lenNames=["SHORT","SH-GOOD","GOOD LEN","FULL","YORKER","F-TOSS"];
+  for(let row=0;row<6;row++){const zPos=-(pitchD/2-0.5)+(row+0.5)*cellD2;const cv=document.createElement('canvas');cv.width=140;cv.height=32;const cx2=cv.getContext('2d');cx2.fillStyle='rgba(255,255,255,0.4)';cx2.font='600 14px sans-serif';cx2.textAlign='left';cx2.fillText(lenNames[row],4,22);const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,opacity:0.6,depthTest:false}));s.position.set(pitchW/2+1.5,0.25,zPos);s.scale.set(2.2,0.55,1);s.renderOrder=999;heatmapGroup.add(s);}
+
+  // Line labels
+  const lineNames=["OFF","MID","LEG"];
+  for(let col=0;col<3;col++){const xPos=(col-1)*cellW2;const cv=document.createElement('canvas');cv.width=64;cv.height=32;const cx3=cv.getContext('2d');cx3.fillStyle='rgba(255,215,0,0.5)';cx3.font='700 16px sans-serif';cx3.textAlign='center';cx3.fillText(lineNames[col],32,22);const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,opacity:0.7,depthTest:false}));s.position.set(xPos,0.25,-(pitchD/2+0.6));s.scale.set(1.2,0.5,1);s.renderOrder=999;heatmapGroup.add(s);}
+
+  // Title
+  const tc=document.createElement('canvas');tc.width=280;tc.height=40;const tct=tc.getContext('2d');tct.fillStyle='rgba(255,215,0,0.6)';tct.font='800 20px sans-serif';tct.textAlign='center';tct.fillText('WICKET HEATMAP',140,28);const tt=new THREE.CanvasTexture(tc);tt.minFilter=THREE.LinearFilter;const ts=new THREE.Sprite(new THREE.SpriteMaterial({map:tt,transparent:true,opacity:0.6,depthTest:false}));ts.position.set(0,1.3,-(pitchD/2+1.3));ts.scale.set(4.5,0.7,1);ts.renderOrder=999;heatmapGroup.add(ts);
+}
+
+// Zone segments + dividers
+const zoneGrp=new THREE.Group();
+zoneAngles.forEach((angle,i)=>{const sa=(angle-22.5)*Math.PI/180,ea=(angle+22.5)*Math.PI/180;const sh=new THREE.Shape();sh.moveTo(0,0);for(let j=0;j<=32;j++){const a=sa+(ea-sa)*(j/32);sh.lineTo(Math.cos(a)*fR*0.95,Math.sin(a)*fR*0.95);}sh.lineTo(0,0);const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshBasicMaterial({color:zoneColors[i],transparent:true,opacity:0.12,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.position.y=0.03;zoneGrp.add(m);});
+scene.add(zoneGrp);
+zoneAngles.forEach(angle=>{const a=angle*Math.PI/180;scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0.04,0),new THREE.Vector3(Math.cos(a)*fR*0.95,0.04,Math.sin(a)*fR*0.95)]),new THREE.LineBasicMaterial({color:0xFFD700,transparent:true,opacity:0.15})));});
+
+// ─── 3D BARS ───
+const barsGrp=new THREE.Group(); scene.add(barsGrp);
+const maxH=10,NUM_BARS=64,barWidth=0.55,ringDist=fR*0.72;
+const barGeo=new THREE.BoxGeometry(barWidth,1,barWidth);
+
+function interpH(angleDeg,zd){let c1=null,c2=null,d1=999,d2=999;zd.forEach(z=>{let diff=Math.abs(angleDeg-z.angle);if(diff>180)diff=360-diff;if(diff<d1){d2=d1;c2=c1;d1=diff;c1=z;}else if(diff<d2){d2=diff;c2=z;}});if(!c1)return 5;if(!c2)return c1.pct;const tot=d1+d2;return Math.max(2,Math.min(25,(tot===0?c1.pct:(c1.pct*(1-d1/tot)+c2.pct*(1-d2/tot)))+(Math.random()-0.5)*4));}
+function nearCol(angleDeg,zd){let b=zd[0],bd=999;zd.forEach(z=>{let d=Math.abs(angleDeg-z.angle);if(d>180)d=360-d;if(d<bd){bd=d;b=z;}});return b?b.color:0xFFD700;}
+
+function buildBars(zd){
+  while(barsGrp.children.length>0){const c=barsGrp.children[0];if(c.geometry)c.geometry.dispose();if(c.material)c.material.dispose();barsGrp.remove(c);}
+  for(let i=0;i<NUM_BARS;i++){const angleDeg=(i/NUM_BARS)*360,angleRad=angleDeg*Math.PI/180,pct=interpH(angleDeg,zd),h=(pct/25)*maxH,color=nearCol(angleDeg,zd);
+    const mat=new THREE.MeshStandardMaterial({color,roughness:0.25,metalness:0.7,emissive:color,emissiveIntensity:0.2,transparent:true,opacity:0.9});
+    const bar=new THREE.Mesh(barGeo,mat);bar.scale.y=h;bar.position.set(Math.cos(angleRad)*ringDist,h/2+0.05,Math.sin(angleRad)*ringDist);bar.rotation.y=-angleRad+Math.PI/2;bar.userData={targetHeight:h,angleDeg};barsGrp.add(bar);
+    const bg=new THREE.Mesh(new THREE.PlaneGeometry(barWidth*2,barWidth*2),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.12,side:THREE.DoubleSide}));bg.rotation.x=-Math.PI/2;bg.position.set(Math.cos(angleRad)*ringDist,0.03,Math.sin(angleRad)*ringDist);bg.userData={isGlow:true};barsGrp.add(bg);
+    const tc=new THREE.Mesh(new THREE.PlaneGeometry(barWidth*1.3,barWidth*1.3),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.35,side:THREE.DoubleSide}));tc.rotation.x=-Math.PI/2;tc.position.set(Math.cos(angleRad)*ringDist,h+0.08,Math.sin(angleRad)*ringDist);tc.userData={isTopCap:true,baseY:h+0.08};barsGrp.add(tc);
+  }
+}
+
+const labelSprites=[];
+function buildLabels(zd){
+  labelSprites.forEach(s=>scene.remove(s));labelSprites.length=0;
+  zd.forEach(z=>{const a=z.angle*Math.PI/180;const cv=document.createElement('canvas');cv.width=320;cv.height=100;const ctx=cv.getContext('2d');
+    ctx.fillStyle='rgba(8,1,20,0.92)';ctx.beginPath();ctx.roundRect(8,8,304,84,12);ctx.fill();
+    ctx.strokeStyle='rgba(255,215,0,0.4)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(8,8,304,84,12);ctx.stroke();
+    ctx.fillStyle='#FFFFFF';ctx.font='700 28px Rajdhani,sans-serif';ctx.textAlign='center';ctx.fillText(z.name,160,44);
+    ctx.fillStyle='#FFD700';ctx.font='900 30px sans-serif';ctx.fillText(z.pct+'%',160,78);
+    const tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0.95,depthTest:false}));
+    sp.position.set(Math.cos(a)*fR*1.05,1.5,Math.sin(a)*fR*1.05);sp.scale.set(5.5,1.8,1);sp.renderOrder=999;
+    scene.add(sp);labelSprites.push(sp);
+  });
+}
+
+function rebuildBars(pz){
+  const zd=zoneNames.map((name,i)=>({name,angle:zoneAngles[i],pct:pz[zoneKeys[i]]||0,color:zoneColors[i]}));
+  buildBars(zd);buildLabels(zd);
+  zd.forEach((z,i)=>{const el=document.getElementById('zl-'+i);if(el)el.textContent=z.pct+'%';});
+}
+
+// Particles
+const pCnt=150,pGeo=new THREE.BufferGeometry(),pPos=new Float32Array(pCnt*3),pSpd=[];
+for(let i=0;i<pCnt;i++){pPos[i*3]=(Math.random()-0.5)*60;pPos[i*3+1]=Math.random()*25;pPos[i*3+2]=(Math.random()-0.5)*60;pSpd.push(0.005+Math.random()*0.015);}
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+const pts=new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x8B5CF6,size:0.08,transparent:true,opacity:0.3,blending:THREE.AdditiveBlending}));
+scene.add(pts);
+
+// ─── CAMERA ORBIT ───
+let drag=false,prev={x:0,y:0},sph={theta:Math.PI/4,phi:Math.PI/4,radius:45},tgt={...sph};
+function updCam(){sph.theta+=(tgt.theta-sph.theta)*0.08;sph.phi+=(tgt.phi-sph.phi)*0.08;sph.radius+=(tgt.radius-sph.radius)*0.08;sph.phi=Math.max(0.1,Math.min(Math.PI/2.2,sph.phi));sph.radius=Math.max(20,Math.min(70,sph.radius));camera.position.set(sph.radius*Math.sin(sph.phi)*Math.cos(sph.theta),sph.radius*Math.cos(sph.phi),sph.radius*Math.sin(sph.phi)*Math.sin(sph.theta));camera.lookAt(0,2,0);}
+renderer.domElement.addEventListener('mousedown', e=>{drag=true;prev={x:e.clientX,y:e.clientY};});
+renderer.domElement.addEventListener('mousemove', e=>{if(!drag)return;tgt.theta-=(e.clientX-prev.x)*0.005;tgt.phi-=(e.clientY-prev.y)*0.005;prev={x:e.clientX,y:e.clientY};});
+renderer.domElement.addEventListener('mouseup',   ()=>drag=false);
+renderer.domElement.addEventListener('mouseleave',()=>drag=false);
+renderer.domElement.addEventListener('wheel',     e=>tgt.radius+=e.deltaY*0.03);
+renderer.domElement.addEventListener('touchstart',e=>{drag=true;prev={x:e.touches[0].clientX,y:e.touches[0].clientY};});
+renderer.domElement.addEventListener('touchmove', e=>{if(!drag)return;tgt.theta-=(e.touches[0].clientX-prev.x)*0.005;tgt.phi-=(e.touches[0].clientY-prev.y)*0.005;prev={x:e.touches[0].clientX,y:e.touches[0].clientY};});
+renderer.domElement.addEventListener('touchend',  ()=>drag=false);
+function setView(v,btn){document.querySelectorAll('.vs-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(v==='perspective')tgt={theta:Math.PI/4,phi:Math.PI/4,radius:45};else tgt={theta:0,phi:0.15,radius:35};}
+
+// ─── ANIMATE ───
+const clk=new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate); const t=clk.getElapsedTime();
+  tgt.theta+=drag?0:0.0015; updCam();
+  barsGrp.children.forEach(c=>{
+    if(c.userData&&c.userData.targetHeight!==undefined){const wo=(c.userData.angleDeg||0)*Math.PI/180;const br=1+Math.sin(t*2+wo*3)*0.04;const h=c.userData.targetHeight*(1+Math.sin(t*1.2+wo*2)*0.03);c.scale.x=br;c.scale.z=br;c.scale.y=h;c.position.y=h/2+0.05;}
+    if(c.userData&&c.userData.isTopCap){const w=(c.userData.baseY||5)*0.5;c.position.y=c.userData.baseY*(1+Math.sin(t*1.2+w)*0.03);}
+  });
+  const pa=pts.geometry.attributes.position.array;
+  for(let i=0;i<pCnt;i++){pa[i*3+1]+=pSpd[i];if(pa[i*3+1]>25)pa[i*3+1]=0;}
+  pts.geometry.attributes.position.needsUpdate=true;
+  bnd.material.opacity=0.4+Math.sin(t*2)*0.15; bgl.material.opacity=0.05+Math.sin(t*2)*0.03;
+  goldL.position.x=Math.cos(t*0.3)*25; goldL.position.z=Math.sin(t*0.3)*25;
+  renderer.render(scene,camera);
+}
+animate();
+loadData();
+</script>
+</body>
+</html>

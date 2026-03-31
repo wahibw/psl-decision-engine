@@ -209,7 +209,7 @@ def get_match_forecast(
     days_ahead = (match_datetime.date() - today).days
     if days_ahead >= 0:
         endpoint = f"{BASE_URL}/forecast.json"
-        params   = {"key": _api_key(), "q": f"{lat},{lon}", "days": min(days_ahead + 1, 3), "dt": date_str}
+        params   = {"key": _api_key(), "q": f"{lat},{lon}", "days": min(days_ahead + 1, 14), "dt": date_str}
     else:
         endpoint = f"{BASE_URL}/history.json"
         params   = {"key": _api_key(), "q": f"{lat},{lon}", "dt": date_str}

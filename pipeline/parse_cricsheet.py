@@ -6,7 +6,7 @@
 #   innings, over, ball, legal_ball
 #   batter, bowler, non_striker
 #   runs_batter, runs_extras, runs_total
-#   is_wide, is_noball, is_wicket, wicket_type
+#   is_wide, is_noball, is_wicket, wicket_type, player_dismissed
 #   phase, innings_score, innings_wickets
 #   target, required_runs, balls_remaining, rrr, crr
 #
@@ -47,9 +47,25 @@ PLAYER_INDEX_ACTUAL = PROJ_ROOT.parent / "player_index.csv"
 # ---------------------------------------------------------------------------
 
 VENUE_FIX = {
-    "National Stadium":       "National Stadium, Karachi",
-    "Gaddafi Stadium":        "Gaddafi Stadium, Lahore",
-    "Sheikh Zayed Stadium":   "Sheikh Zayed Stadium, Abu Dhabi",
+    # Short/ambiguous names → canonical full names
+    "National Stadium":                     "National Stadium, Karachi",
+    "National Stadium Karachi":             "National Stadium, Karachi",
+    "Karachi":                              "National Stadium, Karachi",
+    "Gaddafi Stadium":                      "Gaddafi Stadium, Lahore",
+    "Lahore":                               "Gaddafi Stadium, Lahore",
+    "Sheikh Zayed Stadium":                 "Sheikh Zayed Stadium, Abu Dhabi",
+    "Pindi Cricket Stadium":                "Rawalpindi Cricket Stadium",
+    "Rawalpindi Cricket Stadium":           "Rawalpindi Cricket Stadium",
+    "Arbab Niaz Stadium":                   "Arbab Niaz Stadium, Peshawar",
+    "Peshawar":                             "Arbab Niaz Stadium, Peshawar",
+    "Multan Cricket Stadium":               "Multan Cricket Stadium",
+    "Multan":                               "Multan Cricket Stadium",
+    "Iqbal Stadium":                        "Iqbal Stadium, Faisalabad",
+    "Faisalabad":                           "Iqbal Stadium, Faisalabad",
+    "Dubai International Cricket Stadium":  "Dubai International Cricket Stadium",
+    "Dubai":                                "Dubai International Cricket Stadium",
+    "Sharjah Cricket Stadium":              "Sharjah Cricket Stadium",
+    "Sharjah":                              "Sharjah Cricket Stadium",
 }
 
 # ---------------------------------------------------------------------------
@@ -70,24 +86,28 @@ def _phase(over: int) -> str:
 # ALIAS MAP  (built from player_index.csv name_variants column)
 # ---------------------------------------------------------------------------
 
-def _load_alias_map(player_index_path: Path) -> dict[str, str]:
+def _load_alias_map(player_index_path: Path) -> tuple[dict[str, str], set[str]]:
     """
-    Returns {alias_name: canonical_name}.
-    Only covers confirmed variants - unknown names are kept as-is.
+    Returns ({alias_name: canonical_name}, {canonical_names}).
+    Only alias variants are in the dict; all player_name values are in the set.
     """
-    alias: dict[str, str] = {}
+    alias:      dict[str, str] = {}
+    canonicals: set[str]       = set()
     if not player_index_path.exists():
-        return alias
+        return alias, canonicals
     with open(player_index_path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
+            canonical = row["player_name"].strip()
+            if not canonical:
+                continue
+            canonicals.add(canonical)
             variants = (row.get("name_variants") or "").strip()
             if variants:
-                canonical = row["player_name"].strip()
                 for v in variants.split(";"):
                     v = v.strip()
                     if v:
                         alias[v] = canonical
-    return alias
+    return alias, canonicals
 
 
 def _resolve(name: str, alias: dict[str, str]) -> str:
@@ -160,9 +180,10 @@ def _parse_match(filepath: Path, alias: dict[str, str]) -> list[dict]:
                     legal_in_over += 1
 
                 # Wickets
-                wicket_list  = delivery.get("wickets", [])
-                is_wicket    = len(wicket_list) > 0
-                wicket_type  = wicket_list[0].get("kind", "") if wicket_list else ""
+                wicket_list      = delivery.get("wickets", [])
+                is_wicket        = len(wicket_list) > 0
+                wicket_type      = wicket_list[0].get("kind", "") if wicket_list else ""
+                player_dismissed = _resolve(wicket_list[0].get("player_out", ""), alias) if wicket_list else ""
 
                 # Update running totals
                 score   += runs_total
@@ -205,9 +226,10 @@ def _parse_match(filepath: Path, alias: dict[str, str]) -> list[dict]:
                     "runs_total":      runs_total,
                     "is_wide":         is_wide,
                     "is_noball":       is_noball,
-                    "is_wicket":       is_wicket,
-                    "wicket_type":     wicket_type,
-                    "phase":           phase,
+                    "is_wicket":        is_wicket,
+                    "wicket_type":      wicket_type,
+                    "player_dismissed": player_dismissed,
+                    "phase":            phase,
                     "innings_score":   score,
                     "innings_wickets": wickets,
                     "target":          target,
@@ -284,7 +306,7 @@ def run(
                 print("[parse_cricsheet] WARNING: player_index.csv not found - no alias resolution")
             player_index_path = None
 
-    alias = _load_alias_map(player_index_path) if player_index_path else {}
+    alias, canonicals = _load_alias_map(player_index_path) if player_index_path else ({}, set())
     if verbose and alias:
         print(f"[parse_cricsheet] Loaded {len(alias)} player name aliases")
 
@@ -320,6 +342,35 @@ def run(
     # Sort: season -> date → match → innings → over → ball
     df = df.sort_values(["season", "date", "match_id", "innings", "over", "ball"]) \
            .reset_index(drop=True)
+
+    # ── Fix 1.1: Deduplicate deliveries ─────────────────────────────────────
+    # Same match + innings + over + ball number should never appear twice.
+    # Duplicates indicate re-parsed or overlapping JSON files.
+    key_cols = ["match_id", "innings", "over", "ball"]
+    dups = df.duplicated(subset=key_cols, keep="first")
+    if dups.sum() > 0:
+        import warnings
+        warnings.warn(
+            f"parse_cricsheet: {dups.sum()} duplicate deliveries removed "
+            f"(check for overlapping JSON files in {raw_dir})"
+        )
+        df = df[~dups].reset_index(drop=True)
+        if verbose:
+            print(f"[parse_cricsheet] WARNING: removed {dups.sum()} duplicate deliveries")
+
+    # ── Fix 1.2: Log unresolved player names ─────────────────────────────────
+    # Names that appear in the data but are in neither the alias map nor
+    # the canonical player_index are candidates for missing alias entries.
+    if canonicals:
+        known = canonicals | set(alias.keys())
+        all_names = (set(df["batter"].unique()) | set(df["bowler"].unique())) - {""}
+        unresolved = all_names - known
+        if unresolved:
+            log_path = PROCESSED_DIR / "unresolved_player_names.txt"
+            log_path.write_text("\n".join(sorted(unresolved)), encoding="utf-8")
+            if verbose:
+                print(f"[parse_cricsheet] WARNING: {len(unresolved)} unresolved player names "
+                      f"-> {log_path.name}")
 
     # ── Write parquet ────────────────────────────────────────────────────────
     if output_path is None:

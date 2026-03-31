@@ -10,39 +10,54 @@ import plotly.io as pio
 # COLOUR PALETTE
 # ---------------------------------------------------------------------------
 
-BRAND_ORANGE   = "#FF8C00"
-BRAND_ACCENT   = "#FFA726"
-STEEL_BLUE     = "#4A90D9"
-DARK_BG        = "#0E1117"
-DARK_ALT       = "#1A1F26"
-TEXT_PRIMARY   = "#E8F5E9"
-TEXT_SECONDARY = "#A0AEC0"
-BORDER_COLOR   = "#2D3A42"
+BRAND_ORANGE   = "#FFD700"
+BRAND_ACCENT   = "#F59E0B"
+STEEL_BLUE     = "#8B5CF6"
+DARK_BG        = "#140536"
+DARK_ALT       = "#23074F"
+TEXT_PRIMARY   = "#FFFFFF"
+TEXT_SECONDARY = "#9CA3AF"
+BORDER_COLOR   = "#3B1B70"
 GREEN          = "#4CAF50"
 AMBER          = "#FFC107"
 RED            = "#F44336"
+CYAN           = "#00E5FF"
+ORANGE_ACCENT  = "#FF8C00"
 
 PSL_TEAM_COLORS = {
-    "Karachi Kings":           "#00A651",
-    "Lahore Qalandars":        "#00AEEF",
-    "Peshawar Zalmi":          "#F7941D",
-    "Quetta Gladiators":       "#8B0000",
-    "Islamabad United":        "#EE1C25",
-    "Multan Sultans":          "#6A0DAD",
-    "Pindiz":                  "#1565C0",
-    "Hyderabad Houston Kings": "#F57F17",
+    "Karachi Kings":        "#00A651",
+    "Lahore Qalandars":     "#00AEEF",
+    "Peshawar Zalmi":       "#F7941D",
+    "Quetta Gladiators":    "#8B0000",
+    "Islamabad United":     "#EE1C25",
+    "Multan Sultans":       "#6A0DAD",
+    "Rawalpindiz":          "#1565C0",
+    "Hyderabad Kingsmen":   "#F57F17",
 }
 
 PSL_2026_TEAMS = [
     "Karachi Kings",
     "Lahore Qalandars",
-    "Peshawar Zalmi",
     "Quetta Gladiators",
-    "Islamabad United",
     "Multan Sultans",
-    "Pindiz",
-    "Hyderabad Houston Kings",
+    "Rawalpindiz",
+    "Peshawar Zalmi",
+    "Hyderabad Kingsmen",
+    "Islamabad United",
 ]
+
+# PSL 2026 captains — always locked into every XI option by the selector.
+# Update these if mid-season captaincy changes occur.
+PSL_2026_CAPTAINS: dict[str, str] = {
+    "Karachi Kings":      "Mohammad Rizwan",
+    "Lahore Qalandars":   "Shaheen Shah Afridi",
+    "Quetta Gladiators":  "Mohammad Haris",
+    "Multan Sultans":     "Mohammad Rizwan",      # dual-franchise placeholder
+    "Rawalpindiz":        "Saud Shakeel",
+    "Peshawar Zalmi":     "Babar Azam",
+    "Hyderabad Kingsmen": "Fakhar Zaman",
+    "Islamabad United":   "Shadab Khan",
+}
 
 # Priority colours used across engines and UI
 PRIORITY_COLORS = {
@@ -74,35 +89,35 @@ CONFIDENCE_COLORS = {
 
 _PSL_TEMPLATE = go.layout.Template(
     layout=go.Layout(
-        paper_bgcolor=DARK_BG,
-        plot_bgcolor=DARK_ALT,
-        font=dict(color=TEXT_PRIMARY, family="Inter, Arial, sans-serif", size=12),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color=TEXT_PRIMARY, family="'Exo 2', Inter, Arial, sans-serif", size=12),
         title=dict(font=dict(color=TEXT_PRIMARY, size=15), x=0.01),
         xaxis=dict(
             gridcolor=BORDER_COLOR,
             linecolor=BORDER_COLOR,
             tickcolor=TEXT_SECONDARY,
-            tickfont=dict(color=TEXT_SECONDARY, size=11),
+            tickfont=dict(color=TEXT_SECONDARY, size=11, family="'Rajdhani', sans-serif"),
             zerolinecolor=BORDER_COLOR,
         ),
         yaxis=dict(
             gridcolor=BORDER_COLOR,
             linecolor=BORDER_COLOR,
             tickcolor=TEXT_SECONDARY,
-            tickfont=dict(color=TEXT_SECONDARY, size=11),
+            tickfont=dict(color=TEXT_SECONDARY, size=11, family="'Rajdhani', sans-serif"),
             zerolinecolor=BORDER_COLOR,
         ),
         legend=dict(
             bgcolor=DARK_ALT,
             bordercolor=BORDER_COLOR,
             borderwidth=1,
-            font=dict(color=TEXT_PRIMARY, size=11),
+            font=dict(color=TEXT_PRIMARY, size=11, family="'Rajdhani', sans-serif"),
         ),
-        colorway=[BRAND_ORANGE, STEEL_BLUE, GREEN, AMBER, RED, BRAND_ACCENT],
+        colorway=[BRAND_ORANGE, STEEL_BLUE, GREEN, AMBER, RED, BRAND_ACCENT, "#00E5FF"],
         hoverlabel=dict(
             bgcolor=DARK_ALT,
             bordercolor=BORDER_COLOR,
-            font=dict(color=TEXT_PRIMARY, size=12),
+            font=dict(color=TEXT_PRIMARY, size=12, family="'Exo 2', sans-serif"),
         ),
         margin=dict(l=40, r=20, t=40, b=40),
     )
@@ -117,22 +132,19 @@ pio.templates.default = "psl_dark"
 # ---------------------------------------------------------------------------
 
 CARD_STYLE = {
-    "backgroundColor": DARK_ALT,
-    "border":          f"1px solid {BORDER_COLOR}",
-    "borderRadius":    "8px",
-    "padding":         "16px",
-    "marginBottom":    "16px",
+    # Handled by className="glass-panel"
+    "padding": "24px",
+    "marginBottom": "20px",
 }
 
 CARD_HEADER_STYLE = {
-    "color":          BRAND_ORANGE,
-    "fontSize":       "13px",
-    "fontWeight":     "600",
-    "letterSpacing":  "0.08em",
+    "color":          TEXT_PRIMARY,
+    "fontSize":       "12px",
+    "fontWeight":     "800",
+    "letterSpacing":  "0.1em",
     "textTransform":  "uppercase",
-    "marginBottom":   "12px",
-    "borderBottom":   f"1px solid {BORDER_COLOR}",
-    "paddingBottom":  "8px",
+    "marginBottom":   "16px",
+    "textShadow":     "0 2px 4px rgba(0,0,0,0.5)",
 }
 
 STAT_VALUE_STYLE = {
@@ -228,11 +240,12 @@ BUTTON_DANGER = {
 # SHARED UI COMPONENT BUILDERS
 # ---------------------------------------------------------------------------
 
-def card(children, style_override=None):
+def card(children, style_override=None, className=None):
     """Dark card container used throughout both modes."""
     style = {**CARD_STYLE, **(style_override or {})}
-    return html.Div(children, style=style)
-
+    # glass-card is the premium class; glass-panel is the backward-compat alias
+    cls = f"glass-card {className}" if className else "glass-card"
+    return html.Div(children, style=style, className=cls)
 
 def card_header(title):
     """Orange uppercase section header inside a card."""
@@ -348,3 +361,29 @@ def empty_state(message="No data available"):
         "padding":    "24px",
         "textAlign":  "center",
     })
+
+
+def section_header_div(text: str) -> html.Div:
+    """Premium Orbitron section header using the .section-header CSS class."""
+    return html.Div(text, className="section-header")
+
+
+def panel_title_div(text: str) -> html.Div:
+    """Small Orbitron panel title using the .panel-title CSS class."""
+    return html.Div(text, className="panel-title")
+
+
+def stat_display(value: str, label: str, size: str = "medium") -> html.Div:
+    """
+    Orbitron stat number with Rajdhani label below.
+    size: 'large' | 'medium' | 'small'
+    """
+    return html.Div([
+        html.Div(str(value), className=f"stat-{size}"),
+        html.Div(label, className="form-label", style={"marginTop": "4px"}),
+    ], style={"textAlign": "center"})
+
+
+def form_label(text: str) -> html.Span:
+    """Rajdhani uppercase form label."""
+    return html.Span(text, className="form-label")

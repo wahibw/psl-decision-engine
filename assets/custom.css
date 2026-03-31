@@ -1,7 +1,32 @@
 /* ============================================================
-   PSL Decision Intelligence — Custom CSS
-   Dark orange theme polish
+   PSL Decision Intelligence — Master Stylesheet
+   Premium dark theme: Glassmorphism + Orbitron/Rajdhani/Exo2
    ============================================================ */
+
+/* ---- GOOGLE FONTS ---- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@300;400;500;600;700;800&display=swap');
+
+/* ---- ROOT VARIABLES ---- */
+:root {
+  --gold:           #FFD700;
+  --gold-dark:      #C5A200;
+  --orange:         #FF8C00;
+  --bg-deep:        #080114;
+  --bg-card:        #140536;
+  --bg-elevated:    #23074F;
+  --border-glow:    rgba(255, 140, 0, 0.18);
+  --border-gold:    rgba(255, 215, 0, 0.25);
+  --glass-bg:       rgba(255, 255, 255, 0.025);
+  --glass-blur:     blur(20px) saturate(180%);
+  --text-primary:   #FFFFFF;
+  --text-secondary: #9CA3AF;
+  --text-dim:       #6B7280;
+  --green:          #4CAF50;
+  --amber:          #FFC107;
+  --red:            #F44336;
+  --cyan:           #00E5FF;
+  --purple:         #8B5CF6;
+}
 
 /* ---- GLOBAL RESET & BASE ---- */
 
@@ -10,9 +35,14 @@
 }
 
 body {
-  background-color: #0E1117 !important;
-  color: #E8F5E9 !important;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+  background-color: #080114 !important;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(139,92,246,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(255,140,0,0.07) 0%, transparent 50%),
+    radial-gradient(circle at top right, rgba(46, 8, 84, 0.9) 0%, #080114 100%) !important;
+  background-attachment: fixed !important;
+  color: #FFFFFF !important;
+  font-family: 'Exo 2', Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
   font-size: 14px;
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -20,165 +50,178 @@ body {
 
 /* ---- SCROLLBARS ---- */
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #1A1F26;
-}
-::-webkit-scrollbar-thumb {
-  background: #2D3A42;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #FF8C00;
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #2E0854; }
+::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #FFD700; }
+
+/* ============================================================
+   GLASS CARDS — core visual component
+   .glass-card  = new premium variant (used by components.py)
+   .glass-panel = backward-compat alias (used by existing pages)
+   ============================================================ */
+
+.glass-card,
+.glass-panel {
+  background: rgba(255, 255, 255, 0.025) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 140, 0, 0.18) !important;
+  border-radius: 16px !important;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-/* ---- DASH DROPDOWN — psl-dropdown class ---- */
-/* Dash 4 uses VirtualizedSelect / react-select under .Select */
-
-.psl-dropdown .Select-control,
-.psl-dropdown .VirtualizedSelect,
-.psl-dropdown > div {
-  background-color: #1E252D !important;
-  border: 1px solid #2D3A42 !important;
-  border-radius: 5px !important;
-  color: #E8F5E9 !important;
-  min-height: 36px !important;
+/* Gold top accent line */
+.glass-card::before,
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 5%, #FF8C00 30%, #FFD700 50%, #FF8C00 70%, transparent 95%);
+  opacity: 0.45;
+  pointer-events: none;
 }
 
-.psl-dropdown .Select-control:hover {
-  border-color: #FF8C00 !important;
+.glass-card:hover,
+.glass-panel:hover {
+  border-color: rgba(255, 140, 0, 0.30) !important;
+  box-shadow: 0 4px 32px rgba(139, 92, 246, 0.08), 0 8px 32px rgba(0,0,0,0.37);
 }
 
-.psl-dropdown .Select-placeholder,
-.psl-dropdown .Select-value-label {
-  color: #E8F5E9 !important;
+/* Gold pulse variant */
+.glass-card-glow {
+  animation: pulseGold 3s infinite;
 }
 
-.psl-dropdown .Select-menu-outer {
-  background-color: #1A1F26 !important;
-  border: 1px solid #2D3A42 !important;
-  border-radius: 5px !important;
-  z-index: 9999 !important;
-}
+/* ============================================================
+   TYPOGRAPHY SYSTEM
+   ============================================================ */
 
-.psl-dropdown .Select-option {
-  background-color: #1A1F26 !important;
-  color: #E8F5E9 !important;
-  padding: 8px 12px !important;
-  font-size: 0.83rem !important;
-}
-
-.psl-dropdown .Select-option:hover,
-.psl-dropdown .Select-option.is-focused {
-  background-color: #FF8C0022 !important;
-  color: #FF8C00 !important;
-}
-
-.psl-dropdown .Select-option.is-selected {
-  background-color: #FF8C0033 !important;
-  color: #FF8C00 !important;
+/* Section headers — Orbitron caps with gold left bar */
+.section-header {
+  font-family: 'Orbitron', monospace !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  color: var(--gold) !important;
+  margin-bottom: 18px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
 }
 
-.psl-dropdown .Select-arrow {
-  border-top-color: #A0AEC0 !important;
+.section-header::before {
+  content: '';
+  flex-shrink: 0;
+  width: 3px;
+  height: 18px;
+  background: linear-gradient(180deg, var(--gold), var(--orange));
+  border-radius: 2px;
 }
 
-.psl-dropdown .Select-clear {
-  color: #A0AEC0 !important;
+/* Panel titles — smaller Orbitron */
+.panel-title {
+  font-family: 'Orbitron', monospace !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2.5px !important;
+  text-transform: uppercase !important;
+  color: var(--gold) !important;
+  margin-bottom: 10px !important;
+  padding-bottom: 6px !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
 }
 
-.psl-dropdown .Select-input input {
-  color: #E8F5E9 !important;
-  background-color: transparent !important;
+/* Stat numbers */
+.stat-large {
+  font-family: 'Orbitron', monospace !important;
+  font-size: 52px !important;
+  font-weight: 900 !important;
+  background: linear-gradient(135deg, var(--gold), #66BB6A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
 }
 
-/* Dash 4 newer Select classes */
-.psl-dropdown .dash-dropdown,
-.psl-dropdown .dropdown {
-  background-color: #1E252D !important;
+.stat-medium {
+  font-family: 'Orbitron', monospace !important;
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  color: var(--text-primary);
 }
 
-/* The actual Dash 4 dropdown container */
-.Select.is-open > .Select-control {
-  border-color: #FF8C00 !important;
+.stat-small {
+  font-family: 'Orbitron', monospace !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: var(--text-primary);
 }
 
-/* ---- DATE PICKER ---- */
-
-.psl-datepicker .DateInput_input {
-  background-color: #1E252D !important;
-  color: #E8F5E9 !important;
-  border: 1px solid #2D3A42 !important;
-  border-radius: 5px !important;
-  padding: 6px 10px !important;
-  font-size: 0.83rem !important;
-  width: 100% !important;
+/* Form labels */
+.form-label {
+  font-family: 'Rajdhani', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: var(--text-dim) !important;
+  display: block !important;
+  margin-bottom: 6px !important;
 }
 
-.psl-datepicker .DateInput {
-  width: 100% !important;
-  background: transparent !important;
+/* ============================================================
+   PILL TAGS (squad selector)
+   ============================================================ */
+
+.pill-tag {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 5px 13px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+  margin: 3px;
 }
 
-.psl-datepicker .SingleDatePicker {
-  width: 100% !important;
+.pill-tag.selected,
+.pill-tag:hover {
+  background: rgba(255, 215, 0, 0.10);
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
-.psl-datepicker .SingleDatePickerInput {
-  background-color: #1E252D !important;
-  border: 1px solid #2D3A42 !important;
-  border-radius: 5px !important;
-  width: 100% !important;
+.pill-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0;
 }
 
-.psl-datepicker .DayPicker {
-  background-color: #1A1F26 !important;
-  border: 1px solid #2D3A42 !important;
-  border-radius: 8px !important;
-}
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 
-.psl-datepicker .CalendarDay__default {
-  background-color: #1A1F26 !important;
-  color: #E8F5E9 !important;
-  border: 1px solid #2D3A42 !important;
-}
-
-.psl-datepicker .CalendarDay__selected {
-  background-color: #FF8C00 !important;
-  color: #000 !important;
-  border-color: #FF8C00 !important;
-}
-
-.psl-datepicker .CalendarDay__hovered_span,
-.psl-datepicker .CalendarDay__default:hover {
-  background-color: #FF8C0033 !important;
-  color: #FF8C00 !important;
-}
-
-.psl-datepicker .DayPickerNavigation_button {
-  background-color: transparent !important;
-  border: 1px solid #2D3A42 !important;
-  border-radius: 4px !important;
-  color: #A0AEC0 !important;
-}
-
-.psl-datepicker .CalendarMonth_caption {
-  color: #E8F5E9 !important;
-}
-
-/* ---- BUTTON HOVER STATES ---- */
-
+/* Keep existing button hover effects */
 button {
-  transition: opacity 0.15s ease, filter 0.15s ease !important;
+  transition: opacity 0.15s ease, filter 0.15s ease, transform 0.15s ease !important;
 }
 
 button:hover {
   filter: brightness(1.12) !important;
   opacity: 1 !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3) !important;
 }
 
 button:active {
@@ -191,105 +234,647 @@ button:disabled {
   cursor: not-allowed !important;
 }
 
-/* ---- INPUT FIELDS ---- */
+/* Premium gold button */
+.btn-gold {
+  background: linear-gradient(135deg, var(--orange), var(--gold)) !important;
+  color: var(--bg-deep) !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 11px 26px !important;
+  box-shadow: 0 4px 18px rgba(255, 140, 0, 0.3);
+  cursor: pointer;
+}
 
+.btn-gold:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 28px rgba(255, 140, 0, 0.45) !important;
+  filter: brightness(1.05) !important;
+}
+
+/* Ghost button */
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  padding: 10px 22px !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  cursor: pointer;
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+
+.navbar, .navbar-dark {
+  background: rgba(8, 1, 20, 0.92) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.15) !important;
+  padding: 0 24px !important;
+}
+
+/* ── Full-width fixed nav bar — frosted glass ─────────────────────────────── */
+/* Hard-reset any Bootstrap/DBC navbar overrides */
+.nav-pill,
+.nav-pill.navbar,
+div.nav-pill {
+  border-radius: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.nav-pill {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 52px;
+  padding: 0;
+  /* Light frosted glass — matches dashboard's white-lavender theme */
+  background: rgba(232, 234, 242, 0.92);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(139, 92, 246, 0.1),
+    0 4px 24px rgba(139, 92, 246, 0.07);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.nav-pill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 100%;
+  background: radial-gradient(ellipse at left center,
+    rgba(139, 92, 246, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.nav-brand { display: none !important; }
+
+.nav-brand-left {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(26, 10, 58, 0.32);
+  padding-left: 24px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Spacer that pushes links to centre */
+.nav-spacer { flex: 1; }
+
+.nav-link {
+  font-family: 'Rajdhani', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  color: rgba(26, 10, 58, 0.38) !important;
+  padding: 6px 20px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: none !important;
+  text-decoration: none !important;
+  transition: color 0.18s !important;
+  white-space: nowrap;
+  position: relative !important;
+}
+
+.nav-link:hover {
+  color: rgba(26, 10, 58, 0.75) !important;
+  text-shadow: none !important;
+}
+
+.nav-link.active {
+  color: #6D28D9 !important;
+  background: none !important;
+  border-color: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Purple underline on active link */
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #8B5CF6 40%, transparent);
+  border-radius: 1px;
+}
+
+.nav-sep {
+  color: rgba(26, 10, 58, 0.12);
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+}
+
+.nav-talaash {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #FFD700;
+  padding: 6px 20px;
+  text-decoration: none;
+  white-space: nowrap;
+  text-shadow: 0 0 16px rgba(255, 215, 0, 0.4);
+}
+
+.nav-right-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding-right: 24px;
+}
+
+.nav-standby {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: rgba(26, 10, 58, 0.32);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.nav-standby-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16A34A;
+  flex-shrink: 0;
+  animation: blink 1.5s infinite;
+}
+
+.nav-crest-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* ============================================================
+   PLAYER XI CARDS (FUT-style)
+   ============================================================ */
+
+.xi-card {
+  background: linear-gradient(160deg, rgba(35,7,79,0.85), rgba(14,2,38,0.95));
+  border: 1.5px solid var(--border-gold);
+  border-radius: 14px;
+  padding: 14px 10px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.xi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);
+}
+
+.xi-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--gold);
+  box-shadow: 0 8px 30px rgba(255, 215, 0, 0.15);
+}
+
+.xi-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2.5px solid var(--gold-dark);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+  object-fit: cover;
+  margin: 0 auto 10px;
+  display: block;
+}
+
+.xi-avatar-initials {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2.5px solid var(--gold-dark);
+  background: linear-gradient(135deg, #23074F, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gold);
+  margin: 0 auto 10px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.xi-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.xi-role {
+  font-family: 'Orbitron', monospace;
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.xi-role.pace  { color: #FF6A00; }
+.xi-role.spin  { color: #8B5CF6; }
+.xi-role.bat   { color: #FFD700; }
+.xi-role.ar    { color: #4CAF50; }
+.xi-role.wk    { color: #00E5FF; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+.badge-green { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+.badge-amber { background: rgba(255,193,7,0.15);  color: var(--amber);  border: 1px solid rgba(255,193,7,0.3); }
+.badge-red   { background: rgba(244,67,54,0.15);  color: var(--red);    border: 1px solid rgba(244,67,54,0.3); }
+.badge-cyan  { background: rgba(0,229,255,0.12);  color: var(--cyan);   border: 1px solid rgba(0,229,255,0.25); }
+.badge-purple{ background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+.badge-gray  { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.08); }
+
+[class^="badge-"],
+[class*=" badge-"] {
+  font-family: 'Orbitron', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ============================================================
+   RING GAUGES (Weather Hub)
+   ============================================================ */
+
+.ring-gauge {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.ring-gauge svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring-gauge .track {
+  fill: none;
+  stroke: rgba(156,163,175,0.15);
+  stroke-width: 8;
+}
+
+.ring-gauge .fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.ring-gauge .fill.humidity { stroke: var(--purple); }
+.ring-gauge .fill.dew      { stroke: var(--gold); }
+.ring-gauge .fill.temp     { stroke: var(--orange); }
+.ring-gauge .fill.pressure { stroke: var(--cyan); }
+
+.ring-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ============================================================
+   ASSET CONTAINERS (stadium, wagon wheel)
+   ============================================================ */
+
+.stadium-container {
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.stadium-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wagon-wheel-container {
+  width: 100%;
+  height: 280px;
+  position: relative;
+}
+
+.wagon-wheel-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* ============================================================
+   PLAYER ROSTER (Players page sidebar)
+   ============================================================ */
+
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.roster-item:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.05);
+}
+
+.roster-item.active {
+  background: rgba(255,215,0,0.05);
+  border-color: var(--border-gold);
+}
+
+/* ============================================================
+   FORM INPUTS & DROPDOWNS
+   ============================================================ */
+
+/* --- PSL Dropdown (existing class, enhanced) --- */
+.psl-dropdown .Select-control,
+.psl-dropdown .VirtualizedSelect,
+.psl-dropdown > div {
+  background-color: rgba(46, 8, 84, 0.6) !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 8px !important;
+  color: #FFFFFF !important;
+  min-height: 36px !important;
+  font-family: 'Exo 2', sans-serif !important;
+}
+
+.psl-dropdown .Select-control:hover {
+  border-color: #FFD700 !important;
+}
+
+.psl-dropdown .Select-placeholder,
+.psl-dropdown .Select-value-label {
+  color: #FFFFFF !important;
+}
+
+.psl-dropdown .Select-menu-outer {
+  background-color: #2E0854 !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 8px !important;
+  z-index: 9999 !important;
+}
+
+.psl-dropdown .Select-option {
+  background-color: #2E0854 !important;
+  color: #FFFFFF !important;
+  padding: 8px 12px !important;
+  font-size: 0.83rem !important;
+  font-family: 'Exo 2', sans-serif !important;
+}
+
+.psl-dropdown .Select-option:hover,
+.psl-dropdown .Select-option.is-focused {
+  background-color: #FFD70022 !important;
+  color: #FFD700 !important;
+}
+
+.psl-dropdown .Select-option.is-selected {
+  background-color: #FFD70033 !important;
+  color: #FFD700 !important;
+  font-weight: 700 !important;
+}
+
+.psl-dropdown .Select-arrow { border-top-color: #A0AEC0 !important; }
+.psl-dropdown .Select-clear { color: #A0AEC0 !important; }
+.psl-dropdown .Select-input input { color: #FFFFFF !important; background-color: transparent !important; }
+.psl-dropdown .dash-dropdown,
+.psl-dropdown .dropdown { background-color: rgba(46, 8, 84, 0.6) !important; }
+.Select.is-open > .Select-control { border-color: #FFD700 !important; }
+
+/* --- Date Picker --- */
+.psl-datepicker .DateInput_input {
+  background-color: rgba(46, 8, 84, 0.6) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  font-size: 0.83rem !important;
+  width: 100% !important;
+  font-family: 'Exo 2', sans-serif !important;
+}
+
+.psl-datepicker .DateInput { width: 100% !important; background: transparent !important; }
+.psl-datepicker .SingleDatePicker { width: 100% !important; }
+.psl-datepicker .SingleDatePickerInput {
+  background-color: rgba(46, 8, 84, 0.6) !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+}
+
+.psl-datepicker .DayPicker {
+  background-color: #2E0854 !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 10px !important;
+}
+
+.psl-datepicker .CalendarDay__default {
+  background-color: #2E0854 !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 215, 0, 0.15) !important;
+}
+
+.psl-datepicker .CalendarDay__selected {
+  background-color: #FFD700 !important;
+  color: #000 !important;
+  border-color: #FFD700 !important;
+}
+
+.psl-datepicker .CalendarDay__hovered_span,
+.psl-datepicker .CalendarDay__default:hover {
+  background-color: #FFD70033 !important;
+  color: #FFD700 !important;
+}
+
+.psl-datepicker .DayPickerNavigation_button {
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 4px !important;
+  color: #A0AEC0 !important;
+}
+
+.psl-datepicker .CalendarMonth_caption { color: #FFFFFF !important; }
+
+/* --- Standard inputs --- */
 input[type="text"],
 input[type="number"] {
-  background-color: #1E252D !important;
-  border: 1px solid #2D3A42 !important;
-  color: #E8F5E9 !important;
-  border-radius: 4px !important;
+  background-color: rgba(46, 8, 84, 0.6) !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
   padding: 5px 8px !important;
   outline: none !important;
+  font-family: 'Exo 2', sans-serif !important;
   transition: border-color 0.15s ease !important;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus {
-  border-color: #FF8C00 !important;
-  box-shadow: 0 0 0 2px #FF8C0022 !important;
+  border-color: #FFD700 !important;
+  box-shadow: 0 0 0 2px #FFD70022 !important;
 }
 
-/* ---- TABS (dcc.Tabs) ---- */
+/* ============================================================
+   TABS (dcc.Tabs)
+   ============================================================ */
 
-.dash-tabs {
-  border-bottom: 1px solid #2D3A42 !important;
-}
+.dash-tabs { border-bottom: 1px solid rgba(255, 215, 0, 0.4) !important; }
 
 .dash-tab {
-  background-color: #1A1F26 !important;
+  background-color: #2E0854 !important;
   color: #A0AEC0 !important;
-  border: 1px solid #2D3A42 !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
   border-bottom: none !important;
-  border-radius: 5px 5px 0 0 !important;
+  border-radius: 8px 8px 0 0 !important;
   padding: 8px 16px !important;
   font-size: 0.80rem !important;
   font-weight: 600 !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
   transition: color 0.15s ease, background-color 0.15s ease !important;
   cursor: pointer !important;
 }
 
 .dash-tab:hover {
-  color: #FF8C00 !important;
-  background-color: #FF8C0015 !important;
+  color: #FFD700 !important;
+  background-color: #FFD70015 !important;
 }
 
 .dash-tab--selected {
-  background-color: #FF8C00 !important;
+  background-color: #FFD700 !important;
   color: #000 !important;
-  border-color: #FF8C00 !important;
+  border-color: #FFD700 !important;
   font-weight: 700 !important;
 }
 
-/* ---- CHECKLIST ITEMS ---- */
+/* ============================================================
+   CHECKLIST
+   ============================================================ */
 
 .dash-checklist label {
   cursor: pointer !important;
+  font-family: 'Exo 2', sans-serif !important;
   transition: color 0.12s ease !important;
 }
 
-.dash-checklist label:hover {
-  color: #FF8C00 !important;
-}
+.dash-checklist label:hover { color: #FFD700 !important; }
 
 .dash-checklist input[type="checkbox"] {
-  accent-color: #FF8C00 !important;
+  accent-color: #FFD700 !important;
   width: 14px !important;
   height: 14px !important;
 }
 
-/* ---- PLOTLY CHARTS ---- */
+/* ============================================================
+   PLOTLY CHARTS
+   ============================================================ */
 
-.js-plotly-plot .plotly {
-  border-radius: 6px !important;
+.js-plotly-plot .plotly { border-radius: 8px !important; }
+.js-plotly-plot .modebar { background-color: transparent !important; }
+.js-plotly-plot .modebar-btn svg { fill: #A0AEC0 !important; }
+.js-plotly-plot .modebar-btn:hover svg { fill: #FFD700 !important; }
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+
+.tracker-table th {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 8px 10px;
 }
 
-.js-plotly-plot .modebar {
-  background-color: transparent !important;
+.tracker-table td {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  padding: 8px 10px;
 }
 
-.js-plotly-plot .modebar-btn svg {
-  fill: #A0AEC0 !important;
-}
+.tracker-table tr:hover { background: rgba(255,255,255,0.015); }
 
-.js-plotly-plot .modebar-btn:hover svg {
-  fill: #FF8C00 !important;
-}
-
-/* ---- NAVBAR LINK HOVER ---- */
-
-a[id^="nav-"] {
-  transition: color 0.15s ease, background-color 0.15s ease !important;
-  text-decoration: none !important;
-}
-
-a[id^="nav-"]:hover {
-  color: #FF8C00 !important;
-  background-color: rgba(255, 140, 0, 0.08) !important;
-  border-radius: 4px !important;
-}
-
-/* ---- CARDS — hover lift ---- */
+/* ============================================================
+   CARD HOVER LIFT
+   ============================================================ */
 
 .psl-card-hover {
   transition: transform 0.15s ease, box-shadow 0.15s ease !important;
@@ -300,23 +885,62 @@ a[id^="nav-"]:hover {
   box-shadow: 0 4px 20px rgba(255, 140, 0, 0.12) !important;
 }
 
-/* ---- DANGER LEVEL PULSE (critical partnership) ---- */
+/* ============================================================
+   PRIORITY BANNERS
+   ============================================================ */
 
+.priority-critical {
+  background-color: rgba(244, 67, 54, 0.10) !important;
+  border: 1px solid #F44336 !important;
+  border-radius: 8px !important;
+}
+
+.priority-warning {
+  background-color: rgba(255, 193, 7, 0.10) !important;
+  border: 1px solid #FFC107 !important;
+  border-radius: 8px !important;
+}
+
+.priority-info {
+  background-color: rgba(76, 175, 80, 0.08) !important;
+  border: 1px solid #4CAF50 !important;
+  border-radius: 8px !important;
+}
+
+/* ============================================================
+   SQUAD CHECKLIST SCROLL AREA
+   ============================================================ */
+
+#prep-squad {
+  scrollbar-width: thin !important;
+  scrollbar-color: #FFD700 rgba(46, 8, 84, 0.6) !important;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+/* Danger pulse (critical partnership) */
 @keyframes pulse-red {
   0%   { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.50); }
   70%  { box-shadow: 0 0 0 8px rgba(244, 67, 54, 0); }
   100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
 }
 
-.danger-pulse {
-  animation: pulse-red 2s ease infinite !important;
+.danger-pulse { animation: pulse-red 2s ease infinite !important; }
+
+/* Live dot blink */
+@keyframes blink-green {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+  50%       { opacity: 0.3; box-shadow: 0 0 2px var(--green); }
 }
 
-/* ---- LIVE INDICATOR DOT (navbar) ---- */
-
-@keyframes blink-green {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+.live-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink-green 1.4s ease infinite;
+  display: inline-block;
 }
 
 .live-dot-active {
@@ -324,89 +948,46 @@ a[id^="nav-"]:hover {
   background-color: #4CAF50 !important;
 }
 
-/* ---- OVER BOX CURRENT HIGHLIGHT ---- */
-
+/* Over highlight glow */
 @keyframes over-glow {
   0%   { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.60); }
   70%  { box-shadow: 0 0 0 6px rgba(255, 140, 0, 0); }
   100% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0); }
 }
 
-.over-current {
-  animation: over-glow 2s ease infinite !important;
+.over-current { animation: over-glow 2s ease infinite !important; }
+
+/* Gold pulse (active/live cards) */
+@keyframes pulseGold {
+  0%,100% { box-shadow: 0 0 15px rgba(255,215,0,0.08); }
+  50%     { box-shadow: 0 0 35px rgba(255,215,0,0.20); }
 }
 
-/* ---- SQUAD CHECKLIST SCROLL AREA ---- */
-
-#prep-squad {
-  scrollbar-width: thin !important;
-  scrollbar-color: #FF8C00 #1E252D !important;
+/* Fade up (page entry) */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- PRIORITY BANNERS ---- */
-
-.priority-critical {
-  background-color: rgba(244, 67, 54, 0.10) !important;
-  border: 1px solid #F44336 !important;
-  border-radius: 6px !important;
+/* Page transition */
+#_pages_content {
+  animation: fadeUp 0.22s ease;
 }
 
-.priority-warning {
-  background-color: rgba(255, 193, 7, 0.10) !important;
-  border: 1px solid #FFC107 !important;
-  border-radius: 6px !important;
-}
+/* ============================================================
+   LOADING SPINNER OVERRIDE
+   ============================================================ */
 
-.priority-info {
-  background-color: rgba(76, 175, 80, 0.08) !important;
-  border: 1px solid #4CAF50 !important;
-  border-radius: 6px !important;
-}
-
-/* ---- LOADING SPINNER OVERRIDE ---- */
-
-._dash-loading {
-  background-color: rgba(14, 17, 23, 0.80) !important;
-}
-
+._dash-loading,
 ._dash-loading-callback {
-  background-color: rgba(14, 17, 23, 0.80) !important;
+  background-color: rgba(8, 1, 20, 0.80) !important;
 }
 
-/* ---- RESPONSIVE — hide grid labels on narrow screens ---- */
+/* ============================================================
+   TOOLTIP
+   ============================================================ */
 
-@media (max-width: 1100px) {
-  body {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 900px) {
-  /* Stack dugout panels vertically on small screens */
-  #dugout-live > div {
-    grid-template-columns: 1fr !important;
-    height: auto !important;
-  }
-}
-
-/* ---- DBC DARKLY OVERRIDES ---- */
-
-.navbar, .navbar-dark {
-  background-color: #1A1F26 !important;
-  border-bottom: 2px solid #FF8C00 !important;
-}
-
-/* Remove default white background from dbc containers */
-.container-fluid {
-  background-color: transparent !important;
-}
-
-/* ---- TOOLTIP STYLE ---- */
-
-[data-tooltip] {
-  position: relative;
-  cursor: help;
-}
+[data-tooltip] { position: relative; cursor: help; }
 
 [data-tooltip]::after {
   content: attr(data-tooltip);
@@ -414,12 +995,13 @@ a[id^="nav-"]:hover {
   bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #1A1F26;
-  color: #E8F5E9;
-  border: 1px solid #2D3A42;
-  border-radius: 4px;
+  background-color: #2E0854;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 6px;
   padding: 4px 10px;
   font-size: 0.72rem;
+  font-family: 'Exo 2', sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -427,17 +1009,26 @@ a[id^="nav-"]:hover {
   z-index: 9999;
 }
 
-[data-tooltip]:hover::after {
-  opacity: 1;
+[data-tooltip]:hover::after { opacity: 1; }
+
+/* ============================================================
+   DBC DARKLY OVERRIDES
+   ============================================================ */
+
+.container-fluid { background-color: transparent !important; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  body { font-size: 13px; }
+  .stat-large { font-size: 38px !important; }
 }
 
-/* ---- SMOOTH PAGE TRANSITIONS ---- */
-
-#_pages_content {
-  animation: fade-in 0.18s ease;
-}
-
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+@media (max-width: 900px) {
+  #dugout-live > div {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
 }

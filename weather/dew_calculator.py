@@ -92,7 +92,27 @@ def _base_risk(dew_spread: float, humidity_pct: float) -> str:
     Map (dew_spread, humidity) to a risk label using the threshold table.
     dew_spread = air_temp_c - dewpoint_c
     """
-    for spread_max, humidity_min, label in _RISK_TABLE:
+    from utils.situation import WeatherImpact
+    constants = WeatherImpact.load_engine_constants()
+    dynamic_dew_threshold = constants.get("dew_threshold_humidity", 70)
+    
+    # We construct a dynamic table based on the new threshold
+    # The default table had 80, 70, 65, 55, 40 points
+    # We'll adjust these relative to the dynamic threshold (base 70)
+    offset = dynamic_dew_threshold - 70
+    
+    dynamic_risk_table = [
+        (1.0,  max(0, 80 + offset), "Severe"),
+        (1.5,  max(0, 70 + offset), "Severe"),
+        (2.0,  max(0, 80 + offset), "High"),
+        (2.5,  max(0, 70 + offset), "High"),
+        (3.0,  max(0, 65 + offset), "High"),
+        (3.5,  max(0, 65 + offset), "Medium"),
+        (5.0,  max(0, 55 + offset), "Medium"),
+        (5.0,  max(0, 40 + offset), "Low"),
+    ]
+    
+    for spread_max, humidity_min, label in dynamic_risk_table:
         if dew_spread <= spread_max and humidity_pct >= humidity_min:
             return label
     return "Low" if dew_spread <= 5.0 and humidity_pct >= 30 else "None"

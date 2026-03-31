@@ -23,9 +23,7 @@ HISTORY_PATH      = PROJ_ROOT / "data" / "processed" / "partnership_history.parq
 PLAYER_EMBED_PATH = PROJ_ROOT / "models" / "saved" / "player_embeddings.pt"
 PAIR_EMBED_PATH   = PROJ_ROOT / "models" / "saved" / "pair_embeddings.pt"
 
-# Upgrade 6 — module-level embedding cache
-_player_embeddings: dict | None = None
-_pair_embeddings:   dict | None = None
+# Upgrade 6 — embedding loader (cached via @lru_cache below)
 
 # ---------------------------------------------------------------------------
 # DANGER THRESHOLDS  (balls together)
@@ -109,23 +107,19 @@ def _reload_history() -> None:
 # UPGRADE 6 — PLAYER EMBEDDING LOADER & SIMILARITY LOOKUP
 # ---------------------------------------------------------------------------
 
+@lru_cache(maxsize=1)
 def _load_embeddings() -> tuple[dict, dict]:
-    """Lazy-load player and pair embeddings from .pt files."""
-    global _player_embeddings, _pair_embeddings
-    if _player_embeddings is not None:
-        return _player_embeddings, _pair_embeddings  # type: ignore[return-value]
+    """Lazy-load player and pair embeddings from .pt files (cached on first call)."""
     try:
         import torch
         if PLAYER_EMBED_PATH.exists() and PAIR_EMBED_PATH.exists():
-            _player_embeddings = torch.load(str(PLAYER_EMBED_PATH), weights_only=False)
-            _pair_embeddings   = torch.load(str(PAIR_EMBED_PATH),   weights_only=False)
-        else:
-            _player_embeddings = {}
-            _pair_embeddings   = {}
+            return (
+                torch.load(str(PLAYER_EMBED_PATH), weights_only=False),
+                torch.load(str(PAIR_EMBED_PATH),   weights_only=False),
+            )
     except Exception:
-        _player_embeddings = {}
-        _pair_embeddings   = {}
-    return _player_embeddings, _pair_embeddings  # type: ignore[return-value]
+        pass
+    return {}, {}
 
 
 def _find_similar_pair(

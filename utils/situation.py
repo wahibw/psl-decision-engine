@@ -80,10 +80,27 @@ class WeatherImpact:
     dl_planning_needed: bool        # True if rain probability > 30%
     dew_onset_over:     int         # over when dew expected to be active (0 = no dew)
     warnings:           list[str]   # plain-English alerts for UI display
+    raw_humidity:       float = 0.0 # UI hook
+    raw_temp:           float = 0.0 # UI hook
+    raw_wind_kph:       float = 0.0 # UI hook
+    raw_wind_dir:       str   = ""  # UI hook — e.g. "NE", "SW"
+
+    @classmethod
+    def load_engine_constants(cls) -> dict:
+        import json
+        try:
+            from pathlib import Path
+            proj_root = Path(__file__).resolve().parent.parent
+            with open(proj_root / 'data' / 'processed' / 'quetta_registry.json', 'r', encoding='utf-8') as f:
+                return json.load(f).get("engine_constants", {})
+        except Exception:
+            return {}
 
     @classmethod
     def neutral(cls) -> WeatherImpact:
         """Safe default — no weather modifier applied. Used when API unavailable."""
+        constants = cls.load_engine_constants()
+        # Default to 1.0 if not found, meaning no penalty
         return cls(
             spinner_penalty=1.0,
             swing_bonus=1.0,
@@ -94,6 +111,10 @@ class WeatherImpact:
             warnings=["Weather data unavailable — no modifiers applied"],
         )
 
+    # Number of overs over which dew builds from first appearance to full effect.
+    # e.g. onset=13 → 0% at over 13, 25% at 14, 50% at 15, 75% at 16, 100% at 17+
+    DEW_GRADIENT_OVERS: int = 4
+
     @property
     def dew_active_at(self) -> bool:
         """True if dew is expected at some point during the match."""
@@ -102,6 +123,44 @@ class WeatherImpact:
     @property
     def severe_dew(self) -> bool:
         return self.spinner_penalty < 0.6
+
+    def dew_probability_at(self, over: int) -> float:
+        """
+        Dew intensity at a given over as a gradient (0.0 = none → 1.0 = full).
+
+        Ramps linearly from 0.0 at onset_over to 1.0 at onset_over + DEW_GRADIENT_OVERS.
+        Returns 0.0 for day matches (dew_onset_over == 0) or overs before onset.
+
+        Example (onset=13, gradient=4):
+            over 12 → 0.00  (pre-onset)
+            over 13 → 0.00  (onset — first over, still minimal)
+            over 14 → 0.25
+            over 15 → 0.50
+            over 16 → 0.75
+            over 17 → 1.00  (full effect)
+        """
+        onset = self.dew_onset_over
+        if onset <= 0 or over <= onset:
+            return 0.0
+        overs_past_onset = over - onset
+        return min(1.0, overs_past_onset / self.DEW_GRADIENT_OVERS)
+
+    def spinner_penalty_at(self, over: int) -> float:
+        """
+        Spinner penalty at a specific over, accounting for gradual dew build-up.
+
+        Returns 1.0 (no penalty) before onset, linearly blending to self.spinner_penalty
+        (the full-dew value, e.g. 0.6) as dew intensity reaches 1.0.
+
+        Example (spinner_penalty=0.6, onset=13):
+            over 14 → 1.0 - 0.25 * (1.0 - 0.6) = 0.90  (10% impaired)
+            over 15 → 1.0 - 0.50 * 0.4           = 0.80  (20% impaired)
+            over 17 → 1.0 - 1.00 * 0.4           = 0.60  (full impairment)
+        """
+        intensity = self.dew_probability_at(over)
+        if intensity <= 0.0:
+            return 1.0
+        return round(1.0 - intensity * (1.0 - self.spinner_penalty), 3)
 
     def seam_swing_bonus(self, bowling_style: str) -> float:
         """
@@ -206,6 +265,7 @@ class LiveMatchState:
     crr:                float = field(init=False)
     phase:              str   = field(init=False)
     dew_active:         bool  = field(init=False)
+    dew_intensity:      float = field(init=False)   # 0.0 (none) → 1.0 (full), gradient
 
     def __post_init__(self):
         self.compute_derived()
@@ -246,9 +306,13 @@ class LiveMatchState:
         else:
             self.phase = "super_over"
 
-        # Dew — dew_onset_over is 1-indexed (matches current_over)
+        # Dew — binary flag for backward compatibility; gradient intensity for UI
         onset = self.weather_impact.dew_onset_over if self.weather_impact else 0
-        self.dew_active = (onset > 0) and (self.current_over >= onset)
+        self.dew_active    = (onset > 0) and (self.current_over >= onset)
+        self.dew_intensity = (
+            self.weather_impact.dew_probability_at(self.current_over)
+            if self.weather_impact else 0.0
+        )
 
     # ------------------------------------------------------------------
     # CONVENIENCE UPDATER

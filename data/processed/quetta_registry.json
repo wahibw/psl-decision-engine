@@ -1,0 +1,234 @@
+{
+  "player_registry": [
+    {
+      "metadata": {
+        "player_id": "SK-001",
+        "name": "Saud Shakeel",
+        "team": "Quetta Gladiators",
+        "role": "ALL-ROUNDER",
+        "batting_hand": "Left",
+        "bowling_type": "Slow Left-arm Orthodox",
+        "data_tier": 1,
+        "image_url": "/assets/players/saud_shakeel_cutout.png"
+      },
+      "trading_card_metrics": {
+        "batting_power": 92,
+        "consistency": 94,
+        "spin_proficiency": 88,
+        "pace_proficiency": 85,
+        "fielding_rating": 82
+      },
+      "hexagonal_radar_stats": {
+        "power_hitting": 7.5,
+        "consistency": 9.2,
+        "pace_skill": 8.0,
+        "spin_skill": 8.8,
+        "catching": 8.5,
+        "strike_rate_index": 7.8
+      },
+      "matchup_matrix_h2h": {
+        "vs_bowling_types": {
+          "right_arm_fast": {"avg": 34.2, "sr": 132.5, "risk": "Low"},
+          "leg_break": {"avg": 28.1, "sr": 118.0, "risk": "Medium"},
+          "off_break": {"avg": 45.0, "sr": 145.2, "risk": "Low"},
+          "left_arm_fast": {"avg": 22.4, "sr": 110.5, "risk": "High"}
+        }
+      },
+      "venue_performance": {
+        "gaddafi_stadium": {"avg": 38.5, "sr": 138.0, "matches": 12},
+        "pindi_stadium": {"avg": 42.0, "sr": 144.5, "matches": 8},
+        "national_stadium": {"avg": 31.2, "sr": 129.0, "matches": 15}
+      },
+      "fielding_coordinates": {
+        "preferred_position": "Point",
+        "polar_coords": {"r": 25.0, "theta": 90.0}
+      }
+    },
+    {
+      "metadata": {
+        "player_id": "RK-002",
+        "name": "Rachid Khan",
+        "team": "Other Team",
+        "role": "BOWLER",
+        "batting_hand": "Right",
+        "bowling_type": "Legbreak Googly",
+        "data_tier": 1,
+        "image_url": "/assets/players/rashid_khan.png"
+      },
+      "trading_card_metrics": {
+        "batting_power": 65,
+        "consistency": 88,
+        "spin_proficiency": 95,
+        "pace_proficiency": 90,
+        "fielding_rating": 88
+      },
+      "hexagonal_radar_stats": {
+        "power_hitting": 6.5,
+        "consistency": 8.8,
+        "pace_skill": 9.0,
+        "spin_skill": 9.5,
+        "catching": 8.8,
+        "strike_rate_index": 6.8
+      },
+      "matchup_matrix_h2h": {
+        "vs_bowling_types": {
+          "right_arm_fast": {"avg": 24.2, "sr": 122.5, "risk": "Medium"},
+          "leg_break": {"avg": 18.1, "sr": 108.0, "risk": "High"},
+          "off_break": {"avg": 25.0, "sr": 125.2, "risk": "Medium"},
+          "left_arm_fast": {"avg": 12.4, "sr": 90.5, "risk": "High"}
+        }
+      },
+      "venue_performance": {
+        "gaddafi_stadium": {"avg": 18.5, "sr": 118.0, "matches": 12},
+        "pindi_stadium": {"avg": 22.0, "sr": 124.5, "matches": 8},
+        "national_stadium": {"avg": 11.2, "sr": 109.0, "matches": 15}
+      },
+      "fielding_coordinates": {
+        "preferred_position": "Mid-off",
+        "polar_coords": {"r": 35.0, "theta": 180.0}
+      }
+    },
+    {
+      "metadata": {
+        "player_id": "BA-003",
+        "name": "Babar Azam",
+        "team": "Other Team",
+        "role": "BATTER",
+        "batting_hand": "Right",
+        "bowling_type": "Right-arm offbreak",
+        "data_tier": 1,
+        "image_url": "/assets/players/babar_azam.png"
+      },
+      "trading_card_metrics": {
+        "batting_power": 85,
+        "consistency": 98,
+        "spin_proficiency": 92,
+        "pace_proficiency": 95,
+        "fielding_rating": 85
+      },
+      "hexagonal_radar_stats": {
+        "power_hitting": 8.5,
+        "consistency": 9.8,
+        "pace_skill": 9.5,
+        "spin_skill": 9.2,
+        "catching": 8.5,
+        "strike_rate_index": 8.5
+      },
+      "matchup_matrix_h2h": {
+        "vs_bowling_types": {
+          "right_arm_fast": {"avg": 44.2, "sr": 142.5, "risk": "Low"},
+          "leg_break": {"avg": 38.1, "sr": 128.0, "risk": "Low"},
+          "off_break": {"avg": 55.0, "sr": 155.2, "risk": "Low"},
+          "left_arm_fast": {"avg": 32.4, "sr": 120.5, "risk": "Medium"}
+        }
+      },
+      "venue_performance": {
+        "gaddafi_stadium": {"avg": 48.5, "sr": 148.0, "matches": 22},
+        "pindi_stadium": {"avg": 52.0, "sr": 154.5, "matches": 18},
+        "national_stadium": {"avg": 41.2, "sr": 139.0, "matches": 25}
+      },
+      "fielding_coordinates": {
+        "preferred_position": "Slip",
+        "polar_coords": {"r": 15.0, "theta": 45.0}
+      }
+    },
+    {
+      "metadata": {
+        "player_id": "DW-004",
+        "name": "Di Waroer",
+        "team": "Other Team",
+        "role": "BATTER",
+        "batting_hand": "Left",
+        "bowling_type": "N/A",
+        "data_tier": 2,
+        "image_url": "/assets/players/di_waroer.png"
+      },
+      "trading_card_metrics": {
+        "batting_power": 89,
+        "consistency": 75,
+        "spin_proficiency": 80,
+        "pace_proficiency": 88,
+        "fielding_rating": 80
+      },
+      "hexagonal_radar_stats": {
+        "power_hitting": 8.9,
+        "consistency": 7.5,
+        "pace_skill": 8.8,
+        "spin_skill": 8.0,
+        "catching": 8.0,
+        "strike_rate_index": 8.5
+      },
+      "matchup_matrix_h2h": {
+        "vs_bowling_types": {
+          "right_arm_fast": {"avg": 34.2, "sr": 142.5, "risk": "Medium"},
+          "leg_break": {"avg": 28.1, "sr": 128.0, "risk": "High"},
+          "off_break": {"avg": 45.0, "sr": 155.2, "risk": "Low"},
+          "left_arm_fast": {"avg": 22.4, "sr": 110.5, "risk": "High"}
+        }
+      },
+      "venue_performance": {
+        "gaddafi_stadium": {"avg": 38.5, "sr": 148.0, "matches": 4},
+        "pindi_stadium": {"avg": 42.0, "sr": 154.5, "matches": 3},
+        "national_stadium": {"avg": 31.2, "sr": 139.0, "matches": 5}
+      },
+      "fielding_coordinates": {
+        "preferred_position": "Mid-on",
+        "polar_coords": {"r": 35.0, "theta": 0.0}
+      }
+    },
+    {
+      "metadata": {
+        "player_id": "RY-005",
+        "name": "Rasa Yesea",
+        "team": "Quetta Gladiators",
+        "role": "BOWLER",
+        "batting_hand": "Right",
+        "bowling_type": "Legbreak",
+        "data_tier": 3,
+        "image_url": "/assets/players/rasa_yesea.png"
+      },
+      "trading_card_metrics": {
+        "batting_power": 40,
+        "consistency": 60,
+        "spin_proficiency": 70,
+        "pace_proficiency": 50,
+        "fielding_rating": 75
+      },
+      "hexagonal_radar_stats": {
+        "power_hitting": 4.0,
+        "consistency": 6.0,
+        "pace_skill": 5.0,
+        "spin_skill": 7.0,
+        "catching": 7.5,
+        "strike_rate_index": 4.5
+      },
+      "matchup_matrix_h2h": {
+        "vs_bowling_types": {
+          "right_arm_fast": {"avg": 14.2, "sr": 82.5, "risk": "High"},
+          "leg_break": {"avg": 8.1, "sr": 68.0, "risk": "High"},
+          "off_break": {"avg": 15.0, "sr": 95.2, "risk": "High"},
+          "left_arm_fast": {"avg": 12.4, "sr": 70.5, "risk": "High"}
+        }
+      },
+      "venue_performance": {
+        "gaddafi_stadium": {"avg": 8.5, "sr": 88.0, "matches": 1},
+        "pindi_stadium": {"avg": 12.0, "sr": 94.5, "matches": 1},
+        "national_stadium": {"avg": 11.2, "sr": 89.0, "matches": 1}
+      },
+      "fielding_coordinates": {
+        "preferred_position": "Fine Leg",
+        "polar_coords": {"r": 45.0, "theta": 135.0}
+      }
+    }
+  ],
+  "engine_constants": {
+    "dew_threshold_humidity": 70,
+    "spinner_penalty_coefficient": 0.60,
+    "overseas_player_limit": 4,
+    "confidence_intervals": {
+      "tier_1": "High (8+ PSL Seasons)",
+      "tier_2": "Medium (2-3 PSL Seasons)",
+      "tier_3": "Low (T20 Career Proxy)"
+    }
+  }
+}

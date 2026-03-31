@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dugout — TALAASH Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:#E8EAF2;color:#1a0a3a}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 10% 5%,  rgba(139,92,246,0.18) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 45% at 88% 92%,  rgba(255,140,0,0.12)  0%,transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 50%,  rgba(200,210,255,0.35) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 35% at 80% 10%,  rgba(0,229,255,0.08)  0%,transparent 50%),
+    radial-gradient(ellipse 35% 30% at 20% 90%,  rgba(76,175,80,0.08)  0%,transparent 50%);
+}
+
+/* NAV */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:52px;
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,0.7);
+  box-shadow:0 1px 0 rgba(139,92,246,0.08),0 4px 20px rgba(139,92,246,0.06);
+}
+.nav-brand-txt{font-family:Rajdhani;font-size:10px;font-weight:500;letter-spacing:5px;text-transform:uppercase;color:rgba(26,10,58,0.35)}
+.nav-links{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:0}
+.nl-sep{width:1px;height:18px;background:rgba(26,10,58,0.12);margin:0 2px}
+.nl{font-family:Orbitron;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(26,10,58,0.38);padding:6px 20px;cursor:pointer;transition:color .2s;border:none;background:transparent;position:relative}
+.nl:hover{color:rgba(26,10,58,0.75)}
+.nl.active{color:#6D28D9}
+.nl.active::after{content:'';position:absolute;bottom:-1px;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#8B5CF6,transparent);border-radius:2px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.live-d{width:7px;height:7px;border-radius:50%;background:#16A34A;animation:blink 1.5s infinite;flex-shrink:0}
+.live-l{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#16A34A}
+.team-b{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#8B5CF6);border:2px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:9px;font-weight:900;color:#1a0a3a;letter-spacing:0.5px;box-shadow:0 2px 12px rgba(139,92,246,0.35)}
+
+/* SETUP OVERLAY */
+.setup-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(232,234,242,0.97);backdrop-filter:blur(24px);
+  display:flex;align-items:center;justify-content:center;
+}
+.setup-card{
+  background:rgba(255,255,255,0.62);
+  backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:20px;
+  padding:32px 36px;
+  max-width:680px;width:92%;
+  position:relative;
+  box-shadow:0 16px 48px rgba(26,10,58,0.12);
+}
+.setup-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#8B5CF6,#FFD700,transparent);border-radius:20px 20px 0 0;opacity:.7}
+.setup-title{font-family:Orbitron;font-size:14px;font-weight:900;letter-spacing:3px;color:#6D28D9;margin-bottom:4px;text-transform:uppercase}
+.setup-sub{font-family:Rajdhani;font-size:10px;letter-spacing:2px;color:rgba(26,10,58,0.38);margin-bottom:24px;text-transform:uppercase}
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.setup-field label{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.38);display:block;margin-bottom:5px}
+.setup-sel,.setup-input{
+  width:100%;background:rgba(255,255,255,0.6);
+  border:1px solid rgba(139,92,246,0.18);border-radius:8px;
+  padding:8px 12px;color:#1a0a3a;font-family:'Exo 2';font-size:11px;
+  outline:none;appearance:none;cursor:pointer;
+}
+.setup-sel:focus,.setup-input:focus{border-color:rgba(109,40,217,0.4);box-shadow:0 0 0 2px rgba(109,40,217,0.06)}
+.setup-input{font-family:Orbitron;font-weight:700;text-align:center}
+.setup-bowlers-wrap{margin-bottom:20px}
+.setup-bowlers-wrap label{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.38);display:block;margin-bottom:8px}
+.setup-bowlers-grid{display:flex;flex-wrap:wrap;gap:5px;max-height:110px;overflow-y:auto;padding:4px}
+.setup-bowlers-grid::-webkit-scrollbar{width:3px}
+.setup-bowlers-grid::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+.bowler-chip{font-family:Rajdhani;font-size:9px;font-weight:600;padding:4px 10px;border-radius:12px;border:1px solid rgba(139,92,246,0.15);background:rgba(255,255,255,0.5);color:rgba(26,10,58,0.45);cursor:pointer;transition:all .2s;user-select:none}
+.bowler-chip:hover{border-color:rgba(109,40,217,0.35);color:#6D28D9}
+.bowler-chip.selected{background:rgba(109,40,217,0.1);border-color:rgba(109,40,217,0.4);color:#6D28D9}
+.setup-start-btn{width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;font-family:Orbitron;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#1a0a3a;background:linear-gradient(135deg,#FF8C00,#FFD700);box-shadow:0 4px 16px rgba(255,140,0,0.3);transition:all .2s}
+.setup-start-btn:hover{box-shadow:0 6px 24px rgba(255,140,0,0.45);transform:translateY(-1px)}
+.setup-start-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.setup-status{font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);letter-spacing:1.5px;text-align:center;margin-top:10px;min-height:16px}
+
+/* DUGOUT PAGE */
+.dg-page{
+  position:fixed;top:52px;left:0;right:0;bottom:0;
+  overflow-y:auto;overflow-x:hidden;
+  padding:14px 16px;
+  display:grid;
+  grid-template-columns:300px 1fr 380px;
+  grid-template-rows:auto auto 1fr;
+  gap:12px;
+  z-index:1;
+}
+.dg-page::-webkit-scrollbar{width:4px}
+.dg-page::-webkit-scrollbar-thumb{background:rgba(109,40,217,0.2);border-radius:2px}
+
+/* glass card base */
+.dg-card{
+  background:rgba(255,255,255,0.52);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:16px;
+  box-shadow:0 8px 32px rgba(26,10,58,0.09);
+  padding:14px 16px;
+  position:relative;
+  overflow:hidden;
+}
+.dg-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(109,40,217,0.4),transparent);
+  border-radius:16px 16px 0 0;pointer-events:none;
+}
+.dg-card-title{
+  font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:#6D28D9;
+  display:flex;align-items:center;gap:6px;margin-bottom:12px;
+}
+.dg-card-title .d{width:5px;height:5px;border-radius:50%;background:#6D28D9;flex-shrink:0}
+.dg-card-title .live-pip{width:5px;height:5px;border-radius:50%;background:#16A34A;animation:blink 1.5s infinite;flex-shrink:0}
+
+.dg-match-header{grid-column:1/-1;grid-row:1}
+.dg-left{grid-column:1;display:flex;flex-direction:column;gap:14px}
+.dg-center{grid-column:2;display:flex;flex-direction:column;gap:14px}
+.dg-right{grid-column:3;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:10px;align-content:start}
+.dg-right .dg-intel{grid-column:1/-1}
+.dg-right .dg-momentum-card{grid-column:1}
+.dg-right .dg-dugout-card{grid-column:2}
+.dg-right .dg-field-card{grid-column:1/-1}
+
+/* Match Score Banner */
+.dg-score-banner{
+  grid-column:1/-1;
+  background:rgba(255,255,255,0.45);
+  backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:16px;
+  padding:18px 28px;
+  display:grid;
+  grid-template-columns:1fr 160px 140px 140px 1fr;
+  align-items:center;
+  gap:24px;
+  position:relative;overflow:hidden;
+  min-height:100px;
+  box-shadow:0 8px 32px rgba(26,10,58,0.09);
+}
+.dg-score-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,#6D28D9,#FF8C00,#6D28D9);opacity:.4}
+.dg-team-score{display:flex;flex-direction:column;gap:4px;min-width:160px}
+.dg-team-name{font-family:Orbitron;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#1a0a3a}
+.dg-score{font-family:Orbitron;font-size:28px;font-weight:900;color:#1a0a3a;line-height:1}
+.dg-score span{font-size:14px;color:rgba(26,10,58,0.45);font-weight:600}
+.dg-score-overs{font-family:Rajdhani;font-size:11px;color:rgba(26,10,58,0.45);font-weight:600}
+.dg-vs-block{text-align:center;flex:1}
+.dg-vs-txt{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:3px;color:rgba(26,10,58,0.25)}
+.dg-status-pill{font-family:Rajdhani;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;background:rgba(22,163,74,0.12);color:#16A34A;border:1px solid rgba(22,163,74,0.25);margin-top:8px;display:inline-block}
+.dg-status-pill.live{background:rgba(220,38,38,0.1);color:#DC2626;border-color:rgba(220,38,38,0.25)}
+.dg-crr-block{display:flex;flex-direction:column;align-items:center}
+.dg-crr{font-family:Orbitron;font-size:20px;font-weight:900;color:#FF8C00}
+.dg-crr-lbl{font-family:Rajdhani;font-size:8px;letter-spacing:2px;color:rgba(26,10,58,0.35);text-transform:uppercase}
+.dg-rrr{font-family:Orbitron;font-size:11px;font-weight:700;color:#DC2626;margin-top:2px}
+.dg-rrr-lbl{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;color:rgba(26,10,58,0.35);text-transform:uppercase}
+
+/* Batters */
+.dg-batter-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.4);border:1px solid rgba(139,92,246,0.12);margin-bottom:6px}
+.dg-batter-row.active{border-color:rgba(255,140,0,0.35);background:rgba(255,140,0,0.05)}
+.dg-bat-name{font-family:Rajdhani;font-size:12px;font-weight:700;color:#1a0a3a;flex:1}
+.dg-bat-runs{font-family:Orbitron;font-size:14px;font-weight:900;color:#1a0a3a}
+.dg-bat-sr{font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);margin-left:4px}
+.dg-bat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dg-bat-dot.on-strike{background:#FF8C00;box-shadow:0 0 6px rgba(255,140,0,0.6)}
+.dg-bat-dot.off-strike{background:rgba(26,10,58,0.2)}
+
+/* Ball feed */
+.dg-ball-feed{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.dg-ball{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:8px;font-weight:800;border:1.5px solid transparent;flex-shrink:0}
+.dg-ball.dot{background:rgba(26,10,58,0.06);border-color:rgba(26,10,58,0.12);color:rgba(26,10,58,0.35)}
+.dg-ball.single{background:rgba(22,163,74,0.1);border-color:rgba(22,163,74,0.3);color:#16A34A}
+.dg-ball.two{background:rgba(22,163,74,0.15);border-color:rgba(22,163,74,0.4);color:#16A34A}
+.dg-ball.three{background:rgba(2,132,199,0.12);border-color:rgba(2,132,199,0.35);color:#0284C7}
+.dg-ball.four{background:rgba(255,140,0,0.15);border-color:rgba(255,140,0,0.4);color:#FF8C00}
+.dg-ball.six{background:linear-gradient(135deg,rgba(109,40,217,0.2),rgba(255,140,0,0.2));border-color:#FF8C00;color:#FF8C00;box-shadow:0 2px 8px rgba(255,140,0,0.25)}
+.dg-ball.wide{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.25);color:#DC2626}
+.dg-ball.wicket{background:rgba(220,38,38,0.15);border-color:#DC2626;color:#DC2626;font-size:10px;box-shadow:0 2px 8px rgba(220,38,38,0.25)}
+.dg-over-sep{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.3);padding:4px 0;border-top:1px solid rgba(139,92,246,0.08);margin:6px 0 8px;display:flex;justify-content:space-between}
+
+/* Bowler */
+.dg-bowler-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,0.35);border:1px solid rgba(139,92,246,0.1);margin-bottom:5px;cursor:pointer;transition:all .2s}
+.dg-bowler-row:hover{border-color:rgba(109,40,217,0.3);background:rgba(109,40,217,0.04)}
+.dg-bowler-row.bowling{border-color:rgba(220,38,38,0.35);background:rgba(220,38,38,0.05)}
+.dg-bowl-name{font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a;flex:1}
+.dg-bowl-stat{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.55)}
+.dg-bowl-phase{font-family:Rajdhani;font-size:7px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px}
+.dg-bowl-phase.pp{background:rgba(0,180,220,0.12);color:#0284C7}
+.dg-bowl-phase.mid{background:rgba(180,130,0,0.12);color:#B45309}
+.dg-bowl-phase.death{background:rgba(220,38,38,0.1);color:#DC2626}
+
+/* Wickets */
+.dg-wkt-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;border:1px solid rgba(220,38,38,0.12);background:rgba(220,38,38,0.04);margin-bottom:4px}
+.dg-wkt-over{font-family:Orbitron;font-size:8px;font-weight:700;color:#DC2626;width:36px;flex-shrink:0}
+.dg-wkt-name{font-family:Rajdhani;font-size:11px;font-weight:600;color:#1a0a3a;flex:1}
+.dg-wkt-runs{font-family:Orbitron;font-size:9px;color:rgba(26,10,58,0.45)}
+.dg-wkt-how{font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);font-style:italic}
+
+/* Comms / Intel Feed */
+.dg-comm{display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border-radius:8px;margin-bottom:5px;border:1px solid transparent}
+.dg-comm.tactical{background:rgba(109,40,217,0.06);border-color:rgba(109,40,217,0.12)}
+.dg-comm.alert{background:rgba(220,38,38,0.05);border-color:rgba(220,38,38,0.15)}
+.dg-comm.info{background:rgba(22,163,74,0.05);border-color:rgba(22,163,74,0.12)}
+.dg-comm-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+.dg-comm.tactical .dg-comm-icon{background:rgba(109,40,217,0.12)}
+.dg-comm.alert .dg-comm-icon{background:rgba(220,38,38,0.1)}
+.dg-comm.info .dg-comm-icon{background:rgba(22,163,74,0.1)}
+.dg-comm-body{flex:1}
+.dg-comm-from{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;color:rgba(26,10,58,0.4);margin-bottom:2px}
+.dg-comm-txt{font-family:'Exo 2';font-size:9px;color:rgba(26,10,58,0.65);line-height:1.45}
+
+/* Win probability */
+.dg-momentum{width:100%;height:80px;position:relative}
+.dg-momentum canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+
+/* Stats */
+.dg-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.dg-stat-box{padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.4);border:1px solid rgba(139,92,246,0.1)}
+.dg-stat-val{font-family:Orbitron;font-size:13px;font-weight:800;color:#1a0a3a;line-height:1}
+.dg-stat-lbl{font-family:Rajdhani;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:rgba(26,10,58,0.38);margin-top:2px}
+.dg-stat-sub{font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.35);margin-top:1px}
+
+/* Input */
+.dg-input-row{display:flex;gap:6px;margin-top:8px}
+.dg-input{flex:1;background:rgba(255,255,255,0.55);border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:7px 10px;font-family:'Exo 2';font-size:10px;color:#1a0a3a;outline:none}
+.dg-input:focus{border-color:rgba(109,40,217,0.4);box-shadow:0 0 0 2px rgba(109,40,217,0.06)}
+.dg-send-btn{background:linear-gradient(135deg,#6D28D9,#8B5CF6);border:none;border-radius:8px;padding:7px 14px;color:#fff;font-family:Orbitron;font-size:8px;font-weight:700;cursor:pointer;letter-spacing:1px}
+
+/* Phase pills */
+.dg-phase-row{display:flex;gap:5px;margin-bottom:10px}
+.dg-phase-pill{flex:1;padding:5px 4px;border-radius:7px;text-align:center;border:1px solid transparent}
+.dg-phase-pill.pp{background:rgba(0,180,220,0.08);border-color:rgba(0,180,220,0.2)}
+.dg-phase-pill.pp.done{background:rgba(0,180,220,0.15);border-color:rgba(0,180,220,0.4)}
+.dg-phase-pill.mid{background:rgba(180,130,0,0.06);border-color:rgba(180,130,0,0.15)}
+.dg-phase-pill.mid.done{background:rgba(180,130,0,0.12);border-color:rgba(180,130,0,0.3)}
+.dg-phase-pill.death{background:rgba(220,38,38,0.05);border-color:rgba(220,38,38,0.12)}
+.dg-phase-pill.death.current{background:rgba(220,38,38,0.1);border-color:rgba(220,38,38,0.3)}
+.dg-phase-lbl{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.dg-phase-pill.pp .dg-phase-lbl,.dg-phase-pill.pp.done .dg-phase-lbl{color:#0284C7}
+.dg-phase-pill.mid .dg-phase-lbl,.dg-phase-pill.mid.done .dg-phase-lbl{color:#B45309}
+.dg-phase-pill.death .dg-phase-lbl,.dg-phase-pill.death.current .dg-phase-lbl{color:#DC2626}
+.dg-phase-runs{font-family:Orbitron;font-size:10px;font-weight:800;color:#1a0a3a;margin-top:2px}
+.dg-phase-rr{font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.4)}
+
+/* Live update bar */
+.dg-update-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.45);border:1px solid rgba(139,92,246,0.15);margin-bottom:10px;flex-wrap:wrap}
+.dg-upd-lbl{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.38);white-space:nowrap}
+.dg-upd-input{background:rgba(255,255,255,0.6);border:1px solid rgba(139,92,246,0.15);border-radius:6px;padding:4px 8px;color:#1a0a3a;font-family:Orbitron;font-size:10px;font-weight:700;width:56px;text-align:center;outline:none}
+.dg-upd-input:focus{border-color:rgba(109,40,217,0.35)}
+.dg-upd-btn{font-family:Rajdhani;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border-radius:7px;border:none;cursor:pointer;background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;box-shadow:0 2px 8px rgba(139,92,246,0.25);white-space:nowrap}
+.dg-situation-feed{padding:8px 10px;border-radius:9px;background:rgba(255,255,255,0.4);border:1px solid rgba(139,92,246,0.1);margin-bottom:8px;font-family:'Exo 2';font-size:9px;color:rgba(26,10,58,0.6);line-height:1.5}
+.dg-situation-feed .sit-badge{font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:4px;margin-bottom:5px;display:inline-block}
+.sit-badge.info{background:rgba(22,163,74,0.12);color:#16A34A;border:1px solid rgba(22,163,74,0.25)}
+.sit-badge.warn{background:rgba(255,140,0,0.12);color:#FF8C00;border:1px solid rgba(255,140,0,0.25)}
+.sit-badge.crit{background:rgba(220,38,38,0.1);color:#DC2626;border:1px solid rgba(220,38,38,0.25)}
+.sit-headline{font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a;margin-bottom:2px}
+.sit-body{font-family:'Exo 2';font-size:9px;color:rgba(26,10,58,0.55);line-height:1.45}
+
+/* Opp batters */
+.dg-opp-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.35);border:1px solid rgba(139,92,246,0.08);margin-bottom:4px}
+.dg-opp-num{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.3);width:16px;flex-shrink:0}
+.dg-opp-name{font-family:Rajdhani;font-size:11px;font-weight:600;color:#1a0a3a;flex:1}
+.dg-opp-danger{font-family:Orbitron;font-size:6px;font-weight:700;letter-spacing:1px;padding:2px 5px;border-radius:3px}
+.dg-opp-danger.high{background:rgba(220,38,38,0.1);color:#DC2626}
+.dg-opp-danger.med{background:rgba(255,140,0,0.1);color:#FF8C00}
+.dg-opp-danger.low{background:rgba(22,163,74,0.1);color:#16A34A}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+</style>
+</head>
+<body>
+<script>
+// Iframe detection
+(function(){
+  var inIframe=false;
+  try{inIframe=(window.self!==window.top);}catch(e){inIframe=true;}
+  if(inIframe){
+    document.addEventListener('DOMContentLoaded',function(){
+      var nav=document.querySelector('.nav');
+      if(nav)nav.style.display='none';
+      var pg=document.getElementById('dg-page');
+      if(pg){pg.style.top='0';}
+    });
+  }
+})();
+</script>
+
+<!-- Setup overlay -->
+<div class="setup-overlay" id="setup-overlay">
+  <div class="setup-card">
+    <div class="setup-title">Dugout Intelligence</div>
+    <div class="setup-sub">Match Configuration — Live Decision Engine</div>
+    <!-- Prep Room brief import banner — shown if a saved brief exists -->
+    <div id="prep-brief-banner" style="display:none;margin-bottom:18px;padding:12px 14px;border-radius:10px;background:rgba(109,40,217,0.07);border:1px solid rgba(109,40,217,0.25)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#6D28D9;margin-bottom:3px">⚡ Prep Room Brief Available</div>
+          <div id="prep-brief-desc" style="font-family:Rajdhani;font-size:10px;color:rgba(26,10,58,0.58)"></div>
+        </div>
+        <button onclick="importPrepBrief()" style="font-family:Rajdhani;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#6D28D9,#8B5CF6);color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0">Import Brief</button>
+      </div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-field">
+        <label>Our Bowling Team</label>
+        <select class="setup-sel" id="s-bowl-team" onchange="onBowlTeamChange()">
+          <option>Quetta Gladiators</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>Batting Team</label>
+        <select class="setup-sel" id="s-bat-team">
+          <option>Lahore Qalandars</option>
+        </select>
+      </div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-field">
+        <label>Venue</label>
+        <select class="setup-sel" id="s-venue">
+          <option>National Stadium, Karachi</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>Innings</label>
+        <select class="setup-sel" id="s-innings">
+          <option value="1">1st Innings</option>
+          <option value="2">2nd Innings</option>
+        </select>
+      </div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-field">
+        <label>Target (2nd Innings only)</label>
+        <input class="setup-input" id="s-target" type="number" placeholder="0" value="0">
+      </div>
+    </div>
+    <div class="setup-bowlers-wrap">
+      <label>Select Bowlers (choose up to 7)</label>
+      <div class="setup-bowlers-grid" id="s-bowlers-grid">
+        <span style="font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.35)">Loading squad…</span>
+      </div>
+    </div>
+    <button class="setup-start-btn" id="setup-start-btn" onclick="startMatch()">⚡ Initialise Dugout</button>
+    <div class="setup-status" id="setup-status"></div>
+  </div>
+</div>
+
+<nav class="nav" id="dg-nav">
+  <div class="nav-brand"><span class="nav-brand-txt">Intelligence Dashboard</span></div>
+  <div class="nav-links">
+    <span class="nl">Prep Room</span>
+    <div class="nl-sep"></div>
+    <span class="nl active">Dugout</span>
+    <div class="nl-sep"></div>
+    <span class="nl">Players</span>
+  </div>
+  <div class="nav-right">
+    <div class="live-d"></div>
+    <span class="live-l" id="nav-live-lbl">Standby</span>
+    <div class="team-b" id="nav-team-b">QG</div>
+  </div>
+</nav>
+
+<div class="dg-page" id="dg-page"></div>
+
+<script>
+// ─── State ───
+let matchState={initialized:false};
+let metaData={teams:[],venues:[],bowlers_by_team:{}};
+let matchData={bowlers:[],opp_batters:[],matchups:[],contingencies:[],weather:{}};
+let prepBriefData=null;  // populated from localStorage if prep room brief exists
+let situationData={badge:'info',headline:'',body:'',alert:''};
+
+const DG={
+  match:{home:'Quetta Gladiators',away:'Lahore Qalandars',homeShort:'QG',awayShort:'LQ',venue:'National Stadium, Karachi',inn:2,over:1,ball:0},
+  batting:{score:0,wkts:0,overs:'0.0',target:0,crr:0,rrr:0},
+  firstInn:{score:0,wkts:0,overs:'20.0'},
+  batters:[
+    {name:'Batter 1',runs:0,balls:0,fours:0,sixes:0,sr:0,onStrike:true},
+    {name:'Batter 2',runs:0,balls:0,fours:0,sixes:0,sr:0,onStrike:false},
+  ],
+  bowlers:[],
+  wickets:[],
+  phases:[
+    {label:'PP',cls:'pp',overs:'1–6',runs:0,wkts:0,rr:0,done:false},
+    {label:'MID',cls:'mid',overs:'7–15',runs:0,wkts:0,rr:0,done:false},
+    {label:'DEATH',cls:'death',overs:'16–20',runs:0,wkts:0,rr:0,current:true},
+  ],
+  balls:[],        // current over deliveries
+  overHistory:[],  // completed overs [{over, balls[], runs, bowler}]
+  ball:0,          // balls bowled in current over (proper deliveries only)
+  currentBowlerName:'',   // name of bowler for the current over
+  selectingBowler:false,  // true when prompting user to pick next bowler
+  comms:[],
+  winProb:{home:50,away:50},
+  momentum:[50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50],
+  stats:{dots:0,boundaries:0,sixes:0,dotPct:0,extras:0,highPartnership:{runs:0,balls:0,batters:'—'}},
+};
+
+// ─── Load Meta ───
+function loadDugoutMeta(){
+  fetch('/api/dugout-meta').then(r=>r.json()).then(data=>{
+    metaData=data;
+    const teams=data.teams||[];
+    const venues=data.venues||[];
+    const bowlSel=document.getElementById('s-bowl-team');
+    const batSel=document.getElementById('s-bat-team');
+    const venSel=document.getElementById('s-venue');
+    if(bowlSel&&teams.length){
+      bowlSel.innerHTML=teams.map(t=>`<option>${t}</option>`).join('');
+      // Default bowling to Quetta if available
+      const qIdx=teams.indexOf('Quetta Gladiators');
+      if(qIdx>=0)bowlSel.selectedIndex=qIdx;
+    }
+    if(batSel&&teams.length){
+      batSel.innerHTML=teams.map(t=>`<option>${t}</option>`).join('');
+      const lIdx=teams.indexOf('Lahore Qalandars');
+      if(lIdx>=0)batSel.selectedIndex=lIdx;
+    }
+    if(venSel&&venues.length){
+      venSel.innerHTML=venues.map(v=>`<option>${v}</option>`).join('');
+    }
+    onBowlTeamChange();
+  }).catch(()=>{onBowlTeamChange();});
+}
+
+function onBowlTeamChange(){
+  const bowlSel=document.getElementById('s-bowl-team');
+  const team=bowlSel?bowlSel.value:'Quetta Gladiators';
+  const grid=document.getElementById('s-bowlers-grid');
+  if(!grid)return;
+  const bowlers=(metaData.bowlers_by_team&&metaData.bowlers_by_team[team])||
+    ['Wasim Akram Jr','Alzarri Joseph','Tom Curran','Hassan Nawaz','Shamyl Hussain','Khawaja Muhammad Nafay','Jahanzaib Sultan'];
+  grid.innerHTML=bowlers.map(b=>`<span class="bowler-chip" onclick="toggleBowler(this)">${b}</span>`).join('');
+}
+
+function toggleBowler(el){
+  const selected=document.querySelectorAll('#s-bowlers-grid .bowler-chip.selected');
+  if(!el.classList.contains('selected')&&selected.length>=7)return;
+  el.classList.toggle('selected');
+}
+
+// ─── Start Match ───
+function startMatch(){
+  const bowlTeam=document.getElementById('s-bowl-team')?.value||'Quetta Gladiators';
+  const batTeam=document.getElementById('s-bat-team')?.value||'Lahore Qalandars';
+  const venue=document.getElementById('s-venue')?.value||'National Stadium, Karachi';
+  const innings=parseInt(document.getElementById('s-innings')?.value||'1');
+  const target=parseInt(document.getElementById('s-target')?.value||'0');
+  const selBowlers=[];
+  document.querySelectorAll('#s-bowlers-grid .bowler-chip.selected').forEach(el=>selBowlers.push(el.textContent.trim()));
+  if(selBowlers.length<4){
+    document.getElementById('setup-status').textContent='Please select at least 4 bowlers.';return;
+  }
+  const btn=document.getElementById('setup-start-btn');
+  btn.disabled=true;
+  document.getElementById('setup-status').textContent='Initialising match intelligence…';
+
+  // Update DG match info
+  DG.match.home=bowlTeam;DG.match.away=batTeam;
+  DG.match.homeShort=bowlTeam.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  DG.match.awayShort=batTeam.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  DG.match.venue=venue;DG.match.inn=innings;
+  DG.batting.target=target;
+  document.getElementById('nav-team-b').textContent=DG.match.homeShort;
+
+  fetch('/api/dugout-init',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({bowling_team:bowlTeam,batting_team:batTeam,venue,innings,target,bowlers:selBowlers})
+  }).then(r=>r.json()).then(data=>{
+    matchData=data;
+    // Populate DG with API data
+    DG.bowlers=data.bowlers?data.bowlers.map(b=>({
+      name:b.name,overs:'0.0',runs:0,wkts:0,balls:0,
+      econ:b.economy||8.0,phase:'mid',bowling:false
+    })):[];
+    // Don't auto-select first bowler — prompt user to pick before ball 1
+    DG.selectingBowler=true;
+    DG.currentBowlerName='';
+    // Opposition batters
+    if(data.opp_batters&&data.opp_batters.length){
+      DG.comms=data.opp_batters.slice(0,3).map((b,i)=>({
+        type:'info',icon:'📊',from:'OPP INTELLIGENCE',
+        txt:`${b.name} — ${b.note||'Key batter'}. SR vs Spin: ${b.sr_spin||'—'} | vs Pace: ${b.sr_pace||'—'}`,time:''
+      }));
+    }
+    // Add matchups to comms
+    if(data.matchups&&data.matchups.length){
+      data.matchups.slice(0,3).forEach(m=>{
+        DG.comms.push({
+          type:'tactical',icon:'🎯',from:'MATCHUP ANALYSIS',
+          txt:`${m.bowler} vs ${m.batter} — SR ${m.sr} in ${m.balls} balls. Advantage: ${m.edge}.`,time:''
+        });
+      });
+    }
+    // Contingencies
+    if(data.contingencies&&data.contingencies.length){
+      data.contingencies.slice(0,2).forEach(c=>{
+        DG.comms.push({type:'alert',icon:'⚠',from:'CONTINGENCY',txt:c,time:''});
+      });
+    }
+    // Weather note
+    if(data.weather){
+      const w=data.weather;
+      DG.comms.push({type:'info',icon:'🌤',from:'CONDITIONS',
+        txt:`Venue: ${venue}. Spinner eff: ${w.spinner_eff||100}% | Swing: ${w.swing||'Minimal'} | Dew: ${w.dew||'None'}`,time:''
+      });
+    }
+    matchState.initialized=true;
+    // Inject Prep Room bowling plan into comms if available
+    _injectPrepBriefComms();
+    document.getElementById('setup-overlay').style.display='none';
+    document.getElementById('nav-live-lbl').textContent='Live';
+    renderDugout();
+  }).catch(err=>{
+    btn.disabled=false;
+    document.getElementById('setup-status').textContent='Init failed — using demo data.';
+    DG.bowlers=selBowlers.map((n,i)=>({name:n,overs:'0.0',runs:0,wkts:0,balls:0,econ:8.0,phase:i<2?'pp':i<4?'mid':'death',bowling:false}));
+    DG.selectingBowler=true;DG.currentBowlerName='';
+    matchState.initialized=true;
+    _injectPrepBriefComms();
+    document.getElementById('setup-overlay').style.display='none';
+    renderDugout();
+  });
+}
+
+function _injectPrepBriefComms(){
+  try{
+    const raw=localStorage.getItem('psl_prep_brief');
+    if(!raw)return;
+    const b=JSON.parse(raw);
+    if(!b||Date.now()-b.ts>12*3600*1000)return;
+    prepBriefData=b;
+    // Toss recommendation
+    if(b.toss_rec){
+      DG.comms.unshift({type:'tactical',icon:'🏏',from:'PREP ROOM — TOSS',
+        txt:`Recommendation: ${b.toss_rec}`,time:''});
+    }
+    // Bowling plan summary (PP / Mid / Death overs)
+    if(b.over_plan&&b.over_plan.length){
+      const pp=b.over_plan.filter(o=>o.phase==='PP'||o.phase==='pp').slice(0,6)
+        .map(o=>`Ov${o.over}:${o.bowler}`).join(' | ');
+      const death=b.over_plan.filter(o=>o.phase==='Death'||o.phase==='death').slice(0,4)
+        .map(o=>`Ov${o.over}:${o.bowler}`).join(' | ');
+      if(pp)DG.comms.unshift({type:'info',icon:'📋',from:'PREP ROOM — BOWLING PLAN',
+        txt:`PP plan: ${pp}`,time:''});
+      if(death)DG.comms.push({type:'info',icon:'📋',from:'PREP ROOM — DEATH OVERS',
+        txt:`Death plan: ${death}`,time:''});
+    }
+    // XI summary
+    if(b.xi&&b.xi.length){
+      const xi=b.xi.map(p=>p.name).join(', ');
+      DG.comms.push({type:'info',icon:'👥',from:'PREP ROOM — PLAYING XI',
+        txt:xi,time:''});
+    }
+  }catch(e){}
+}
+
+// ─── Update Situation ───
+function updateSituation(){
+  const over=parseInt(document.getElementById('upd-over')?.value||'1');
+  const score=parseInt(document.getElementById('upd-score')?.value||'0');
+  const wkts=parseInt(document.getElementById('upd-wkts')?.value||'0');
+  const partR=parseInt(document.getElementById('upd-part-r')?.value||'0');
+  const partB=parseInt(document.getElementById('upd-part-b')?.value||'0');
+  const b1=document.getElementById('upd-b1')?.value||DG.batters[0].name;
+  const b2=document.getElementById('upd-b2')?.value||DG.batters[1].name;
+  const bowler=document.getElementById('upd-bowler')?.value||'';
+
+  // Update DG display values
+  DG.match.over=over;
+  DG.batting.score=score;DG.batting.wkts=wkts;
+  DG.batting.overs=over+'.'+Math.max(0,parseInt(document.getElementById('upd-balls-in-ov')?.value||'0'));
+  const ovsComp=over-1+(parseInt(document.getElementById('upd-balls-in-ov')?.value||'0')/6);
+  DG.batting.crr=ovsComp>0?Math.round((score/ovsComp)*100)/100:0;
+  if(DG.batting.target>0){
+    const rem=20-ovsComp;const need=DG.batting.target-score;
+    DG.batting.rrr=rem>0?Math.round((need/rem)*100)/100:0;
+  }
+  DG.batters[0].name=b1||DG.batters[0].name;
+  DG.batters[1].name=b2||DG.batters[1].name;
+  DG.batters[0].runs=partR;DG.batters[0].balls=partB;
+  DG.batters[0].sr=partB>0?Math.round((partR/partB)*100):0;
+
+  fetch('/api/dugout-situation',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({over,score,wickets:wkts,batter1:b1,batter2:b2,
+      part_runs:partR,part_balls:partB,bowler,innings:DG.match.inn,
+      target:DG.batting.target,balls_in_over:parseInt(document.getElementById('upd-balls-in-ov')?.value||'0')})
+  }).then(r=>r.json()).then(data=>{
+    situationData=data;
+    // Prepend situation to comms
+    if(data.headline){
+      DG.comms.unshift({type:data.badge==='crit'?'alert':data.badge==='warn'?'alert':'info',
+        icon:data.badge==='crit'?'🚨':data.badge==='warn'?'⚠':'✅',
+        from:'AI SITUATION READ',txt:data.headline+(data.body?(' — '+data.body):''),time:'Over '+over});
+    }
+    renderDugout();
+  }).catch(()=>{renderDugout();});
+}
+
+// ─── Render Dugout ───
+function renderDugout(){
+  const el=document.getElementById('dg-page');
+  if(!el)return;
+  const toGet=DG.batting.target>0?DG.batting.target-DG.batting.score:0;
+  // Balls remaining: 120 total minus completed balls ((over-1)*6) minus balls in current over
+  const ballsLeft=Math.max(0, 120 - ((DG.match.over-1)*6 + (DG.ball||0)));
+  const inn=DG.match.inn;
+
+  const bowlerOptions=(DG.bowlers||[]).map(b=>`<option>${b.name}</option>`).join('');
+  const oppBatters=matchData.opp_batters||[];
+
+  // Display semantics: home=bowling team (defending), away=batting team (chasing/attacking)
+  // Left side = batting team (away) with live score; Right side = bowling team (home) with 1st inn total
+  const dispBat=DG.match.away;   // team currently batting
+  const dispBowl=DG.match.home;  // team currently bowling (set the target)
+  el.innerHTML=`
+  <div class="dg-score-banner dg-match-header">
+    <div class="dg-team-score">
+      <div class="dg-team-name">${dispBat}</div>
+      <div class="dg-score">${DG.batting.score}<span>/${DG.batting.wkts}</span></div>
+      <div class="dg-score-overs">${DG.batting.overs} overs</div>
+    </div>
+    <div class="dg-vs-block">
+      <div class="dg-vs-txt">${inn===2?'CHASING':'BATTING'}</div>
+      ${inn===2&&DG.batting.target>0?`<div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#1a0a3a;margin:3px 0">${toGet} off ${ballsLeft}</div>`:'<div style="font-family:Orbitron;font-size:11px;color:rgba(26,10,58,0.4);margin:3px 0">1st Innings</div>'}
+      <div class="dg-status-pill live">● LIVE</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 8px;border-left:1px solid rgba(26,10,58,0.08);border-right:1px solid rgba(26,10,58,0.08)">
+      <div class="dg-crr-block"><div class="dg-crr">${DG.batting.crr}</div><div class="dg-crr-lbl">Current RR</div></div>
+      ${inn===2&&DG.batting.target>0?`<div class="dg-crr-block" style="align-items:center"><div class="dg-rrr">${DG.batting.rrr}</div><div class="dg-rrr-lbl">Required RR</div></div>`:''}
+    </div>
+    ${inn===2&&DG.batting.target>0?`
+    <div style="text-align:center;padding:0 8px">
+      <div style="font-family:Rajdhani;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.35);margin-bottom:2px">Target</div>
+      <div style="font-family:Orbitron;font-size:32px;font-weight:900;color:#6D28D9;line-height:1">${DG.batting.target}</div>
+      <div style="font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);margin-top:2px">${dispBowl} set ${DG.batting.target}</div>
+    </div>`:`
+    <div style="text-align:center;padding:0 8px">
+      <div style="font-family:Rajdhani;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.35);margin-bottom:2px">Vs</div>
+      <div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#6D28D9;line-height:1">${dispBowl}</div>
+      <div style="font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.4);margin-top:2px">${DG.match.venue.split(',')[0]}</div>
+    </div>`}
+    <div class="dg-team-score" style="align-items:flex-end">
+      <div class="dg-team-name" style="text-align:right">${dispBowl}</div>
+      ${inn===2?`<div class="dg-score" style="color:rgba(26,10,58,0.45)">${DG.batting.target}<span>/10</span></div><div class="dg-score-overs">20.0 overs</div>`:'<div style="font-family:Rajdhani;font-size:11px;color:rgba(26,10,58,0.4)">Yet to bat</div>'}
+    </div>
+  </div>
+
+  <!-- Left Column -->
+  <div class="dg-left">
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="live-pip"></span>At The Crease</div>
+      ${DG.batters.map((b,idx)=>`
+      <div class="dg-batter-row ${b.onStrike?'active':''}" style="position:relative">
+        <span class="dg-bat-dot ${b.onStrike?'on-strike':'off-strike'}"></span>
+        ${b._picking?`
+        <div style="flex:1;display:flex;gap:4px;align-items:center">
+          <input id="batter-pick-${idx}" placeholder="Enter batter name…" value=""
+            style="flex:1;background:rgba(255,255,255,0.7);border:1px solid rgba(109,40,217,0.35);border-radius:6px;padding:4px 8px;font-family:'Exo 2';font-size:10px;color:#1a0a3a;outline:none"
+            onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(v){DG.batters[${idx}].name=v;DG.batters[${idx}]._picking=false;renderDugout();}}"
+          >
+          <button onclick="const v=document.getElementById('batter-pick-${idx}').value.trim();if(v){DG.batters[${idx}].name=v;DG.batters[${idx}]._picking=false;renderDugout();}"
+            style="font-family:Rajdhani;font-size:9px;font-weight:700;padding:4px 10px;border-radius:6px;border:none;background:linear-gradient(135deg,#6D28D9,#8B5CF6);color:#fff;cursor:pointer">✓</button>
+        </div>
+        `:`
+        <span class="dg-bat-name" style="cursor:pointer;text-decoration:underline dotted rgba(109,40,217,0.4)" onclick="DG.batters[${idx}]._picking=true;renderDugout()" title="Click to change batter">${b.name}</span>
+        <span class="dg-bat-runs">${b.runs}</span>
+        <span class="dg-bat-sr">(${b.balls})</span>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.35)">${b.fours}×4 ${b.sixes}×6</div>
+          <div style="font-family:Rajdhani;font-size:9px;color:${b.sr>150?'#16A34A':b.sr>120?'#B45309':'#DC2626'};font-weight:700">SR ${b.sr}</div>
+        </div>
+        `}
+      </div>`).join('')}
+      <div style="font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.35);margin-top:4px;letter-spacing:0.5px">Click batter name to change · Strike dot = on strike</div>
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Bowling Figures</div>
+      ${DG.bowlers.length?DG.bowlers.map(b=>`
+      <div class="dg-bowler-row ${b.bowling?'bowling':''}">
+        <div>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span class="dg-bowl-name">${b.name}</span>
+            ${b.bowling?`<span style="font-family:Orbitron;font-size:6px;font-weight:700;color:#DC2626;letter-spacing:1px">▶BOWLING</span>`:''}
+          </div>
+          <span class="dg-bowl-phase ${b.phase}">${b.phase==='pp'?'PP':b.phase==='mid'?'MID':'DEATH'}</span>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="dg-bowl-stat">${b.wkts}/${b.runs} <span style="color:rgba(26,10,58,0.35)">(${b.overs})</span></div>
+          <div style="font-family:Rajdhani;font-size:9px;color:${b.econ<8?'#16A34A':b.econ<10?'#B45309':'#DC2626'};font-weight:700">Econ ${b.econ}</div>
+        </div>
+      </div>`).join(''):'<div style="font-family:Rajdhani;font-size:10px;color:rgba(26,10,58,0.35);text-align:center;padding:12px">Bowlers loaded after init</div>'}
+    </div>
+
+    ${DG.wickets.length?`<div class="dg-card"><div class="dg-card-title"><span class="d"></span>Fall of Wickets</div>
+      ${DG.wickets.map(w=>`<div class="dg-wkt-row"><span class="dg-wkt-over">${w.over}</span><div><div class="dg-wkt-name">${w.name} <span class="dg-wkt-runs">${w.runs}(${w.balls})</span></div><div class="dg-wkt-how">${w.how}</div></div></div>`).join('')}
+    </div>`:''}
+
+    ${oppBatters.length?`<div class="dg-card"><div class="dg-card-title"><span class="d"></span>Opposition Batting Order</div>
+      ${oppBatters.map((b,i)=>`<div class="dg-opp-row"><span class="dg-opp-num">${i+1}</span><span class="dg-opp-name">${b.name}</span><span class="dg-opp-danger ${b.danger}">${b.danger.toUpperCase()}</span></div>`).join('')}
+    </div>`:''}
+  </div>
+
+  <!-- Centre Column -->
+  <div class="dg-center">
+    <!-- Live Update Panel -->
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="live-pip"></span>Live Match Update</div>
+      <div class="dg-update-bar">
+        <span class="dg-upd-lbl">Over</span>
+        <input class="dg-upd-input" id="upd-over" type="number" placeholder="1" value="${DG.match.over}" min="1" max="20">
+        <span class="dg-upd-lbl">Ball</span>
+        <input class="dg-upd-input" id="upd-balls-in-ov" type="number" placeholder="0" value="0" min="0" max="6" style="width:48px">
+        <span class="dg-upd-lbl">Score</span>
+        <input class="dg-upd-input" id="upd-score" type="number" placeholder="0" value="${DG.batting.score}">
+        <span class="dg-upd-lbl">Wkts</span>
+        <input class="dg-upd-input" id="upd-wkts" type="number" placeholder="0" value="${DG.batting.wkts}" min="0" max="10" style="width:48px">
+      </div>
+      <div class="dg-update-bar" style="margin-top:4px">
+        <span class="dg-upd-lbl">Striker</span>
+        <input class="dg-input" id="upd-b1" placeholder="${DG.batters[0].name}" value="${DG.batters[0].name}" style="flex:1;padding:4px 8px;font-size:9px">
+        <span class="dg-upd-lbl">Non-strike</span>
+        <input class="dg-input" id="upd-b2" placeholder="${DG.batters[1].name}" value="${DG.batters[1].name}" style="flex:1;padding:4px 8px;font-size:9px">
+      </div>
+      <div class="dg-update-bar" style="margin-top:4px">
+        <span class="dg-upd-lbl">Part. R</span>
+        <input class="dg-upd-input" id="upd-part-r" type="number" placeholder="0" value="0">
+        <span class="dg-upd-lbl">Part. B</span>
+        <input class="dg-upd-input" id="upd-part-b" type="number" placeholder="0" value="0">
+        <span class="dg-upd-lbl">Bowler</span>
+        <select class="dg-upd-input" id="upd-bowler" style="appearance:none;width:auto;flex:1;padding:4px 8px;font-size:9px;font-family:'Exo 2'">
+          ${bowlerOptions}
+        </select>
+        <button class="dg-upd-btn" onclick="updateSituation()">Update</button>
+      </div>
+      ${situationData.headline?`<div class="dg-situation-feed">
+        <span class="sit-badge ${situationData.badge}">${situationData.badge.toUpperCase()}</span>
+        <div class="sit-headline">${situationData.headline}</div>
+        <div class="sit-body">${situationData.body||''}</div>
+      </div>`:''}
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="live-pip"></span>Ball-by-Ball Feed
+        <span style="margin-left:auto;font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.35);letter-spacing:1px">${DG.match.over-1}.${DG.ball||0} ov · ${ballsLeft} balls left</span>
+      </div>
+      <div class="dg-phase-row">
+        ${DG.phases.map(p=>`<div class="dg-phase-pill ${p.cls}${p.done?' done':''}${p.current?' current':''}">
+          <div class="dg-phase-lbl">${p.label}</div>
+          <div class="dg-phase-runs">${p.runs}</div>
+          <div class="dg-phase-rr">RR ${p.rr}</div>
+        </div>`).join('')}
+      </div>
+      <!-- Bowler selector (shown when over starts or between overs) -->
+      ${DG.selectingBowler?`
+      <div style="margin:8px 0;padding:10px;border-radius:10px;background:rgba(109,40,217,0.07);border:1px solid rgba(109,40,217,0.2)">
+        <div style="font-family:Orbitron;font-size:7px;font-weight:700;letter-spacing:1.5px;color:#6D28D9;margin-bottom:8px">SELECT BOWLER — OVER ${DG.match.over} (${DG.match.over-1}.0 ov complete)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${DG.bowlers.map(b=>`
+          <button onclick="selectBowler('${b.name.replace(/'/g,"\\'")}');"
+            style="font-family:Rajdhani;font-size:10px;font-weight:700;padding:5px 10px;border-radius:8px;border:1px solid rgba(109,40,217,0.25);background:rgba(255,255,255,0.5);color:#1a0a3a;cursor:pointer;transition:all .15s;white-space:nowrap"
+            onmouseover="this.style.background='rgba(109,40,217,0.12)';this.style.borderColor='rgba(109,40,217,0.5)'"
+            onmouseout="this.style.background='rgba(255,255,255,0.5)';this.style.borderColor='rgba(109,40,217,0.25)'"
+          >${b.name} <span style="font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.4)">${b.overs}ov ${b.wkts}/${b.runs}</span></button>
+          `).join('')}
+        </div>
+      </div>`:`
+      <!-- Current over bowler badge -->
+      <div style="display:flex;align-items:center;gap:6px;margin:4px 0 8px;padding:5px 8px;border-radius:7px;background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15)">
+        <span style="font-family:Orbitron;font-size:6px;font-weight:700;color:#DC2626;letter-spacing:1px">▶ BOWLING</span>
+        <span style="font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a;flex:1">${DG.currentBowlerName||'—'}</span>
+        <button onclick="DG.selectingBowler=true;renderDugout()" style="font-family:Rajdhani;font-size:8px;padding:2px 8px;border-radius:5px;border:1px solid rgba(26,10,58,0.15);background:rgba(255,255,255,0.4);color:rgba(26,10,58,0.5);cursor:pointer">Change</button>
+      </div>
+      `}
+      <!-- Delivery entry buttons -->
+      <div style="margin:4px 0;display:flex;flex-wrap:wrap;gap:4px">
+        ${['•','1','2','3','4','6'].map(v=>`<button onclick="logDelivery('${v}')" style="font-family:Orbitron;font-size:9px;font-weight:700;min-width:30px;padding:5px 6px;border-radius:7px;border:1px solid rgba(139,92,246,0.2);background:rgba(255,255,255,0.6);color:#1a0a3a;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(109,40,217,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">${v==='•'?'DOT':v}</button>`).join('')}
+        <button onclick="logDelivery('W')" style="font-family:Orbitron;font-size:9px;font-weight:700;min-width:30px;padding:5px 8px;border-radius:7px;border:1px solid rgba(220,38,38,0.3);background:rgba(220,38,38,0.07);color:#DC2626;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(220,38,38,0.15)'" onmouseout="this.style.background='rgba(220,38,38,0.07)'">W</button>
+        <button onclick="logDelivery('Wd')" style="font-family:Orbitron;font-size:8px;font-weight:700;min-width:30px;padding:5px 6px;border-radius:7px;border:1px solid rgba(180,83,9,0.25);background:rgba(180,83,9,0.06);color:#B45309;cursor:pointer">WD</button>
+        <button onclick="logDelivery('Nb')" style="font-family:Orbitron;font-size:8px;font-weight:700;min-width:30px;padding:5px 6px;border-radius:7px;border:1px solid rgba(180,83,9,0.25);background:rgba(180,83,9,0.06);color:#B45309;cursor:pointer">NB</button>
+        <button onclick="logDelivery('Lb')" style="font-family:Orbitron;font-size:8px;font-weight:700;min-width:30px;padding:5px 6px;border-radius:7px;border:1px solid rgba(26,10,58,0.15);background:rgba(255,255,255,0.4);color:rgba(26,10,58,0.45);cursor:pointer">LB</button>
+        <button onclick="undoDelivery()" style="margin-left:auto;font-family:Rajdhani;font-size:8px;font-weight:600;padding:5px 8px;border-radius:7px;border:1px solid rgba(26,10,58,0.12);background:rgba(255,255,255,0.4);color:rgba(26,10,58,0.45);cursor:pointer">↩ UNDO</button>
+      </div>
+      ${DG.balls.length?`
+      <div class="dg-over-sep"><span>CURRENT OVER — ${DG.match.over}</span></div>
+      <div class="dg-ball-feed" style="gap:4px;flex-wrap:wrap">
+        ${DG.balls.map(b=>`<div class="dg-ball ${b.type}" style="min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:8px;font-weight:700">${b.v}</div>`).join('')}
+      </div>`:''}
+      ${DG.overHistory&&DG.overHistory.length?`
+      <div class="dg-over-sep" style="margin-top:8px"><span>OVER HISTORY</span></div>
+      <div style="display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto">
+        ${DG.overHistory.slice(-5).reverse().map(ov=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0"><span style="font-family:Orbitron;font-size:7px;color:rgba(26,10,58,0.35);min-width:30px;flex-shrink:0">Ov ${ov.over}</span><span style="font-family:Rajdhani;font-size:9px;font-weight:600;color:rgba(26,10,58,0.5);min-width:70px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ov.bowler||'—'}</span><div style="display:flex;gap:3px;flex-wrap:wrap">${ov.balls.map(b=>`<span class="dg-ball ${b.type}" style="width:18px;height:18px;font-size:7px">${b.v}</span>`).join('')}</div><span style="margin-left:auto;font-family:Orbitron;font-size:8px;color:#1a0a3a;font-weight:700;flex-shrink:0">${ov.runs}r</span></div>`).join('')}
+      </div>`:''}
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Win Probability</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="position:relative;flex-shrink:0;width:130px;height:130px">
+          <canvas id="dg-winring-canvas" width="130" height="130"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+            <div style="background:rgba(255,255,255,0.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.9);border-radius:50%;width:72px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(109,40,217,0.1)">
+              <div style="font-family:Orbitron;font-size:16px;font-weight:900;color:#FF8C00;line-height:1">${DG.winProb.away}%</div>
+              <div style="font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;color:rgba(26,10,58,0.45);text-transform:uppercase;margin-top:2px">${DG.match.awayShort}</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#8B5CF6);flex-shrink:0"></div>
+              <div style="font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a">${DG.match.homeShort}</div>
+              <div style="font-family:Orbitron;font-size:14px;font-weight:900;color:#6D28D9;margin-left:auto">${DG.winProb.home}%</div>
+            </div>
+            <div style="height:5px;border-radius:3px;background:rgba(26,10,58,0.07);overflow:hidden">
+              <div style="height:100%;width:${DG.winProb.home}%;background:linear-gradient(90deg,#6D28D9,#8B5CF6);border-radius:3px"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <div style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#FF8C00,#FFD700);flex-shrink:0"></div>
+              <div style="font-family:Rajdhani;font-size:11px;font-weight:700;color:#1a0a3a">${DG.match.awayShort}</div>
+              <div style="font-family:Orbitron;font-size:14px;font-weight:900;color:#FF8C00;margin-left:auto">${DG.winProb.away}%</div>
+            </div>
+            <div style="height:5px;border-radius:3px;background:rgba(26,10,58,0.07);overflow:hidden">
+              <div style="height:100%;width:${DG.winProb.away}%;background:linear-gradient(90deg,#FF8C00,#FFD700);border-radius:3px"></div>
+            </div>
+          </div>
+          <div style="font-family:'Exo 2';font-size:8px;color:rgba(26,10,58,0.38);line-height:1.4;margin-top:2px">Based on run rate, wickets in hand &amp; historical chase data.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dg-card">
+      <div class="dg-card-title"><span class="d"></span>Innings Statistics</div>
+      <div class="dg-stats-grid">
+        <div class="dg-stat-box"><div class="dg-stat-val">${DG.stats.boundaries}</div><div class="dg-stat-lbl">Boundaries</div><div class="dg-stat-sub">${DG.stats.sixes} sixes · ${DG.stats.boundaries-DG.stats.sixes} fours</div></div>
+        <div class="dg-stat-box"><div class="dg-stat-val">${DG.stats.dotPct}%</div><div class="dg-stat-lbl">Dot Ball %</div><div class="dg-stat-sub">${DG.stats.dots} dots logged</div></div>
+        <div class="dg-stat-box"><div class="dg-stat-val">${DG.stats.extras}</div><div class="dg-stat-lbl">Extras</div><div class="dg-stat-sub">wides · no-balls · byes</div></div>
+        <div class="dg-stat-box"><div class="dg-stat-val" style="font-size:11px">${DG.stats.highPartnership.runs}</div><div class="dg-stat-lbl">Best Partnership</div><div class="dg-stat-sub">${DG.stats.highPartnership.batters}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="dg-right">
+    <div class="dg-card dg-intel">
+      <div class="dg-card-title"><span class="live-pip"></span>Tactical Intel Feed</div>
+      ${DG.comms.slice(0,8).map(c=>`
+      <div class="dg-comm ${c.type}">
+        <div class="dg-comm-icon">${c.icon}</div>
+        <div class="dg-comm-body">
+          <div class="dg-comm-from">${c.from}${c.time?' · Over '+c.time:''}</div>
+          <div class="dg-comm-txt">${c.txt}</div>
+          ${c.answer!==undefined?`<div class="dg-comm-txt" style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(109,40,217,0.1);color:${c.loading?'rgba(26,10,58,0.35)':'rgba(26,10,58,0.75)'}${c.loading?';font-style:italic':''}">${c.answer}</div>`:''}
+        </div>
+      </div>`).join('')}
+      ${!DG.comms.length?`<div style="font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.35);text-align:center;padding:12px">Intelligence feeds load on match init</div>`:''}
+      <div class="dg-input-row">
+        <input class="dg-input" placeholder="Ask analyst…" id="dg-ask-input">
+        <button class="dg-send-btn" onclick="dgAsk()">ASK</button>
+      </div>
+    </div>
+
+    <div class="dg-card dg-momentum-card">
+      <div class="dg-card-title"><span class="live-pip"></span>Run Rate Momentum</div>
+      <div class="dg-momentum"><canvas id="dg-momentum-canvas"></canvas></div>
+    </div>
+
+    <div class="dg-card dg-dugout-card">
+      <div class="dg-card-title"><span class="d"></span>Bowler Bank</div>
+      ${DG.bowlers.slice(0,5).map((b,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;border:1px solid rgba(139,92,246,0.08);background:rgba(255,255,255,0.3);margin-bottom:4px">
+        <span style="font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.3);width:14px">${i+1}</span>
+        <span style="font-family:Rajdhani;font-size:11px;font-weight:600;color:rgba(26,10,58,0.65);flex:1">${b.name}</span>
+        <span style="font-family:Orbitron;font-size:6px;padding:2px 5px;border-radius:3px;background:rgba(109,40,217,0.08);color:#6D28D9">${b.phase==='pp'?'PP':b.phase==='mid'?'MID':'DEATH'}</span>
+      </div>`).join('')}
+    </div>
+
+    <div class="dg-card dg-field-card">
+      <div class="dg-card-title"><span class="d"></span>Field Setting</div>
+      <div style="position:relative;width:100%;aspect-ratio:4/3;margin:8px 0">
+        <canvas id="dg-field-canvas"></canvas>
+      </div>
+    </div>
+  </div>`;
+
+  requestAnimationFrame(()=>{drawWinRing();drawMomentum();drawField();});
+}
+
+function drawWinRing(){
+  const c=document.getElementById('dg-winring-canvas');if(!c)return;
+  const sz=130,ctx=c.getContext('2d');
+  const cx=sz/2,cy=sz/2,r=52,lw=14;
+  const homeAngle=(DG.winProb.home/100)*Math.PI*2;
+  const startAngle=-Math.PI/2;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(26,10,58,0.07)';ctx.lineWidth=lw+2;ctx.stroke();
+  const awayGrad=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+  awayGrad.addColorStop(0,'#FFD700');awayGrad.addColorStop(1,'#FF6B00');
+  ctx.beginPath();ctx.arc(cx,cy,r,startAngle+homeAngle,startAngle+Math.PI*2);
+  ctx.strokeStyle=awayGrad;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+  const homeGrad=ctx.createLinearGradient(cx-r,cy-r,cx+r,cy+r);
+  homeGrad.addColorStop(0,'#8B5CF6');homeGrad.addColorStop(1,'#6D28D9');
+  ctx.beginPath();ctx.arc(cx,cy,r,startAngle,startAngle+homeAngle);
+  ctx.strokeStyle=homeGrad;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+}
+
+function drawMomentum(){
+  const c=document.getElementById('dg-momentum-canvas');if(!c)return;
+  const W=c.parentElement.clientWidth||260,H=80;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  const data=DG.momentum;
+  const avg=data.reduce((a,b)=>a+b,0)/data.length;
+  const max=Math.max(...data)+5,min=Math.min(...data)-5;
+  const px=(i)=>(i/(data.length-1))*(W-8)+4;
+  const py=(v)=>H-((v-min)/(max-min))*H*0.82-H*0.09;
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(255,107,0,0.22)');grad.addColorStop(1,'rgba(255,107,0,0.01)');
+  ctx.beginPath();ctx.moveTo(px(0),py(data[0]));
+  data.forEach((v,i)=>{if(i>0)ctx.lineTo(px(i),py(v));});
+  ctx.lineTo(px(data.length-1),H);ctx.lineTo(px(0),H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,py(avg));ctx.lineTo(W,py(avg));
+  ctx.strokeStyle='rgba(255,140,0,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(px(0),py(data[0]));
+  data.forEach((v,i)=>{if(i>0)ctx.lineTo(px(i),py(v));});
+  ctx.strokeStyle='#FF6B00';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  data.forEach((v,i)=>{
+    ctx.beginPath();ctx.arc(px(i),py(v),2.5,0,Math.PI*2);
+    ctx.fillStyle=v>avg?'#FF6B00':'rgba(255,107,0,0.5)';ctx.fill();
+  });
+}
+
+function drawField(){
+  const c=document.getElementById('dg-field-canvas');if(!c)return;
+  const W=c.parentElement.clientWidth||340;
+  const H=Math.round(W*0.75);
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  const cx=W/2,cy=H*0.52,Rx=W*0.44,Ry=H*0.38;
+  function proj(nx,ny){const tilt=0.18,scaleY=1-tilt*(1-ny)*0.5;return{x:cx+nx*Rx,y:cy+ny*Ry*scaleY,s:0.7+0.3*((ny+1)/2)};}
+  function projEllipse(fill,stroke,lw,sX=1,sY=1){
+    const N=80;ctx.beginPath();
+    for(let i=0;i<=N;i++){const a=(i/N)*Math.PI*2,nx=Math.cos(a)*sX,ny=Math.sin(a)*sY,p=proj(nx,ny);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}
+    ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+  }
+  const gg=ctx.createRadialGradient(cx,cy,Rx*0.1,cx,cy+Ry*0.2,Rx);
+  gg.addColorStop(0,'rgba(34,120,40,0.3)');gg.addColorStop(0.6,'rgba(22,90,28,0.22)');gg.addColorStop(1,'rgba(12,60,16,0.14)');
+  projEllipse(gg,'rgba(80,200,90,0.25)',1.5);
+  projEllipse(null,'rgba(26,10,58,0.12)',1,0.46,0.46);
+  projEllipse(null,'rgba(26,10,58,0.25)',2);
+  const NEON='#FF8C00';
+  const fielders=[{nx:0.05,ny:0.92},{nx:-0.55,ny:0.75},{nx:-0.62,ny:0.35},{nx:-0.7,ny:-0.1},{nx:0.7,ny:-0.1},{nx:0.6,ny:0.25},{nx:0.65,ny:0.6},{nx:0.3,ny:-0.82},{nx:-0.25,ny:0.25},{nx:0.25,ny:0.1},{nx:-0.38,ny:-0.05}];
+  fielders.forEach(f=>{
+    const p=proj(f.nx,f.ny),dotR=Math.max(4,p.s*7);
+    const dg=ctx.createRadialGradient(p.x-dotR*0.3,p.y-dotR*0.35,0,p.x,p.y,dotR);
+    dg.addColorStop(0,'#FFE066');dg.addColorStop(0.5,NEON);dg.addColorStop(1,'rgba(160,50,0,0.95)');
+    ctx.beginPath();ctx.arc(p.x,p.y,dotR,0,Math.PI*2);ctx.fillStyle=dg;ctx.fill();
+    ctx.strokeStyle=NEON;ctx.lineWidth=1;ctx.stroke();
+  });
+  const bp=proj(0,0.16),br=Math.max(4,bp.s*7);
+  ctx.beginPath();ctx.arc(bp.x,bp.y,br,0,Math.PI*2);
+  ctx.fillStyle='#DC2626';ctx.fill();
+  ctx.font=`700 ${Math.max(6,Math.round(bp.s*8))}px Orbitron`;
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('B',bp.x,bp.y);
+}
+
+function dgAsk(){
+  const inp=document.getElementById('dg-ask-input');
+  if(!inp||!inp.value.trim())return;
+  const q=inp.value.trim();inp.value='';
+  // Insert placeholder immediately
+  const entry={type:'tactical',icon:'🎯',from:'YOUR QUERY',txt:q,time:'',answer:'Analysing…',loading:true};
+  DG.comms.unshift(entry);
+  renderDugout();
+
+  // Build match context
+  const over=DG.match.over,ball=DG.ball||0;
+  const ovsComp=(over-1)+ball/6;
+  const phase=over<=6?'pp':over<=15?'mid':'death';
+
+  fetch('/api/dugout-ask',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      query:q,
+      over,ball,
+      score:DG.batting.score,
+      wkts:DG.batting.wkts,
+      target:DG.batting.target,
+      crr:DG.batting.crr,
+      rrr:DG.batting.rrr,
+      innings:DG.match.inn,
+      batter1:DG.batters[0].name,
+      batter2:DG.batters[1].name,
+      current_bowler:DG.currentBowlerName,
+      phase,
+      bowl_team:DG.match.home,
+      bat_team:DG.match.away,
+      venue:DG.match.venue,
+    })
+  }).then(r=>r.json()).then(data=>{
+    // Update the first (placeholder) entry
+    entry.answer=data.answer||'No response.';
+    entry.loading=false;
+    renderDugout();
+  }).catch(()=>{
+    entry.answer='Network error — check server connection.';
+    entry.loading=false;
+    renderDugout();
+  });
+}
+
+// ─── Bowler Selection ───
+function selectBowler(name){
+  // Unmark previous
+  DG.bowlers.forEach(b=>{b.bowling=false;});
+  const b=DG.bowlers.find(x=>x.name===name);
+  if(b){b.bowling=true;}
+  DG.currentBowlerName=name;
+  DG.selectingBowler=false;
+  renderDugout();
+}
+
+// ─── Batter Selection ───
+function selectBatter(idx, name){
+  if(!name||!name.trim())return;
+  DG.batters[idx].name=name.trim();
+  DG.selectingBowler=DG.selectingBowler; // keep unchanged
+  renderDugout();
+}
+
+function promptBatterChange(idx){
+  const squad=matchData.opp_batters||[];
+  const current=DG.batters[idx].name;
+  // Build a quick modal-like overlay using a prompt (or inline picker)
+  // We'll use an inline picker rendered in renderDugout via a flag
+  DG.batters[idx]._picking=true;
+  renderDugout();
+}
+
+// ─── Ball-by-Ball Logging ───
+function logDelivery(val){
+  // Classify delivery — type maps to CSS .dg-ball.{type} classes
+  const isExtra=(val==='Wd'||val==='Nb');
+  const isWicket=(val==='W');
+  const runs=val==='•'?0:val==='W'?0:val==='Lb'?1:isExtra?0:parseInt(val)||0;  // extras score tracked via isExtra flag below
+  const typeMap={'•':'dot','1':'single','2':'two','3':'three','4':'four','6':'six','W':'wicket','Wd':'wide','Nb':'wide','Lb':'single'};
+  const type=typeMap[val]||'dot';
+  const display=val==='•'?'·':val==='Wd'?'WD':val==='Nb'?'NB':val==='Lb'?'LB':val;
+
+  // If no bowler selected yet, auto-assign the first available bowler
+  if(DG.selectingBowler||!DG.currentBowlerName){
+    const first=DG.bowlers.find(b=>true);
+    if(first){
+      DG.bowlers.forEach(b=>{b.bowling=false;});
+      first.bowling=true;
+      DG.currentBowlerName=first.name;
+      DG.selectingBowler=false;
+    }
+  }
+
+  // Add to current over balls
+  DG.balls.push({v:display,type,runs});
+
+  // Update score
+  DG.batting.score+=runs;
+  if(isWicket) DG.batting.wkts++;
+  if(isExtra) DG.batting.score++;  // wide/no-ball adds 1 extra run
+
+  // Update current bowler figures
+  const cb=DG.bowlers.find(b=>b.name===DG.currentBowlerName);
+  if(cb){
+    cb.runs+=runs+(isExtra?1:0);
+    if(!isExtra)cb.balls++;
+    if(isWicket)cb.wkts++;
+    const fullOvs=Math.floor(cb.balls/6);
+    const remBalls=cb.balls%6;
+    cb.overs=fullOvs+'.'+remBalls;
+    cb.econ=cb.balls>0?Math.round((cb.runs/(cb.balls/6))*100)/100:0;
+  }
+
+  // Update batter figures (on-strike batter)
+  const striker=DG.batters.find(b=>b.onStrike);
+  if(striker&&!isExtra){
+    striker.balls++;
+    if(!isWicket){
+      striker.runs+=runs;
+      if(runs===4)striker.fours++;
+      if(runs===6)striker.sixes++;
+      striker.sr=striker.balls>0?Math.round((striker.runs/striker.balls)*100):0;
+    }
+  }
+
+  // Stats tracking
+  if(val==='•')DG.stats.dots++;
+  if(val==='4'||val==='6')DG.stats.boundaries++;
+  if(val==='6')DG.stats.sixes++;
+  if(isExtra)DG.stats.extras++;
+  const totalBalls=DG.overHistory.reduce((s,o)=>s+o.balls.filter(b=>b.type!=='wide').length,0)+DG.ball+(isExtra?0:1);
+  DG.stats.dotPct=totalBalls>0?Math.round((DG.stats.dots/totalBalls)*100):0;
+
+  // Only proper deliveries (not wide/no-ball) advance ball count
+  if(!isExtra){
+    DG.ball++;
+    if(DG.ball>=6){
+      // Over complete — archive balls, advance over
+      const overRuns=DG.balls.reduce((s,b)=>s+b.runs+(b.type==='wide'?1:0),0);
+      DG.overHistory.push({over:DG.match.over,balls:[...DG.balls],runs:overRuns,bowler:DG.currentBowlerName});
+      // Update phase tracking
+      _updatePhases(DG.match.over,overRuns);
+      DG.match.over++;
+      DG.ball=0;
+      DG.balls=[];
+      // Unmark current bowler, prompt for next bowler selection
+      DG.selectingBowler=true;
+      DG.currentBowlerName='';
+      DG.bowlers.forEach(b=>{b.bowling=false;});
+    }
+  }
+
+  // Wicket — prompt batter change on striker
+  if(isWicket&&striker){
+    striker._picking=true;
+    striker.runs=0;striker.balls=0;striker.fours=0;striker.sixes=0;striker.sr=0;
+  }
+
+  // Keep batting.overs display in sync
+  DG.batting.overs=DG.match.over+'.'+(DG.ball||0);
+  const ovsComp=(DG.match.over-1)+(DG.ball/6);
+  DG.batting.crr=ovsComp>0?Math.round((DG.batting.score/ovsComp)*100)/100:0;
+  if(DG.batting.target>0){
+    const rem=20-ovsComp;const need=DG.batting.target-DG.batting.score;
+    DG.batting.rrr=rem>0?Math.round((need/rem)*100)/100:0;
+  }
+
+  // Sync "Update" inputs
+  const oi=document.getElementById('upd-over');
+  const si=document.getElementById('upd-score');
+  const wi=document.getElementById('upd-wkts');
+  const bi=document.getElementById('upd-balls-in-ov');
+  if(oi)oi.value=DG.match.over;
+  if(si)si.value=DG.batting.score;
+  if(wi)wi.value=DG.batting.wkts;
+  if(bi)bi.value=DG.ball;
+
+  renderDugout();
+}
+
+function undoDelivery(){
+  if(!DG.balls.length&&!DG.overHistory.length)return;
+  if(DG.balls.length){
+    const last=DG.balls.pop();
+    const isExtra=(last.v==='WD'||last.v==='NB');
+    const isWicket=(last.type==='wicket');
+    DG.batting.score-=last.runs;
+    if(isExtra)DG.batting.score--;
+    if(isWicket)DG.batting.wkts=Math.max(0,DG.batting.wkts-1);
+    if(!isExtra)DG.ball=Math.max(0,DG.ball-1);
+    // Reverse bowler figure
+    const cb=DG.bowlers.find(b=>b.name===DG.currentBowlerName);
+    if(cb){
+      cb.runs-=last.runs+(isExtra?1:0);
+      if(!isExtra)cb.balls=Math.max(0,cb.balls-1);
+      if(isWicket)cb.wkts=Math.max(0,cb.wkts-1);
+      const fullOvs=Math.floor(cb.balls/6);cb.overs=fullOvs+'.'+(cb.balls%6);
+      cb.econ=cb.balls>0?Math.round((cb.runs/(cb.balls/6))*100)/100:0;
+    }
+  }else if(DG.selectingBowler){
+    // Still between overs — undo last completed over
+    const prev=DG.overHistory.pop();
+    if(prev){
+      DG.match.over=Math.max(1,DG.match.over-1);
+      DG.balls=[...prev.balls];
+      DG.ball=prev.balls.filter(b=>b.v!=='WD'&&b.v!=='NB').length;
+      DG.batting.score-=prev.runs;
+      DG.selectingBowler=false;
+      DG.currentBowlerName=prev.bowler||'';
+      DG.bowlers.forEach(b=>{b.bowling=b.name===DG.currentBowlerName;});
+      // Reverse bowler stats for last ball of previous over
+      const cb=DG.bowlers.find(b=>b.name===DG.currentBowlerName);
+      if(cb){
+        cb.runs=Math.max(0,cb.runs-prev.runs);
+        cb.balls=Math.max(0,cb.balls-prev.balls.filter(b=>b.v!=='WD'&&b.v!=='NB').length);
+        const fullOvs=Math.floor(cb.balls/6);cb.overs=fullOvs+'.'+(cb.balls%6);
+        cb.econ=cb.balls>0?Math.round((cb.runs/(cb.balls/6))*100)/100:0;
+      }
+    }
+  }else{
+    const prev=DG.overHistory.pop();
+    if(prev){
+      DG.match.over=Math.max(1,DG.match.over-1);
+      DG.balls=[...prev.balls];
+      DG.ball=prev.balls.filter(b=>b.v!=='WD'&&b.v!=='NB').length;
+      DG.batting.score-=prev.runs;
+      DG.currentBowlerName=prev.bowler||'';
+      DG.bowlers.forEach(b=>{b.bowling=b.name===DG.currentBowlerName;});
+    }
+  }
+  DG.batting.overs=DG.match.over+'.'+(DG.ball||0);
+  const ovsComp=(DG.match.over-1)+(DG.ball/6);
+  DG.batting.crr=ovsComp>0?Math.round((DG.batting.score/ovsComp)*100)/100:0;
+  renderDugout();
+}
+
+function _updatePhases(over, runs){
+  if(over<=6){
+    DG.phases[0].runs+=runs;
+    const balls=DG.phases[0].runs>0?over*6:1;
+    DG.phases[0].rr=Math.round((DG.phases[0].runs/(over||1))*100)/100;
+    if(over===6)DG.phases[0].done=true;
+    DG.phases[1].current=over===6;
+  }else if(over<=15){
+    DG.phases[1].runs+=runs;
+    DG.phases[1].rr=Math.round((DG.phases[1].runs/(over-6||1))*100)/100;
+    if(over===15)DG.phases[1].done=true;
+    DG.phases[2].current=over===15;
+  }else{
+    DG.phases[2].runs+=runs;
+    DG.phases[2].rr=Math.round((DG.phases[2].runs/(over-15||1))*100)/100;
+  }
+}
+
+// ─── Prep Room Brief Import ───
+function checkPrepBrief(){
+  try{
+    const raw=localStorage.getItem('psl_prep_brief');
+    if(!raw)return;
+    const b=JSON.parse(raw);
+    // Only show if brief is less than 12 hours old
+    if(!b.ts||Date.now()-b.ts>12*3600*1000)return;
+    const banner=document.getElementById('prep-brief-banner');
+    const desc=document.getElementById('prep-brief-desc');
+    if(banner&&desc){
+      desc.textContent=`${b.our_team} vs ${b.opposition} · ${(b.venue||'').split(',')[0]} · ${b.xi?b.xi.length+' players':''}`;
+      banner.style.display='block';
+    }
+  }catch(e){}
+}
+
+function importPrepBrief(){
+  try{
+    const raw=localStorage.getItem('psl_prep_brief');
+    if(!raw)return;
+    const b=JSON.parse(raw);
+
+    // Determine bowling/batting based on toss recommendation
+    // If we BAT FIRST → we bowl in 2nd innings → dugout is about us bowling in 2nd inn
+    // If we BOWL FIRST / CHASE → we bowl in 1st innings
+    const bowlFirst=(b.toss_rec||'').toLowerCase().indexOf('bat')===-1;
+    const innings=bowlFirst?1:2;
+
+    // Set team selects
+    const bowlSel=document.getElementById('s-bowl-team');
+    const batSel=document.getElementById('s-bat-team');
+    const venSel=document.getElementById('s-venue');
+    const innSel=document.getElementById('s-innings');
+
+    if(bowlSel){
+      // Find our_team in options or append it
+      let found=false;
+      for(let i=0;i<bowlSel.options.length;i++){
+        if(bowlSel.options[i].value===b.our_team){bowlSel.selectedIndex=i;found=true;break;}
+      }
+      if(!found){const opt=new Option(b.our_team,b.our_team,true,true);bowlSel.add(opt);}
+    }
+    if(batSel){
+      let found=false;
+      for(let i=0;i<batSel.options.length;i++){
+        if(batSel.options[i].value===b.opposition){batSel.selectedIndex=i;found=true;break;}
+      }
+      if(!found){const opt=new Option(b.opposition,b.opposition,true,true);batSel.add(opt);}
+    }
+    if(venSel){
+      let found=false;
+      for(let i=0;i<venSel.options.length;i++){
+        if(venSel.options[i].value===b.venue){venSel.selectedIndex=i;found=true;break;}
+      }
+      if(!found){const opt=new Option(b.venue,b.venue,true,true);venSel.add(opt);}
+    }
+    if(innSel)innSel.value=String(innings);
+
+    // Rebuild bowler grid from brief XI + bowler_summary
+    onBowlTeamChange();
+    // Wait for grid to rebuild, then auto-select brief bowlers
+    setTimeout(()=>{
+      const bowlerNames=new Set((b.bowlers||[]).concat(
+        (b.xi||[]).filter(p=>(p.role||'').toLowerCase().includes('bowl')||(p.role||'').toLowerCase().includes('all')).map(p=>p.name)
+      ));
+      // Add any missing bowlers to grid
+      const grid=document.getElementById('s-bowlers-grid');
+      if(grid){
+        // Add prep-brief bowlers not yet in grid
+        bowlerNames.forEach(name=>{
+          let exists=false;
+          grid.querySelectorAll('.bowler-chip').forEach(c=>{if(c.textContent.trim()===name)exists=true;});
+          if(!exists){
+            const chip=document.createElement('span');
+            chip.className='bowler-chip';
+            chip.textContent=name;
+            chip.onclick=function(){toggleBowler(this);};
+            grid.appendChild(chip);
+          }
+        });
+        // Select brief bowlers (up to 7)
+        let count=0;
+        grid.querySelectorAll('.bowler-chip').forEach(c=>{
+          if(count<7&&bowlerNames.has(c.textContent.trim())){
+            c.classList.add('selected');count++;
+          }
+        });
+      }
+      document.getElementById('setup-status').textContent=`Brief imported: ${b.our_team} vs ${b.opposition}`;
+    },100);
+
+    document.getElementById('prep-brief-banner').style.display='none';
+  }catch(e){
+    document.getElementById('setup-status').textContent='Import failed — check brief format.';
+  }
+}
+
+// Init
+loadDugoutMeta();
+checkPrepBrief();
+</script>
+</body>
+</html>

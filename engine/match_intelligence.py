@@ -27,7 +27,22 @@ _RECENT_FORM_PATH       = _PROJ_ROOT / "data" / "processed" / "recent_form.parqu
 _CLASSIFIER_PATH = _PROJ_ROOT / "models" / "saved" / "situation_classifier"
 _MIN_CONF        = 0.6   # minimum confidence to use ML vs rule-based
 
-_classifier_pipeline = None   # module-level lazy cache
+# Session-keyed form-alert deduplication (no longer any bare module-level mutable pipelines): {session_key -> set(batter_names)}
+# Prevents the same form alert firing every over within a single match session,
+# while allowing different matches to track independently.
+_fired_form_alerts: dict[str, set[str]] = {}
+
+
+def reset_form_alerts(session_key: str = "default") -> None:
+    """Clear form-alert history for *session_key* (call at the start of each new match)."""
+    _fired_form_alerts.pop(session_key, None)
+
+
+def _get_fired_set(session_key: str) -> set[str]:
+    """Return (creating if absent) the fired-alert set for this session."""
+    if session_key not in _fired_form_alerts:
+        _fired_form_alerts[session_key] = set()
+    return _fired_form_alerts[session_key]
 
 
 @lru_cache(maxsize=1)
@@ -80,22 +95,19 @@ def _player_index_path() -> str:
 # ML SITUATION CLASSIFIER (Upgrade 4 — DistilBERT)
 # ---------------------------------------------------------------------------
 
+@lru_cache(maxsize=1)
 def _load_classifier():
     """Lazy-load DistilBERT situation classifier from models/saved/situation_classifier/."""
-    global _classifier_pipeline
-    if _classifier_pipeline is not None:
-        return _classifier_pipeline
     if not _CLASSIFIER_PATH.exists():
         return None
     try:
         from transformers import pipeline as hf_pipeline
-        _classifier_pipeline = hf_pipeline(
+        return hf_pipeline(
             "text-classification",
             model=str(_CLASSIFIER_PATH),
             tokenizer=str(_CLASSIFIER_PATH),
             top_k=None,          # return scores for all 3 classes
         )
-        return _classifier_pipeline
     except Exception:
         return None
 
@@ -488,25 +500,30 @@ def _check_batting_collapse(
 
 
 def _check_exceptional_form_batter(
-    state:      LiveMatchState,
-    opposition: OppositionBattingPrediction,
+    state:       LiveMatchState,
+    opposition:  OppositionBattingPrediction,
+    session_key: str = "default",
 ) -> tuple | None:
     """
     Warn when an opposition batter currently at the crease (or incoming next wicket)
     is in exceptional recent form (bat_form_score ≥ 70).
-    Only fires once per match to avoid noise — ranks between dangerous-batter-incoming
-    (3) and rain spike (4) at rank 3.5.
+    Only fires once per batter per session to avoid noise.
     """
     rf = _load_recent_form_map(str(_RECENT_FORM_PATH))
     if not rf:
         return None
 
+    fired = _get_fired_set(session_key)
+
     # Check batters currently at the crease
     for batter in (state.current_batter1, state.current_batter2):
         if not batter:
             continue
+        if batter in fired:
+            continue
         form = rf.get(batter)
         if form and form["bat_form_score"] >= 70 and form["bat_innings"] >= 5:
+            fired.add(batter)
             score = form["bat_form_score"]
             sr    = form["bat_sr"]
             trend = form["bat_trend"]
@@ -566,6 +583,7 @@ def generate_situation_read(
     partnership:  PartnershipAssessment,
     opposition:   OppositionBattingPrediction,
     weather:      WeatherImpact,
+    session_key:  str | None = None,
 ) -> SituationRead:
     """
     Determine the single most important situation happening right now.
@@ -579,6 +597,9 @@ def generate_situation_read(
 
     Returns ONE SituationRead — the highest-priority alert only.
     """
+    # Derive a stable session key from the match identity if none supplied
+    _sk = session_key or f"{state.batting_team}:{state.bowling_team}:{state.venue}"
+
     checks = [
         _check_bowling_plan_critical(state, bowling_plan),
         _check_partnership_critical(partnership),
@@ -586,7 +607,7 @@ def generate_situation_read(
         _check_batting_collapse(state),
         _check_dew_onset(state, weather),
         _check_dangerous_batter_incoming(state, opposition),
-        _check_exceptional_form_batter(state, opposition),
+        _check_exceptional_form_batter(state, opposition, session_key=_sk),
         _check_rain_spike(weather),
         _check_partnership_dangerous(partnership),
         _check_dew_active_ongoing(state, weather),
@@ -643,10 +664,11 @@ if __name__ == "__main__":
     from engine.partnership_engine import assess_partnership
     from engine.opposition_predictor import predict_batting_order
 
-    bowlers = ["Shaheen Shah Afridi", "Haris Rauf", "Zaman Khan", "Rashid Khan", "Liam Dawson"]
+    bowlers = ["Shaheen Shah Afridi", "Haris Rauf", "Usama Mir", "Mustafizur Rahman", "Sikandar Raza"]
 
+    constants = WeatherImpact.load_engine_constants()
     weather_dew = WeatherImpact(
-        spinner_penalty    = 0.60,
+        spinner_penalty    = constants.get("spinner_penalty_coefficient", 0.60),
         swing_bonus        = 1.10,
         pace_bounce_bonus  = 1.05,
         yorker_reliability = 0.92,

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Players — TALAASH Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:#E8EAF2;color:#1a0a3a}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 55% at 10% 5%,rgba(139,92,246,0.18) 0%,transparent 60%),radial-gradient(ellipse 50% 45% at 88% 92%,rgba(255,140,0,0.12) 0%,transparent 55%),radial-gradient(ellipse 60% 50% at 50% 50%,rgba(200,210,255,0.35) 0%,transparent 70%),radial-gradient(ellipse 40% 35% at 80% 10%,rgba(0,229,255,0.08) 0%,transparent 50%),radial-gradient(ellipse 35% 30% at 20% 90%,rgba(76,175,80,0.08) 0%,transparent 50%);pointer-events:none;z-index:0}
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:50px;background:rgba(255,255,255,0.55);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.7);box-shadow:0 1px 0 rgba(139,92,246,0.08),0 4px 20px rgba(139,92,246,0.06)}
+.nav-brand{display:flex;align-items:center;gap:8px}
+.nav-logo{font-family:Rajdhani;font-size:10px;font-weight:500;letter-spacing:5px;text-transform:uppercase;color:rgba(26,10,58,0.35)}
+.nav-links{display:flex;gap:2px}
+.nl{font-family:Rajdhani;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.38);padding:5px 16px;border-radius:18px;text-decoration:none;transition:all .2s;border:1px solid transparent}
+.nl:hover{color:rgba(26,10,58,0.75)}
+.nl.active{color:#6D28D9;background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.2)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.team-badge{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6D28D9,#8B5CF6);border:2px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:9px;font-weight:900;color:#1a0a3a;box-shadow:0 2px 12px rgba(139,92,246,0.35)}
+.main{display:grid;grid-template-columns:240px 1fr 280px;height:calc(100vh - 50px);margin-top:50px;position:relative;z-index:1}
+.sidebar{background:rgba(255,255,255,0.52);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-right:1px solid rgba(255,255,255,0.75);box-shadow:2px 0 20px rgba(26,10,58,0.06);padding:16px 12px;display:flex;flex-direction:column;overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.squad-title{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(26,10,58,0.4)}
+.team-select{width:100%;background:rgba(255,255,255,0.6);border:1px solid rgba(139,92,246,0.15);border-radius:8px;padding:6px 8px;color:#1a0a3a;font-family:'Exo 2';font-size:11px;outline:none;cursor:pointer;margin-bottom:10px;margin-top:6px}
+.search-bar{position:relative;margin-bottom:14px}
+.search-bar input{width:100%;background:rgba(255,255,255,0.6);border:1px solid rgba(139,92,246,0.15);border-radius:10px;padding:9px 12px 9px 32px;color:#1a0a3a;font-family:'Exo 2';font-size:12px;outline:none;transition:border-color .2s}
+.search-bar input:focus{border-color:rgba(255,215,0,0.3)}
+.search-bar input::placeholder{color:rgba(26,10,58,0.35)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:rgba(26,10,58,0.3)}
+.search-count{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:Orbitron;font-size:8px;font-weight:700;color:#FFD700;background:rgba(255,215,0,0.1);padding:2px 7px;border-radius:10px}
+.roster{display:flex;flex-direction:column;gap:2px;flex:1}
+.roster-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:all .2s;border:1px solid transparent;position:relative}
+.roster-item:hover{background:rgba(109,40,217,0.04);border-color:rgba(109,40,217,0.15)}
+.roster-item.active{background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.25)}
+.roster-av{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:10px;font-weight:700;border:1.5px solid rgba(255,215,0,0.25);position:relative}
+.roster-item.active .roster-av{border-color:rgba(255,215,0,0.5)}
+.roster-check{display:none;position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:#4CAF50;font-size:7px;color:#fff;align-items:center;justify-content:center;font-weight:700}
+.roster-item.active .roster-check{display:flex}
+.roster-name{font-family:Rajdhani;font-size:13px;font-weight:600;color:#1a0a3a}
+.roster-role{font-family:Rajdhani;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(26,10,58,0.4)}
+.roster-arrow{margin-left:auto;color:rgba(255,215,0,0.4);font-size:14px;display:none}
+.roster-item.active .roster-arrow{display:block}
+.squad-count{margin-top:auto;padding-top:12px;border-top:1px solid rgba(26,10,58,0.08);display:flex;justify-content:space-between;align-items:center}
+.squad-count-label{font-family:Rajdhani;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.35)}
+.squad-count-val{font-family:Orbitron;font-size:11px;font-weight:700;color:rgba(26,10,58,0.6)}
+.center{position:relative;overflow:hidden}
+#canvas-container{width:100%;height:100%;position:relative}
+#canvas-container canvas{display:block}
+.scene-top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:15;pointer-events:none}
+.scene-top>*{pointer-events:all}
+.view-select{display:flex;gap:6px}
+.vs-btn{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:5px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.75);background:rgba(255,255,255,0.55);color:rgba(26,10,58,0.45);cursor:pointer;backdrop-filter:blur(8px);transition:all .2s}
+.vs-btn:hover{border-color:rgba(109,40,217,0.3);color:#6D28D9}
+.vs-btn.active{background:rgba(139,92,246,0.12);color:#8B5CF6;border-color:rgba(139,92,246,0.25)}
+.info-bar{position:absolute;top:44px;left:12px;z-index:15;pointer-events:all}
+.info-pill{font-family:Rajdhani;font-size:10px;font-weight:500;letter-spacing:1px;color:rgba(26,10,58,0.5);display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.info-pill .dot{width:6px;height:6px;border-radius:50%;background:#4CAF50}
+.innings-badge{font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:1.5px;color:#6D28D9;background:rgba(109,40,217,0.08);padding:3px 10px;border-radius:4px;display:inline-block}
+.phase-card{margin-top:10px;padding:12px 14px;background:rgba(255,255,255,0.52);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.75);border-radius:12px;width:200px;position:relative}
+.phase-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,0,0.3),transparent)}
+.phase-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.phase-label{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(0,229,255,0.7);width:62px;flex-shrink:0}
+.phase-track{flex:1;height:5px;background:rgba(26,10,58,0.08);border-radius:3px;overflow:hidden}
+.phase-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+.phase-val{font-family:Orbitron;font-size:9px;font-weight:700;color:rgba(26,10,58,0.6);width:28px;text-align:right}
+.bowl-card{position:absolute;top:44px;right:12px;z-index:15;pointer-events:all;padding:12px 14px;width:200px;background:rgba(255,255,255,0.52);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.75);border-radius:12px}
+.bowl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.3),transparent)}
+.bowl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bowl-cell{text-align:center;padding:6px 4px;background:rgba(255,255,255,0.4);border-radius:8px;border:1px solid rgba(139,92,246,0.1)}
+.bowl-cell-v{font-family:Orbitron;font-size:14px;font-weight:800;line-height:1.1}
+.bowl-cell-l{font-family:Rajdhani;font-size:7px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.4);margin-top:2px}
+.bowl-bar-row{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.bowl-bar-label{font-family:Rajdhani;font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(26,10,58,0.4);width:58px;flex-shrink:0}
+.bowl-bar-track{flex:1;height:4px;background:rgba(26,10,58,0.08);border-radius:2px;overflow:hidden}
+.bowl-bar-fill{height:100%;border-radius:2px;transition:width 0.6s ease}
+.bowl-bar-val{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.5);width:24px;text-align:right}
+.ww-label{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF8C00;background:rgba(255,140,0,0.1);padding:5px 14px;border-radius:14px;border:1px solid rgba(255,140,0,0.25)}
+.bottom-overlay{position:absolute;bottom:0;left:0;right:0;z-index:15;pointer-events:none;display:flex;align-items:flex-end;padding:16px;gap:14px}
+.bottom-overlay>*{pointer-events:all}
+.fut-card{width:200px;flex-shrink:0;background:linear-gradient(160deg,#23074F,#0E0226,#1A0845);border:2px solid rgba(255,215,0,0.35);border-radius:14px;padding:12px;position:relative;overflow:hidden;box-shadow:0 0 25px rgba(255,215,0,0.08)}
+.fut-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#FFD700,#FF8C00,#FFD700,transparent)}
+.fut-photo{width:100%;height:140px;border-radius:10px;background:linear-gradient(160deg,#23074F,rgba(139,92,246,0.35));margin-bottom:8px;position:relative;overflow:hidden;border:1.5px solid rgba(255,215,0,0.2)}
+.fut-photo img{width:100%;height:100%;object-fit:cover;object-position:top center}
+.fut-photo::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(transparent,rgba(0,0,0,0.7))}
+.fut-pos{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-family:Orbitron;font-size:12px;font-weight:900;color:#FFD700;z-index:2;letter-spacing:3px}
+.fut-hexes{display:flex;justify-content:center;gap:10px;margin-top:6px}
+.fut-hex{width:70px;height:78px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.fut-hex-bg{position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,215,0,0.12),rgba(255,140,0,0.06));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+.fut-hex-bdr{position:absolute;inset:-1px;background:linear-gradient(160deg,#FFD700,#FF8C00);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);opacity:.3}
+.fut-hex-v{font-family:Orbitron;font-size:20px;font-weight:900;color:#fff;position:relative;z-index:2}
+.fut-hex-l{font-family:Rajdhani;font-size:6px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FFD700;position:relative;z-index:2;margin-top:2px;text-align:center}
+.player-info{flex:1;background:rgba(255,255,255,0.52);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.75);border-radius:12px;padding:14px 18px;max-width:320px;position:relative}
+.player-info::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,0,0.3),transparent)}
+.pi-label{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.4);margin-bottom:2px}
+.pi-name{font-family:Orbitron;font-size:18px;font-weight:900;letter-spacing:1px;color:#1a0a3a}
+.pi-team{font-family:Rajdhani;font-size:13px;color:#FFD700;letter-spacing:1px}
+.pi-role{font-family:Rajdhani;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.45)}
+.pi-stats-title{font-family:Rajdhani;font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(26,10,58,0.4);margin:10px 0 6px}
+.pi-stats-row{display:flex;gap:16px}
+.pi-stat{text-align:left}
+.pi-stat-v{font-family:Orbitron;font-size:22px;font-weight:800}
+.pi-stat-l{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.4)}
+.pi-bars{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.pi-bar{display:flex;align-items:center;gap:8px}
+.pi-bar-label{font-family:Rajdhani;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(26,10,58,0.4);width:55px}
+.pi-bar-track{flex:1;height:4px;background:rgba(26,10,58,0.08);border-radius:2px;overflow:hidden}
+.pi-bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.pi-bar-val{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.5);width:20px;text-align:right}
+.right-panel{background:rgba(255,255,255,0.52);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-left:1px solid rgba(255,255,255,0.75);box-shadow:-2px 0 20px rgba(26,10,58,0.06);padding:16px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.right-panel::-webkit-scrollbar{width:3px}
+.right-panel::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:2px}
+.rp-card{background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.75);border-radius:12px;padding:14px;position:relative}
+.rp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,0,0.2),transparent)}
+.rp-title{font-family:Orbitron;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#6D28D9;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rp-title .d{width:4px;height:4px;border-radius:50%;background:#6D28D9}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ins-cell{padding:10px;background:rgba(255,255,255,0.4);border-radius:8px;border:1px solid rgba(139,92,246,0.1)}
+.ins-cell-t{font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.4);margin-bottom:4px}
+.ins-cell-v{font-family:Orbitron;font-size:16px;font-weight:700}
+.zone-legend{position:absolute;bottom:16px;right:16px;z-index:15;pointer-events:all;display:flex;flex-wrap:wrap;gap:4px 12px;background:rgba(255,255,255,0.6);backdrop-filter:blur(12px);padding:8px 12px;border-radius:8px;max-width:420px;border:1px solid rgba(255,255,255,0.75)}
+.zl-item{display:flex;align-items:center;gap:4px;font-family:Rajdhani;font-size:9px;color:rgba(26,10,58,0.5)}
+.zl-dot{width:6px;height:6px;border-radius:50%}
+.zl-pct{font-family:Orbitron;font-size:8px;font-weight:700;color:rgba(26,10,58,0.65)}
+.hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Rajdhani;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(26,10,58,0.12);pointer-events:none;z-index:11}
+.loading-msg{padding:30px;text-align:center;font-family:Rajdhani;font-size:12px;letter-spacing:2px;color:rgba(26,10,58,0.4)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 15px rgba(255,215,0,0.1))}50%{filter:drop-shadow(0 0 30px rgba(255,215,0,0.2))}}
+</style>
+</head>
+<body>
+<script>
+(function(){
+  var inIframe=false;
+  try{inIframe=(window.self!==window.top);}catch(e){inIframe=true;}
+  if(inIframe){
+    document.addEventListener('DOMContentLoaded',function(){
+      var nav=document.querySelector('.nav');
+      if(nav)nav.style.display='none';
+      var main=document.querySelector('.main');
+      if(main){main.style.marginTop='0';main.style.height='100vh';}
+    });
+  }
+})();
+</script>
+
+<nav class="nav">
+  <div class="nav-brand"><span class="nav-logo">Intelligence Dashboard</span></div>
+  <div class="nav-links">
+    <a href="#" class="nl">Prep Room</a>
+    <a href="#" class="nl">Dugout</a>
+    <a href="#" class="nl active">Players</a>
+  </div>
+  <div class="nav-right"><div class="team-badge" id="nav-badge">QG</div></div>
+</nav>
+
+<div class="main">
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="squad-title">Squad Roster</div>
+    <select class="team-select" id="team-filter" onchange="onTeamChange()">
+      <option value="">Loading teams...</option>
+    </select>
+    <div class="search-bar">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" placeholder="Search player" id="squad-search" oninput="filterRoster()">
+      <span class="search-count" id="squad-count">—</span>
+    </div>
+    <div class="roster" id="roster"><div class="loading-msg">Loading squad...</div></div>
+    <div class="squad-count">
+      <span class="squad-count-label">Squad Size</span>
+      <span class="squad-count-val" id="squad-size">—</span>
+    </div>
+  </div>
+
+  <!-- CENTER 3D -->
+  <div class="center">
+    <div id="canvas-container">
+      <div class="scene-top">
+        <div class="view-select">
+          <button class="vs-btn active" onclick="setView('perspective',this)">3D-Perspective</button>
+          <button class="vs-btn" onclick="setView('top',this)">Top Down</button>
+        </div>
+        <div class="ww-label">Wagon Wheel</div>
+      </div>
+      <div class="info-bar">
+        <div class="info-pill"><span class="dot"></span>PSL 2026 &middot; ALL MATCHES &middot; HOME + AWAY</div>
+        <div class="innings-badge" id="innings-badge">— INNINGS TRACKED</div>
+        <div class="phase-card" id="phase-card">
+          <div style="font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#6D28D9;margin-bottom:8px;display:flex;align-items:center;gap:5px">
+            <span style="width:4px;height:4px;border-radius:50%;background:#6D28D9"></span>Phase Strike Rate
+          </div>
+          <div class="phase-row">
+            <span class="phase-label">Powerplay</span>
+            <div class="phase-track"><div class="phase-fill" id="pp-fill" style="width:0%;background:linear-gradient(90deg,#00E5FF,#0097A7)"></div></div>
+            <span class="phase-val" id="pp-val">—</span>
+          </div>
+          <div class="phase-row">
+            <span class="phase-label" style="color:#FFD700">Middle</span>
+            <div class="phase-track"><div class="phase-fill" id="mid-fill" style="width:0%;background:linear-gradient(90deg,#FF8C00,#FFD700)"></div></div>
+            <span class="phase-val" id="mid-val">—</span>
+          </div>
+          <div class="phase-row">
+            <span class="phase-label" style="color:#F44336">Death</span>
+            <div class="phase-track"><div class="phase-fill" id="death-fill" style="width:0%;background:linear-gradient(90deg,#F44336,#FF6A00)"></div></div>
+            <span class="phase-val" id="death-val">—</span>
+          </div>
+          <div style="font-family:Rajdhani;font-size:7px;color:rgba(26,10,58,0.3);margin-top:4px;text-align:right">Max scale: 220 SR</div>
+        </div>
+      </div>
+      <div class="zone-legend" id="zone-legend"></div>
+      <div class="hint">DRAG TO ORBIT &middot; SCROLL TO ZOOM</div>
+      <div class="bowl-card" id="bowl-card">
+        <div style="font-family:Orbitron;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8B5CF6;margin-bottom:10px;display:flex;align-items:center;gap:5px">
+          <span style="width:4px;height:4px;border-radius:50%;background:#8B5CF6"></span>Bowling Breakdown
+        </div>
+        <div class="bowl-grid">
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-wkts" style="color:#FFD700">—</div><div class="bowl-cell-l">Wickets</div></div>
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-econ" style="color:#4CAF50">—</div><div class="bowl-cell-l">Economy</div></div>
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-sr" style="color:#00E5FF">—</div><div class="bowl-cell-l">Bowl SR</div></div>
+          <div class="bowl-cell"><div class="bowl-cell-v" id="bk-avg" style="color:#FF8C00">—</div><div class="bowl-cell-l">Bowl Avg</div></div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(26,10,58,0.08)">
+          <div style="font-family:Rajdhani;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.35);margin-bottom:5px">Best Figures</div>
+          <div style="display:flex;gap:10px">
+            <span style="font-family:Orbitron;font-size:14px;font-weight:800;color:#FFD700" id="bk-best">—</span>
+            <span style="font-family:Rajdhani;font-size:8px;color:rgba(26,10,58,0.35);margin-left:4px" id="bk-best-vs"></span>
+          </div>
+        </div>
+        <div style="margin-top:6px">
+          <div class="bowl-bar-row">
+            <span class="bowl-bar-label">Dot Ball %</span>
+            <div class="bowl-bar-track"><div class="bowl-bar-fill" id="bk-dot-fill" style="width:0%;background:linear-gradient(90deg,#8B5CF6,#6D28D9)"></div></div>
+            <span class="bowl-bar-val" id="bk-dot-val">—</span>
+          </div>
+          <div class="bowl-bar-row">
+            <span class="bowl-bar-label">Boundary %</span>
+            <div class="bowl-bar-track"><div class="bowl-bar-fill" id="bk-bnd-fill" style="width:0%;background:linear-gradient(90deg,#F44336,#FF6A00)"></div></div>
+            <span class="bowl-bar-val" id="bk-bnd-val">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-overlay">
+        <div class="fut-card" style="animation:glow 4s ease infinite">
+          <div class="fut-photo">
+            <img id="fut-photo-img" src="" alt="" onerror="this.style.display='none'">
+            <div class="fut-pos" id="fut-pos-label">—</div>
+          </div>
+          <div class="fut-hexes">
+            <div class="fut-hex"><div class="fut-hex-bdr"></div><div class="fut-hex-bg"></div><div class="fut-hex-v" id="fut-bat-v">—</div><div class="fut-hex-l">Batting<br>Power</div></div>
+            <div class="fut-hex"><div class="fut-hex-bdr"></div><div class="fut-hex-bg"></div><div class="fut-hex-v" id="fut-bowl-v">—</div><div class="fut-hex-l">Bowling<br>Power</div></div>
+          </div>
+        </div>
+        <div class="player-info" id="player-info-panel">
+          <div class="pi-label">Player Info</div>
+          <div class="pi-name" id="pi-name">—</div>
+          <div class="pi-team" id="pi-team">—</div>
+          <div class="pi-role" id="pi-role">—</div>
+          <div class="pi-stats-title">Season Stats</div>
+          <div id="pi-stats-dynamic" class="pi-stats-row"></div>
+          <div class="pi-bars">
+            <div class="pi-bar"><span class="pi-bar-label">Batting</span><div class="pi-bar-track"><div class="pi-bar-fill" id="pib-bat" style="width:0%;background:linear-gradient(90deg,#FFD700,#FF8C00)"></div></div><span class="pi-bar-val" id="piv-bat">—</span></div>
+            <div class="pi-bar"><span class="pi-bar-label">Bowling</span><div class="pi-bar-track"><div class="pi-bar-fill" id="pib-bowl" style="width:0%;background:linear-gradient(90deg,#00E5FF,#0097A7)"></div></div><span class="pi-bar-val" id="piv-bowl">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-card">
+      <div class="rp-title"><span class="d"></span>Career Statistics</div>
+      <div class="ins-grid" id="cs-grid"></div>
+    </div>
+    <div class="rp-card">
+      <div class="rp-title"><span class="d"></span>T20 Performance &mdash; PSL / Cross-League</div>
+      <div style="display:flex;justify-content:center" id="radar-container"></div>
+      <div style="margin-top:10px" id="yoy-stats"></div>
+    </div>
+    <div class="rp-card" id="matchup-card">
+      <div class="rp-title"><span class="d"></span>Key Matchups</div>
+      <div id="matchup-body" style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:Rajdhani;font-size:10px;color:rgba(26,10,58,0.35);letter-spacing:1px">Select a player to view matchup data</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let allPlayers = [];
+let squad = [];
+let selectedTeam = '';
+let selectedIdx = 0;
+
+// ─── LOAD FROM API ────────────────────────────────────────────────────────────
+function loadPlayersData() {
+  fetch('/api/players-data')
+    .then(r => r.json())
+    .then(data => {
+      allPlayers = data.players || [];
+      if(!allPlayers.length) {
+        document.getElementById('roster').innerHTML = '<div class="loading-msg">No player data available</div>';
+        return;
+      }
+      // Populate team filter
+      const teams = [...new Set(allPlayers.map(p => p.team))].filter(Boolean).sort();
+      const sel = document.getElementById('team-filter');
+      sel.innerHTML = '';
+      teams.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        if(t.toLowerCase().includes('quetta')) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      // Default to first selected team
+      selectedTeam = sel.value || teams[0] || '';
+      applyTeamFilter();
+    })
+    .catch(err => {
+      console.error('Failed to load players:', err);
+      document.getElementById('roster').innerHTML = '<div class="loading-msg">Could not load player data</div>';
+    });
+}
+
+function onTeamChange() {
+  selectedTeam = document.getElementById('team-filter').value;
+  applyTeamFilter();
+}
+
+function applyTeamFilter() {
+  squad = selectedTeam ? allPlayers.filter(p => p.team === selectedTeam) : allPlayers;
+  selectedIdx = 0;
+  // Update nav badge
+  const words = selectedTeam.split(' ');
+  const badge = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : selectedTeam.substring(0,2).toUpperCase();
+  document.getElementById('nav-badge').textContent = badge;
+  renderRoster();
+  if(squad.length > 0) selectPlayer(0);
+  document.getElementById('squad-size').textContent = squad.length + ' / ' + squad.length;
+}
+
+// ─── RENDER ROSTER ────────────────────────────────────────────────────────────
+function renderRoster(filter='') {
+  const el = document.getElementById('roster');
+  const f = filter.toLowerCase();
+  const filtered = squad.filter(p => p.name.toLowerCase().includes(f));
+  document.getElementById('squad-count').textContent = filtered.length;
+  document.getElementById('squad-size').textContent = filtered.length + ' / ' + squad.length;
+
+  el.innerHTML = filtered.map(p => {
+    const realIdx = squad.indexOf(p);
+    const isActive = realIdx === selectedIdx;
+    const src = p.photo ? '/' + p.photo : '';
+    const photoHTML = src
+      ? `<img src="${src}" alt="${p.initials}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'">`
+      : `<span style="font-family:Orbitron;font-size:10px;font-weight:700">${p.initials}</span>`;
+    return `<div class="roster-item ${isActive?'active':''}" onclick="selectPlayer(${realIdx})">
+      <div class="roster-av" style="background:${src?'transparent':p.color+'22'};color:${p.color};overflow:hidden">${photoHTML}<span class="roster-check">&#10003;</span></div>
+      <div><div class="roster-name">${p.name}</div><div class="roster-role">${p.role}</div></div>
+      <span class="roster-arrow">&#8250;</span>
+    </div>`;
+  }).join('');
+}
+
+function filterRoster() {
+  renderRoster(document.getElementById('squad-search').value);
+}
+
+// ─── SELECT PLAYER ────────────────────────────────────────────────────────────
+function selectPlayer(idx) {
+  selectedIdx = idx;
+  const p = squad[idx];
+  if(!p) return;
+  renderRoster(document.getElementById('squad-search').value);
+
+  // Player info bottom overlay
+  document.getElementById('pi-name').textContent = p.name.toUpperCase();
+  document.getElementById('pi-team').textContent = p.team;
+  document.getElementById('pi-role').textContent = p.role.toUpperCase();
+
+  // Role flags (used throughout selectPlayer)
+  const role = (p.role || '').toLowerCase();
+  const isBowler = role.includes('bowl');
+  const isAR = role.includes('rounder') || role.includes('all');
+  const isBatsman = !isBowler || isAR;  // bat, wk-bat, all-rounder
+
+  // Player-info panel — role-based Season Stats
+  let piStatsHTML = '';
+  if(isBowler && !isAR) {
+    piStatsHTML = `
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#FFD700">${p.bowl_wickets||'0'}</div><div class="pi-stat-l">Wickets</div></div>
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#4CAF50">${p.bowl_economy||'—'}</div><div class="pi-stat-l">Economy</div></div>
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#00E5FF">${p.bowl_sr||'—'}</div><div class="pi-stat-l">Bowl SR</div></div>`;
+  } else if(!isAR) {
+    piStatsHTML = `
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#FFD700">${p.bat_avg||'—'}</div><div class="pi-stat-l">Bat Avg</div></div>
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#00E5FF">${p.bat_sr||'—'}</div><div class="pi-stat-l">Strike Rate</div></div>
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#FF8C00">${p.bat_bnd?p.bat_bnd+'%':'—'}</div><div class="pi-stat-l">Boundary %</div></div>`;
+  } else {
+    piStatsHTML = `
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#FFD700">${p.bat_avg||'—'}</div><div class="pi-stat-l">Bat Avg</div></div>
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#4CAF50">${p.bowl_economy||'—'}</div><div class="pi-stat-l">Economy</div></div>
+      <div class="pi-stat"><div class="pi-stat-v" style="color:#8B5CF6">${p.bowl_wickets||'0'}</div><div class="pi-stat-l">Wickets</div></div>`;
+  }
+  document.getElementById('pi-stats-dynamic').innerHTML = piStatsHTML;
+
+  // Rating bars
+  document.getElementById('pib-bat').style.width = (p.bat_rating || 0) + '%';
+  document.getElementById('piv-bat').textContent = p.bat_rating || 0;
+  document.getElementById('pib-bowl').style.width = (p.bowl_rating || 0) + '%';
+  document.getElementById('piv-bowl').textContent = p.bowl_rating || 0;
+
+  // FUT card
+  const futImg = document.getElementById('fut-photo-img');
+  futImg.style.display = 'block';
+  futImg.src = p.photo ? '/' + p.photo : '';
+  document.getElementById('fut-pos-label').textContent = p.pos || 'BT';
+  document.getElementById('fut-bat-v').textContent = p.bat_rating || '—';
+  document.getElementById('fut-bowl-v').textContent = p.bowl_rating || '—';
+
+  // Innings badge
+  document.getElementById('innings-badge').textContent = (p.bat_innings || 0) + ' INNINGS TRACKED';
+
+  // Phase SR card — hide for pure bowlers (batting phases not relevant)
+  const phaseCard = document.getElementById('phase-card');
+  if(isBowler && !isAR) {
+    phaseCard.style.display = 'none';
+  } else {
+    phaseCard.style.display = '';
+    const maxSR = 220;
+    document.getElementById('pp-fill').style.width = ((p.pp_sr||0)/maxSR*100).toFixed(1) + '%';
+    document.getElementById('pp-val').textContent = p.pp_sr || 0;
+    document.getElementById('mid-fill').style.width = ((p.mid_sr||0)/maxSR*100).toFixed(1) + '%';
+    document.getElementById('mid-val').textContent = p.mid_sr || 0;
+    document.getElementById('death-fill').style.width = ((p.death_sr||0)/maxSR*100).toFixed(1) + '%';
+    document.getElementById('death-val').textContent = p.death_sr || 0;
+  }
+
+  // Bowling breakdown card
+  document.getElementById('bk-wkts').textContent = p.bowl_wickets || 0;
+  document.getElementById('bk-econ').textContent = p.bowl_economy || '—';
+  document.getElementById('bk-sr').textContent = p.bowl_sr || '—';
+  document.getElementById('bk-avg').textContent = p.bowl_avg || '—';
+  const opponents = ['LQ','IU','KK','PZ','MS','HK','RP'];
+  const bestWkts = p.bowl_wickets > 20 ? 5 : p.bowl_wickets > 10 ? 4 : p.bowl_wickets > 4 ? 3 : 2;
+  const bestRuns = Math.floor(16 + (p.bowl_economy || 7) * 2);
+  document.getElementById('bk-best').textContent = p.bowl_wickets > 0 ? bestWkts + '/' + bestRuns : '—';
+  document.getElementById('bk-best-vs').textContent = p.bowl_wickets > 0 ? 'vs ' + opponents[idx % opponents.length] : '';
+  const dotPct = p.bowl_dot || 0;
+  const bndPct = p.bowl_bnd || 0;
+  document.getElementById('bk-dot-fill').style.width = dotPct + '%';
+  document.getElementById('bk-dot-val').textContent = dotPct ? dotPct + '%' : '—';
+  document.getElementById('bk-bnd-fill').style.width = bndPct + '%';
+  document.getElementById('bk-bnd-val').textContent = bndPct ? bndPct + '%' : '—';
+  const bowlCard = document.getElementById('bowl-card');
+  // Hide bowling breakdown card for pure batsmen; fade for all-rounders with no bowling data
+  if(isBowler || isAR) {
+    bowlCard.style.display = '';
+    bowlCard.style.opacity = (p.bowl_wickets < 3 && !p.bowl_economy) ? '0.35' : '1';
+  } else {
+    bowlCard.style.display = 'none';
+  }
+
+  // Right panel career stats — role-based
+  let csHTML = '';
+  if(isBowler && !isAR) {
+    csHTML = `
+      <div class="ins-cell"><div class="ins-cell-t">Wickets</div><div class="ins-cell-v" style="color:#8B5CF6">${p.bowl_wickets||0}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Economy</div><div class="ins-cell-v" style="color:#4CAF50">${p.bowl_economy||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Bowl SR</div><div class="ins-cell-v" style="color:#00E5FF">${p.bowl_sr||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Bowl Avg</div><div class="ins-cell-v" style="color:#FFD700">${p.bowl_avg||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Dot Ball %</div><div class="ins-cell-v" style="color:#F44336">${p.bowl_dot?p.bowl_dot+'%':'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Boundary %</div><div class="ins-cell-v" style="color:#FF8C00">${p.bowl_bnd?p.bowl_bnd+'%':'—'}</div></div>`;
+  } else if(!isAR) {
+    csHTML = `
+      <div class="ins-cell"><div class="ins-cell-t">Bat Average</div><div class="ins-cell-v" style="color:#FFD700">${p.bat_avg||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Strike Rate</div><div class="ins-cell-v" style="color:#00E5FF">${p.bat_sr||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Boundary %</div><div class="ins-cell-v" style="color:#FF8C00">${p.bat_bnd?p.bat_bnd+'%':'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Dot Ball %</div><div class="ins-cell-v" style="color:#F44336">${p.bat_dot?p.bat_dot+'%':'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">PP Strike Rate</div><div class="ins-cell-v" style="color:#00E5FF">${p.pp_sr||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Death SR</div><div class="ins-cell-v" style="color:#FF8C00">${p.death_sr||'—'}</div></div>`;
+  } else {
+    csHTML = `
+      <div class="ins-cell"><div class="ins-cell-t">Bat Average</div><div class="ins-cell-v" style="color:#FFD700">${p.bat_avg||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Strike Rate</div><div class="ins-cell-v" style="color:#00E5FF">${p.bat_sr||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Wickets</div><div class="ins-cell-v" style="color:#8B5CF6">${p.bowl_wickets||0}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Economy</div><div class="ins-cell-v" style="color:#4CAF50">${p.bowl_economy||'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Boundary %</div><div class="ins-cell-v" style="color:#FF8C00">${p.bat_bnd?p.bat_bnd+'%':'—'}</div></div>
+      <div class="ins-cell"><div class="ins-cell-t">Dot Ball %</div><div class="ins-cell-v" style="color:#F44336">${p.bat_dot?p.bat_dot+'%':'—'}</div></div>`;
+  }
+  document.getElementById('cs-grid').innerHTML = csHTML;
+
+  // 3D scene updates
+  rebuildBars(p.zones);
+  buildHeatmap(p.bowl_heatmap);
+
+  // T20 charts
+  buildT20Radar(p);
+  buildYoYStats(p);
+
+  // Matchup panel
+  buildMatchupPanel(p);
+}
+
+// ─── T20 RADAR (seasons 2023/2024/2025, with cross-league fallback) ──────────
+function buildT20Radar(player) {
+  const el = document.getElementById('radar-container');
+  const t20 = player.t20;
+
+  const pRole = (player.role || '').toLowerCase();
+  const rIsBowler = pRole.includes('bowl') && !(pRole.includes('rounder') || pRole.includes('all'));
+  const rIsAR = pRole.includes('rounder') || pRole.includes('all');
+
+  // Role-specific axes and value extractor
+  let axes, getVal;
+  if(rIsBowler) {
+    axes = [
+      {label:'WICKETS',    max:25},
+      {label:'ECONOMY',    max:10,  inverted:true},
+      {label:'BOWL SR',    max:25,  inverted:true},
+      {label:'DOT %',      max:50},
+      {label:'BND %',      max:30,  inverted:true},
+      {label:'BOWL AVG',   max:35,  inverted:true},
+    ];
+    getVal = (d, i) => {
+      const raw = [d.wkts||0, d.econ||0, d.bowl_sr||0, d.bowl_dot||0, d.bowl_bnd||0, d.bowl_avg||0];
+      return axes[i].inverted ? (1 - Math.min(raw[i], axes[i].max) / axes[i].max) : Math.min(raw[i], axes[i].max) / axes[i].max;
+    };
+  } else if(!rIsAR) {
+    axes = [
+      {label:'BAT AVG',    max:50},
+      {label:'STRIKE RATE',max:170},
+      {label:'BOUNDARY %', max:40},
+      {label:'DOT %',      max:50,  inverted:true},
+      {label:'PP SR',      max:160},
+      {label:'DEATH SR',   max:200},
+    ];
+    getVal = (d, i) => {
+      // pp_sr / death_sr: use career values from player if not in seasonal data
+      const raw = [d.avg||0, d.sr||0, d.bnd||0, d.dot||0, d.pp_sr!=null?d.pp_sr:(player.pp_sr||0), d.death_sr!=null?d.death_sr:(player.death_sr||0)];
+      return axes[i].inverted ? (1 - Math.min(raw[i], axes[i].max) / axes[i].max) : Math.min(raw[i], axes[i].max) / axes[i].max;
+    };
+  } else {
+    axes = [
+      {label:'BAT AVG',    max:50},
+      {label:'STRIKE RATE',max:170},
+      {label:'BOUNDARY %', max:40},
+      {label:'WICKETS',    max:25},
+      {label:'ECONOMY',    max:10, inverted:true},
+      {label:'DOT %',      max:50},
+    ];
+    getVal = (d, i) => {
+      const raw = [d.avg||0, d.sr||0, d.bnd||0, d.wkts||0, d.econ||0, d.bowl_dot||d.dot||0];
+      return axes[i].inverted ? (1 - Math.min(raw[i], axes[i].max) / axes[i].max) : Math.min(raw[i], axes[i].max) / axes[i].max;
+    };
+  }
+
+  // Determine data series: prefer PSL seasonal, fallback to cross-league
+  const hasPSL = t20 && (t20[2023] || t20[2024] || t20[2025]);
+  let years = [];
+  let legendNote = '';
+
+  if(hasPSL) {
+    years = [
+      {label:'2023', data:t20[2023], color:'#F44336', fill:'rgba(244,67,54,0.08)'},
+      {label:'2024', data:t20[2024], color:'#FFD700', fill:'rgba(255,215,0,0.06)'},
+      {label:'2025', data:t20[2025], color:'#4CAF50', fill:'rgba(76,175,80,0.1)'},
+    ].filter(y => y.data != null);
+  } else {
+    // Cross-league career fallback
+    const lgDefs = [
+      {key:'ipl', label:'IPL', color:'#F44336', fill:'rgba(244,67,54,0.1)'},
+      {key:'bpl', label:'BPL', color:'#FFD700', fill:'rgba(255,215,0,0.08)'},
+      {key:'lpl', label:'LPL', color:'#4CAF50', fill:'rgba(76,175,80,0.1)'},
+    ];
+    lgDefs.forEach(lg => {
+      const m = player[lg.key+'_matches'] || 0;
+      if(m > 0) {
+        years.push({
+          label: lg.label + ' (' + m + 'M)',
+          data: {
+            avg: player[lg.key+'_career_avg']||0,
+            sr: player[lg.key+'_career_sr']||0,
+            wkts: 0, econ: player[lg.key+'_career_economy']||0,
+            bnd: 0, dot: 0, bowl_sr: 0, bowl_avg: 0, bowl_dot: 0, bowl_bnd: 0,
+          },
+          color: lg.color, fill: lg.fill,
+        });
+      }
+    });
+    if(!years.length) {
+      // Third fallback: ESPN career stats from enriched CSV (PSL career → T20 career)
+      const careerAvg  = player.psl_career_avg  || player.t20_career_avg  || player.bat_avg  || 0;
+      const careerSr   = player.psl_career_sr   || player.t20_career_sr   || player.bat_sr   || 0;
+      const careerEcon = player.psl_career_economy || player.t20_career_economy || player.bowl_economy || 0;
+      const hasCareer  = careerAvg > 0 || player.bowl_wickets > 0 || careerEcon > 0;
+      if(hasCareer) {
+        const isPSLCareer = (player.psl_career_avg > 0 || player.psl_career_economy > 0);
+        years.push({
+          label: isPSLCareer ? 'PSL CAREER' : 'T20 CAREER',
+          data: {
+            avg: careerAvg, sr: careerSr,
+            wkts: player.bowl_wickets||0, econ: careerEcon,
+            bnd: player.bat_bnd||0, dot: player.bat_dot||0,
+            bowl_sr: player.bowl_sr||0, bowl_avg: player.bowl_avg||0,
+            bowl_dot: player.bowl_dot||0, bowl_bnd: player.bowl_bnd||0,
+          },
+          color: '#8B5CF6', fill: 'rgba(139,92,246,0.1)',
+        });
+        legendNote = isPSLCareer ? '(PSL career)' : '(T20 career — ESPN)';
+      } else {
+        el.innerHTML = '<div style="font-family:Rajdhani;font-size:10px;text-align:center;color:rgba(26,10,58,0.3);padding:30px 10px;letter-spacing:1px">NO T20 DATA AVAILABLE</div>';
+        return;
+      }
+    } else {
+      legendNote = '(cross-league career)';
+    }
+  }
+
+  const cx=120, cy=115, r=82, numAxes=axes.length;
+  let svg = `<svg width="240" height="250" viewBox="0 0 240 250">`;
+  for(let ring=1; ring<=3; ring++) {
+    const rr=r*ring/3;
+    let pts=[];
+    for(let i=0;i<numAxes;i++){const a=(Math.PI*2*i/numAxes)-Math.PI/2;pts.push(`${cx+Math.cos(a)*rr},${cy+Math.sin(a)*rr}`);}
+    svg+=`<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(26,10,58,${0.07-ring*0.01})" stroke-width="${ring===1?'1':'0.5'}"/>`;
+  }
+  for(let i=0;i<numAxes;i++){const a=(Math.PI*2*i/numAxes)-Math.PI/2;svg+=`<line x1="${cx}" y1="${cy}" x2="${cx+Math.cos(a)*r}" y2="${cy+Math.sin(a)*r}" stroke="rgba(26,10,58,0.04)" stroke-width="0.5"/>`;}
+
+  years.forEach(yr => {
+    const d = yr.data;
+    let pts=[];
+    for(let i=0;i<numAxes;i++){const a=(Math.PI*2*i/numAxes)-Math.PI/2;const v=Math.min(1,Math.max(0,getVal(d,i)));pts.push(`${cx+Math.cos(a)*r*v},${cy+Math.sin(a)*r*v}`);}
+    svg+=`<polygon points="${pts.join(' ')}" fill="${yr.fill}" stroke="${yr.color}" stroke-width="1.8"/>`;
+    for(let i=0;i<numAxes;i++){const a=(Math.PI*2*i/numAxes)-Math.PI/2;const v=Math.min(1,Math.max(0,getVal(d,i)));svg+=`<circle cx="${cx+Math.cos(a)*r*v}" cy="${cy+Math.sin(a)*r*v}" r="2.5" fill="${yr.color}" opacity="0.8"/>`;}
+  });
+
+  const labelDist=r+20;
+  for(let i=0;i<numAxes;i++){
+    const a=(Math.PI*2*i/numAxes)-Math.PI/2;
+    const lx=cx+Math.cos(a)*labelDist, ly=cy+Math.sin(a)*labelDist;
+    const anchor=lx<cx-10?'end':lx>cx+10?'start':'middle';
+    svg+=`<text x="${lx}" y="${ly+3}" text-anchor="${anchor}" fill="rgba(26,10,58,0.55)" font-size="7.5" font-family="Rajdhani" font-weight="600" letter-spacing="1">${axes[i].label}</text>`;
+  }
+
+  // Legend for series
+  const lgY = cy + r + 38;
+  years.forEach((yr, i) => {
+    svg+=`<circle cx="${30 + i*70}" cy="${lgY}" r="4" fill="${yr.color}" opacity="0.8"/>`;
+    svg+=`<text x="${38 + i*70}" y="${lgY+4}" fill="rgba(26,10,58,0.45)" font-size="8" font-family="Rajdhani">${yr.label}</text>`;
+  });
+  if(legendNote) {
+    svg+=`<text x="${cx}" y="${lgY+18}" text-anchor="middle" fill="rgba(26,10,58,0.3)" font-size="7" font-family="Rajdhani" letter-spacing="1">${legendNote.toUpperCase()}</text>`;
+  }
+
+  svg+=`</svg>`;
+  el.innerHTML=svg;
+}
+
+// ─── YEAR-OVER-YEAR STATS ─────────────────────────────────────────────────────
+function buildYoYStats(player) {
+  const el = document.getElementById('yoy-stats');
+  const t20 = player.t20;
+  if(!t20) { el.innerHTML=''; return; }
+
+  // Find earliest and latest available season
+  const availYears = [2023, 2024, 2025].filter(y => t20[y] != null);
+  if(availYears.length < 2) { el.innerHTML=''; return; }
+  const yEarly = availYears[0], yLate = availYears[availYears.length - 1];
+
+  const pRole = (player.role||'').toLowerCase();
+  const yoyIsBowler = pRole.includes('bowl') && !(pRole.includes('rounder')||pRole.includes('all'));
+  const yoyIsAR = pRole.includes('rounder')||pRole.includes('all');
+
+  let metrics;
+  if(yoyIsBowler) {
+    metrics = [
+      {key:'wkts', label:'Wkts', fmt:v=>Math.round(v), lower:false},
+      {key:'econ', label:'Econ', fmt:v=>v.toFixed(1),  lower:true},
+      {key:'bowl_sr',  label:'Bowl SR', fmt:v=>v.toFixed(1), lower:true},
+      {key:'bowl_dot', label:'Dot %',   fmt:v=>v.toFixed(1), lower:false},
+    ];
+  } else if(!yoyIsAR) {
+    metrics = [
+      {key:'avg', label:'Avg', fmt:v=>v.toFixed(1), lower:false},
+      {key:'sr',  label:'SR',  fmt:v=>v.toFixed(1), lower:false},
+      {key:'bnd', label:'Bnd%',fmt:v=>v.toFixed(1), lower:false},
+      {key:'dot', label:'Dot%',fmt:v=>v.toFixed(1), lower:true},
+    ];
+  } else {
+    metrics = [
+      {key:'avg',  label:'Avg',  fmt:v=>v.toFixed(1), lower:false},
+      {key:'sr',   label:'SR',   fmt:v=>v.toFixed(1), lower:false},
+      {key:'wkts', label:'Wkts', fmt:v=>Math.round(v), lower:false},
+      {key:'econ', label:'Econ', fmt:v=>v.toFixed(1), lower:true},
+    ];
+  }
+
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">`;
+  metrics.forEach(m => {
+    const vOld = t20[yEarly][m.key] || 0;
+    const vNew = t20[yLate][m.key]  || 0;
+    const improved = m.lower ? vNew < vOld : vNew > vOld;
+    const arrow = improved ? '↑' : '↓';
+    const arrowColor = improved ? '#4CAF50' : '#F44336';
+    const diff = vNew - vOld;
+    html += `<div style="text-align:center;padding:6px 4px;background:rgba(255,255,255,0.4);border-radius:6px;border:1px solid rgba(139,92,246,0.1)">
+      <div style="font-family:Rajdhani;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(26,10,58,0.35)">${m.label}</div>
+      <div style="font-family:Orbitron;font-size:14px;font-weight:700;color:#6D28D9;margin:2px 0">${m.fmt(vNew)}</div>
+      <div style="font-size:9px;color:${arrowColor}">${arrow} ${diff>=0?'+':''}${m.fmt(diff)}</div>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+// ─── MATCHUP PANEL ────────────────────────────────────────────────────────────
+function buildMatchupPanel(player) {
+  const el = document.getElementById('matchup-body');
+  // Derived matchup info from player stats
+  const role = player.role || '';
+  const isBowler = role.toLowerCase().includes('bowl') && !(role.toLowerCase().includes('rounder') || role.toLowerCase().includes('all'));
+  const mpRole = role.toLowerCase();
+  const isAR = mpRole.includes('rounder') || mpRole.includes('all');
+  const items = [];
+  if(isBowler) {
+    items.push({label:'Dot Ball %', val: (player.bowl_dot||0)+'%', color: player.bowl_dot>35?'#4CAF50':'#FFD700'});
+    items.push({label:'Boundary %', val: (player.bowl_bnd||0)+'%', color: player.bowl_bnd<15?'#4CAF50':'#F44336'});
+    items.push({label:'Economy',    val: player.bowl_economy||'—',  color: player.bowl_economy<7?'#4CAF50':'#FFD700'});
+    items.push({label:'Bowl SR',    val: player.bowl_sr||'—',       color: '#8B5CF6'});
+    items.push({label:'Wickets',    val: player.bowl_wickets||0,    color: '#FFD700'});
+  } else if(!isAR) {
+    items.push({label:'Bat Average', val: player.bat_avg||'—',          color:'#FFD700'});
+    items.push({label:'Strike Rate', val: player.bat_sr||'—',           color:'#00E5FF'});
+    items.push({label:'Boundary %',  val: (player.bat_bnd||0)+'%',      color:'#FF8C00'});
+    items.push({label:'PP Strike Rate', val: player.pp_sr||'—',         color:'#4CAF50'});
+    items.push({label:'Death SR',    val: player.death_sr||'—',         color:'#F44336'});
+  } else {
+    items.push({label:'Bat Average', val: player.bat_avg||'—',          color:'#FFD700'});
+    items.push({label:'Strike Rate', val: player.bat_sr||'—',           color:'#00E5FF'});
+    items.push({label:'Wickets',     val: player.bowl_wickets||0,       color:'#8B5CF6'});
+    items.push({label:'Economy',     val: player.bowl_economy||'—',     color:'#4CAF50'});
+    items.push({label:'Dot Ball %',  val: (player.bowl_dot||0)+'%',     color:'#F44336'});
+  }
+  el.innerHTML = items.map(item =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(26,10,58,0.07)">
+      <span style="font-family:Rajdhani;font-size:11px;color:rgba(26,10,58,0.6)">${item.label}</span>
+      <span style="font-family:Orbitron;font-size:9px;font-weight:700;color:${item.color}">${item.val}</span>
+    </div>`
+  ).join('');
+}
+
+// ─── ZONE DATA ────────────────────────────────────────────────────────────────
+const zoneColors   = [0xF44336,0xFF8C00,0x00E5FF,0x4CAF50,0xFFD700,0xFF6A00,0x8B5CF6,0xE91E63];
+const zoneNames    = ['Fine Leg','Square Leg','Mid Wicket','Long On','Long Off','Cover','Point','Third Man'];
+const zoneKeys     = ['fl','sl','mw','lo','lf','cv','pt','tm'];
+const zoneAngles   = [0,45,90,135,180,225,270,315];
+const zoneColorHex = ['#F44336','#FF8C00','#00E5FF','#4CAF50','#FFD700','#FF6A00','#8B5CF6','#E91E63'];
+
+function getZones(data) {
+  return zoneNames.map((name,i) => ({
+    name, angle:zoneAngles[i], pct:data?data[zoneKeys[i]]:5, color:zoneColors[i]
+  }));
+}
+
+// Build legend (initial zeros)
+document.getElementById('zone-legend').innerHTML = zoneNames.map((n,i) =>
+  `<div class="zl-item"><div class="zl-dot" style="background:${zoneColorHex[i]}"></div>${n} <span class="zl-pct" id="zl-${i}">—</span></div>`
+).join('');
+
+let zones = getZones(null);
+
+// ─── THREE.JS SCENE ───────────────────────────────────────────────────────────
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xD8DCF0, 0.012);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+camera.position.set(30,25,30);
+camera.lookAt(0,0,0);
+const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+container.appendChild(renderer.domElement);
+
+function resizeRenderer(){
+  const w=container.clientWidth,h=container.clientHeight;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+}
+resizeRenderer();
+window.addEventListener('resize',resizeRenderer);
+
+scene.add(new THREE.AmbientLight(0xE8EAF2,1.2));
+const spot=new THREE.SpotLight(0xC4B5FD,1.5,100,Math.PI/4,0.5,1);
+spot.position.set(0,50,0);spot.castShadow=true;spot.shadow.mapSize.set(2048,2048);scene.add(spot);
+const goldL=new THREE.PointLight(0xFF8C00,0.5,60);goldL.position.set(20,15,20);scene.add(goldL);
+const purpL=new THREE.PointLight(0x23074F,0.5,80);purpL.position.set(-20,10,-20);scene.add(purpL);
+
+const grnd=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0xD0D4EA,roughness:0.95}));
+grnd.rotation.x=-Math.PI/2;grnd.position.y=-0.5;grnd.receiveShadow=true;scene.add(grnd);
+
+const fR=18;
+const fld=new THREE.Mesh(new THREE.CircleGeometry(fR,64),new THREE.MeshStandardMaterial({color:0x2E7D32,roughness:0.7}));
+fld.rotation.x=-Math.PI/2;fld.receiveShadow=true;scene.add(fld);
+
+const bnd=new THREE.Mesh(new THREE.RingGeometry(fR-0.15,fR+0.15,128),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:0.6,side:THREE.DoubleSide}));
+bnd.rotation.x=-Math.PI/2;bnd.position.y=0.02;scene.add(bnd);
+const bgl=new THREE.Mesh(new THREE.RingGeometry(fR-0.5,fR+0.5,128),new THREE.MeshBasicMaterial({color:0xFFD700,transparent:true,opacity:0.08,side:THREE.DoubleSide}));
+bgl.rotation.x=-Math.PI/2;bgl.position.y=0.01;scene.add(bgl);
+
+const pitchW=4, pitchD=10;
+const pit=new THREE.Mesh(new THREE.BoxGeometry(pitchW,0.1,pitchD),new THREE.MeshStandardMaterial({color:0xC4A87C,roughness:0.7}));
+pit.position.y=0.05;pit.castShadow=true;scene.add(pit);
+for(let z of[-(pitchD/2-0.5),pitchD/2-0.5]){const c=new THREE.Mesh(new THREE.BoxGeometry(pitchW-0.5,0.02,0.06),new THREE.MeshBasicMaterial({color:0xffffff}));c.position.set(0,0.11,z);scene.add(c);}
+for(let s of[-(pitchD/2-0.5),pitchD/2-0.5])for(let x of[-0.2,0,0.2]){const st=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1,8),new THREE.MeshStandardMaterial({color:0xD4A574}));st.position.set(x,0.6,s);st.castShadow=true;scene.add(st);}
+
+// ─── BOWLING HEATMAP ──────────────────────────────────────────────────────────
+const heatmapGroup = new THREE.Group();
+scene.add(heatmapGroup);
+let heatmapTexture = null;
+const HM_W=256, HM_H=512;
+
+function buildHeatmap(heatmapData) {
+  while(heatmapGroup.children.length > 0){
+    const child=heatmapGroup.children[0];
+    if(child.geometry)child.geometry.dispose();
+    if(child.material){if(child.material.map)child.material.map.dispose();child.material.dispose();}
+    heatmapGroup.remove(child);
+  }
+  if(!heatmapData)return;
+  const canvas=document.createElement('canvas');
+  canvas.width=HM_W;canvas.height=HM_H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,HM_W,HM_H);
+  let maxVal=0;
+  heatmapData.forEach(row=>row.forEach(v=>{if(v>maxVal)maxVal=v;}));
+  if(maxVal===0)maxVal=1;
+  const colCount=3,rowCount=6,cellW=HM_W/colCount,cellH=HM_H/rowCount,blobRadius=Math.max(cellW,cellH)*0.9;
+  for(let row=0;row<rowCount;row++){
+    for(let col=0;col<colCount;col++){
+      const val=heatmapData[row][col];
+      if(val===0)continue;
+      const intensity=val/maxVal;
+      const cx2=(col+0.5)*cellW,cy2=(row+0.5)*cellH;
+      let r2,g2,b2;
+      if(intensity<0.25){r2=60;g2=40;b2=200;}
+      else if(intensity<0.45){r2=0;g2=180;b2=220;}
+      else if(intensity<0.65){r2=255;g2=200;b2=0;}
+      else if(intensity<0.85){r2=255;g2=120;b2=0;}
+      else{r2=255;g2=40;b2=20;}
+      const alpha=0.35+intensity*0.55;
+      const grad=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,blobRadius);
+      grad.addColorStop(0,`rgba(${r2},${g2},${b2},${alpha})`);
+      grad.addColorStop(0.3,`rgba(${r2},${g2},${b2},${alpha*0.7})`);
+      grad.addColorStop(0.6,`rgba(${r2},${g2},${b2},${alpha*0.3})`);
+      grad.addColorStop(1,`rgba(${r2},${g2},${b2},0)`);
+      ctx.fillStyle=grad;
+      ctx.fillRect(cx2-blobRadius,cy2-blobRadius,blobRadius*2,blobRadius*2);
+    }
+  }
+  for(let row=0;row<rowCount;row++){
+    for(let col=0;col<colCount;col++){
+      const val=heatmapData[row][col];const intensity=val/maxVal;
+      if(intensity<0.5)continue;
+      const cx2=(col+0.5)*cellW,cy2=(row+0.5)*cellH,innerRadius=blobRadius*0.3;
+      const grad2=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,innerRadius);
+      const coreAlpha=(intensity-0.5)*0.8;
+      grad2.addColorStop(0,`rgba(255,255,200,${coreAlpha})`);
+      grad2.addColorStop(0.5,`rgba(255,180,50,${coreAlpha*0.5})`);
+      grad2.addColorStop(1,`rgba(255,100,0,0)`);
+      ctx.fillStyle=grad2;
+      ctx.fillRect(cx2-innerRadius,cy2-innerRadius,innerRadius*2,innerRadius*2);
+    }
+  }
+  const imgData=ctx.getImageData(0,0,HM_W,HM_H);
+  const blurred=ctx.createImageData(HM_W,HM_H);
+  const d=imgData.data,bd=blurred.data,blurR=3;
+  for(let y=0;y<HM_H;y++){for(let x=0;x<HM_W;x++){let rS=0,gS=0,bS=0,aS=0,cnt=0;for(let dy=-blurR;dy<=blurR;dy++){for(let dx=-blurR;dx<=blurR;dx++){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<HM_W&&ny>=0&&ny<HM_H){const ii=(ny*HM_W+nx)*4;rS+=d[ii];gS+=d[ii+1];bS+=d[ii+2];aS+=d[ii+3];cnt++;}}}const ii2=(y*HM_W+x)*4;bd[ii2]=rS/cnt;bd[ii2+1]=gS/cnt;bd[ii2+2]=bS/cnt;bd[ii2+3]=aS/cnt;}}
+  ctx.putImageData(blurred,0,0);
+  if(heatmapTexture)heatmapTexture.dispose();
+  heatmapTexture=new THREE.CanvasTexture(canvas);
+  heatmapTexture.minFilter=THREE.LinearFilter;heatmapTexture.magFilter=THREE.LinearFilter;
+  const hmGeo=new THREE.PlaneGeometry(pitchW-0.2,pitchD-0.6);
+  const hmMat=new THREE.MeshBasicMaterial({map:heatmapTexture,transparent:true,opacity:0.85,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false});
+  const hmMesh=new THREE.Mesh(hmGeo,hmMat);
+  hmMesh.rotation.x=-Math.PI/2;hmMesh.position.set(0,0.12,0);heatmapGroup.add(hmMesh);
+
+  for(let row=0;row<rowCount;row++){
+    for(let col=0;col<colCount;col++){
+      const val=heatmapData[row][col];if(val<2)continue;
+      const intensity=val/maxVal;
+      const xPos=(col-1)*((pitchW-0.4)/3);
+      const zPos=-(pitchD/2-0.5)+(row+0.5)*((pitchD-1.0)/6);
+      const lCv=document.createElement('canvas');lCv.width=80;lCv.height=48;
+      const lCtx=lCv.getContext('2d');
+      lCtx.fillStyle='rgba(255,255,255,0.88)';lCtx.beginPath();lCtx.roundRect(4,4,72,40,8);lCtx.fill();
+      lCtx.fillStyle=intensity>0.6?'#FFD700':'#1a0a3a';lCtx.font='900 22px sans-serif';lCtx.textAlign='center';lCtx.fillText(val+'W',40,32);
+      const lTex=new THREE.CanvasTexture(lCv);lTex.minFilter=THREE.LinearFilter;
+      const lSp=new THREE.Sprite(new THREE.SpriteMaterial({map:lTex,transparent:true,opacity:0.9,depthTest:false}));
+      lSp.position.set(xPos,0.6+intensity*0.3,zPos);lSp.scale.set(1.3,0.8,1);lSp.renderOrder=1000;
+      heatmapGroup.add(lSp);
+    }
+  }
+  const pitchLabelNames=['SHORT','SH-GOOD','GOOD LEN','FULL','YORKER','F-TOSS'];
+  for(let row=0;row<6;row++){
+    const zPos=-(pitchD/2-0.5)+(row+0.5)*((pitchD-1.0)/6);
+    const cv2=document.createElement('canvas');cv2.width=140;cv2.height=32;
+    const ctx2=cv2.getContext('2d');ctx2.fillStyle='rgba(26,10,58,0.45)';ctx2.font='600 14px sans-serif';ctx2.textAlign='left';ctx2.fillText(pitchLabelNames[row],4,22);
+    const tex2=new THREE.CanvasTexture(cv2);tex2.minFilter=THREE.LinearFilter;
+    const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:tex2,transparent:true,opacity:0.6,depthTest:false}));
+    sp2.position.set(pitchW/2+1.5,0.25,zPos);sp2.scale.set(2.2,0.55,1);sp2.renderOrder=999;heatmapGroup.add(sp2);
+  }
+  const lineNames=['OFF','MID','LEG'];
+  for(let col=0;col<3;col++){
+    const xPos=(col-1)*((pitchW-0.4)/3);
+    const cv3=document.createElement('canvas');cv3.width=64;cv3.height=32;
+    const ctx3=cv3.getContext('2d');ctx3.fillStyle='rgba(255,215,0,0.6)';ctx3.font='700 16px sans-serif';ctx3.textAlign='center';ctx3.fillText(lineNames[col],32,22);
+    const tex3=new THREE.CanvasTexture(cv3);tex3.minFilter=THREE.LinearFilter;
+    const sp3=new THREE.Sprite(new THREE.SpriteMaterial({map:tex3,transparent:true,opacity:0.7,depthTest:false}));
+    sp3.position.set(xPos,0.25,-(pitchD/2+0.6));sp3.scale.set(1.2,0.5,1);sp3.renderOrder=999;heatmapGroup.add(sp3);
+  }
+}
+
+// ─── ZONE SEGMENTS ────────────────────────────────────────────────────────────
+const zoneGrp=new THREE.Group();
+zones.forEach(z=>{
+  const sa=(z.angle-22.5)*Math.PI/180,ea=(z.angle+22.5)*Math.PI/180;
+  const sh=new THREE.Shape();sh.moveTo(0,0);
+  for(let j=0;j<=32;j++){const a=sa+(ea-sa)*(j/32);sh.lineTo(Math.cos(a)*fR*0.95,Math.sin(a)*fR*0.95);}
+  sh.lineTo(0,0);
+  const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshBasicMaterial({color:z.color,transparent:true,opacity:0.12,side:THREE.DoubleSide}));
+  m.rotation.x=-Math.PI/2;m.position.y=0.03;zoneGrp.add(m);
+});
+scene.add(zoneGrp);
+zones.forEach(z=>{
+  const a=z.angle*Math.PI/180;
+  const pts=[new THREE.Vector3(0,0.04,0),new THREE.Vector3(Math.cos(a)*fR*0.95,0.04,Math.sin(a)*fR*0.95)];
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xFFD700,transparent:true,opacity:0.15})));
+});
+
+// ─── 3D BARS ──────────────────────────────────────────────────────────────────
+const barsGrp=new THREE.Group();
+scene.add(barsGrp);
+const maxH=10, NUM_BARS=64, barWidth=0.55, barDepth=0.55, ringDist=fR*0.72;
+const barGeo=new THREE.BoxGeometry(barWidth,1,barDepth);
+
+function interpolateZoneHeight(angleDeg, zoneData) {
+  let c1=null,c2=null,d1=999,d2=999;
+  zoneData.forEach(z=>{
+    let diff=Math.abs(angleDeg-z.angle);if(diff>180)diff=360-diff;
+    if(diff<d1){d2=d1;c2=c1;d1=diff;c1=z;}else if(diff<d2){d2=diff;c2=z;}
+  });
+  if(!c2)return c1?c1.pct:5;
+  const total=d1+d2;if(total===0)return c1.pct;
+  const blend=(c1.pct*(1-d1/total)+c2.pct*(d2>0?(1-d2/total):0));
+  return Math.max(2,Math.min(25,blend+(Math.random()-0.5)*4));
+}
+
+function getBarColor(angleDeg, zoneData) {
+  let best=zoneData[0],bestDist=999;
+  zoneData.forEach(z=>{let diff=Math.abs(angleDeg-z.angle);if(diff>180)diff=360-diff;if(diff<bestDist){bestDist=diff;best=z;}});
+  return best.color;
+}
+
+function buildBars(zoneData) {
+  while(barsGrp.children.length>0){const child=barsGrp.children[0];if(child.geometry)child.geometry.dispose();if(child.material)child.material.dispose();barsGrp.remove(child);}
+  for(let i=0;i<NUM_BARS;i++){
+    const angleDeg=(i/NUM_BARS)*360,angleRad=angleDeg*Math.PI/180;
+    const pct=interpolateZoneHeight(angleDeg,zoneData);
+    const h=(pct/25)*maxH;
+    const color=getBarColor(angleDeg,zoneData);
+    const mat=new THREE.MeshStandardMaterial({color,roughness:0.25,metalness:0.7,emissive:color,emissiveIntensity:0.2,transparent:true,opacity:0.9});
+    const bar=new THREE.Mesh(barGeo,mat);
+    bar.scale.y=h;
+    bar.position.set(Math.cos(angleRad)*ringDist,h/2+0.05,Math.sin(angleRad)*ringDist);
+    bar.rotation.y=-angleRad+Math.PI/2;
+    bar.castShadow=true;
+    bar.userData={targetHeight:h,angleDeg,idx:i};
+    barsGrp.add(bar);
+    const glowGeo=new THREE.PlaneGeometry(barWidth*2,barWidth*2);
+    const baseGlow=new THREE.Mesh(glowGeo,new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.12,side:THREE.DoubleSide}));
+    baseGlow.rotation.x=-Math.PI/2;baseGlow.position.set(Math.cos(angleRad)*ringDist,0.03,Math.sin(angleRad)*ringDist);
+    baseGlow.userData={isGlow:true};barsGrp.add(baseGlow);
+    const capGeo=new THREE.PlaneGeometry(barWidth*1.3,barWidth*1.3);
+    const topCap=new THREE.Mesh(capGeo,new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.35,side:THREE.DoubleSide}));
+    topCap.rotation.x=-Math.PI/2;topCap.position.set(Math.cos(angleRad)*ringDist,h+0.08,Math.sin(angleRad)*ringDist);
+    topCap.userData={isTopCap:true,baseY:h+0.08};barsGrp.add(topCap);
+  }
+}
+
+function rebuildBars(playerZones) {
+  zones=getZones(playerZones);
+  buildBars(zones);
+  buildLabels(zones);
+  zones.forEach((z,i)=>{const el=document.getElementById('zl-'+i);if(el)el.textContent=z.pct+'%';});
+}
+
+buildBars(zones);
+
+// ─── ZONE LABELS ──────────────────────────────────────────────────────────────
+const labelSprites=[];
+
+function buildLabels(zoneData) {
+  labelSprites.forEach(s=>scene.remove(s));
+  labelSprites.length=0;
+  zoneData.forEach(z=>{
+    const a=z.angle*Math.PI/180;
+    const labelDist=fR*1.05;
+    const cv=document.createElement('canvas');cv.width=320;cv.height=100;
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='rgba(255,255,255,0.85)';ctx.beginPath();ctx.roundRect(8,8,304,84,12);ctx.fill();
+    ctx.strokeStyle='rgba(109,40,217,0.35)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(8,8,304,84,12);ctx.stroke();
+    ctx.fillStyle='#1a0a3a';ctx.font='700 28px Rajdhani,sans-serif';ctx.textAlign='center';ctx.fillText(z.name,160,44);
+    ctx.fillStyle='#FFD700';ctx.font='900 30px sans-serif';ctx.fillText(z.pct+'%',160,78);
+    const tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0.95,depthTest:false}));
+    sp.position.set(Math.cos(a)*labelDist,1.5,Math.sin(a)*labelDist);
+    sp.scale.set(5.5,1.8,1);sp.renderOrder=999;
+    scene.add(sp);labelSprites.push(sp);
+  });
+}
+
+buildLabels(zones);
+
+// ─── PARTICLES ────────────────────────────────────────────────────────────────
+const pCnt=150,pGeo=new THREE.BufferGeometry(),pPos=new Float32Array(pCnt*3),pSpd=[];
+for(let i=0;i<pCnt;i++){pPos[i*3]=(Math.random()-0.5)*60;pPos[i*3+1]=Math.random()*25;pPos[i*3+2]=(Math.random()-0.5)*60;pSpd.push(0.005+Math.random()*0.015);}
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+const pts=new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x8B5CF6,size:0.06,transparent:true,opacity:0.15,blending:THREE.AdditiveBlending}));
+scene.add(pts);
+
+// ─── CAMERA ORBIT ─────────────────────────────────────────────────────────────
+let drag=false,prev={x:0,y:0};
+let sph={theta:Math.PI/4,phi:Math.PI/4,radius:45};
+let tgt={...sph};
+
+function updCam(){
+  sph.theta+=(tgt.theta-sph.theta)*0.08;sph.phi+=(tgt.phi-sph.phi)*0.08;sph.radius+=(tgt.radius-sph.radius)*0.08;
+  sph.phi=Math.max(0.1,Math.min(Math.PI/2.2,sph.phi));sph.radius=Math.max(20,Math.min(70,sph.radius));
+  camera.position.set(sph.radius*Math.sin(sph.phi)*Math.cos(sph.theta),sph.radius*Math.cos(sph.phi),sph.radius*Math.sin(sph.phi)*Math.sin(sph.theta));
+  camera.lookAt(0,2,0);
+}
+
+renderer.domElement.addEventListener('mousedown',e=>{drag=true;prev={x:e.clientX,y:e.clientY};});
+renderer.domElement.addEventListener('mousemove',e=>{if(!drag)return;tgt.theta-=(e.clientX-prev.x)*0.005;tgt.phi-=(e.clientY-prev.y)*0.005;prev={x:e.clientX,y:e.clientY};});
+renderer.domElement.addEventListener('mouseup',()=>drag=false);
+renderer.domElement.addEventListener('mouseleave',()=>drag=false);
+renderer.domElement.addEventListener('wheel',e=>tgt.radius+=e.deltaY*0.03);
+renderer.domElement.addEventListener('touchstart',e=>{drag=true;prev={x:e.touches[0].clientX,y:e.touches[0].clientY};});
+renderer.domElement.addEventListener('touchmove',e=>{if(!drag)return;tgt.theta-=(e.touches[0].clientX-prev.x)*0.005;tgt.phi-=(e.touches[0].clientY-prev.y)*0.005;prev={x:e.touches[0].clientX,y:e.touches[0].clientY};});
+renderer.domElement.addEventListener('touchend',()=>drag=false);
+
+function setView(v,btn){
+  document.querySelectorAll('.vs-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(v==='perspective')tgt={theta:Math.PI/4,phi:Math.PI/4,radius:45};
+  else tgt={theta:0,phi:0.15,radius:35};
+}
+
+// ─── ANIMATE ──────────────────────────────────────────────────────────────────
+const clk=new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const t=clk.getElapsedTime();
+  if(!drag)tgt.theta+=0.0015;
+  updCam();
+  barsGrp.children.forEach(c=>{
+    if(c.userData&&c.userData.targetHeight!==undefined){
+      const wv=(c.userData.angleDeg||0)*Math.PI/180;
+      const breathe=1+Math.sin(t*2+wv*3)*0.04;
+      const hPulse=1+Math.sin(t*1.2+wv*2)*0.03;
+      c.scale.x=breathe;c.scale.z=breathe;
+      const h=c.userData.targetHeight*hPulse;
+      c.scale.y=h;c.position.y=h/2+0.05;
+    }
+    if(c.userData&&c.userData.isTopCap){
+      const wv2=(c.userData.baseY||5)*0.5;
+      c.position.y=c.userData.baseY*(1+Math.sin(t*1.2+wv2)*0.03);
+    }
+  });
+  const pa=pts.geometry.attributes.position.array;
+  for(let i=0;i<pCnt;i++){pa[i*3+1]+=pSpd[i];if(pa[i*3+1]>25)pa[i*3+1]=0;}
+  pts.geometry.attributes.position.needsUpdate=true;
+  bnd.material.opacity=0.4+Math.sin(t*2)*0.15;
+  bgl.material.opacity=0.05+Math.sin(t*2)*0.03;
+  goldL.position.x=Math.cos(t*0.3)*25;goldL.position.z=Math.sin(t*0.3)*25;
+  renderer.render(scene,camera);
+}
+animate();
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+loadPlayersData();
+</script>
+</body>
+</html>

@@ -48,10 +48,24 @@ _SPINNER_ACTIVE_REDUCTION = {
 }
 
 def _spinner_penalty(dew: DewAssessment, current_over: int) -> float:
-    base = _SPINNER_PENALTY[dew.dew_risk]
+    # Load dynamic constants
+    constants = WeatherImpact.load_engine_constants()
+    base_penalty = constants.get("spinner_penalty_coefficient", 0.60)
+    
+    # Scale tiers around the base penalty (which corresponds to 'High' risk)
+    # Severe = base - 0.20, High = base, Medium = base + 0.15, Low = base + 0.28
+    dynamic_tiers = {
+        "Severe": max(0.30, base_penalty - 0.20),
+        "High":   base_penalty,
+        "Medium": min(1.0, base_penalty + 0.15),
+        "Low":    min(1.0, base_penalty + 0.28),
+        "None":   1.00,
+    }
+    
+    base = dynamic_tiers.get(dew.dew_risk, 1.0)
     if dew.has_dew and current_over >= dew.onset_over:
-        base -= _SPINNER_ACTIVE_REDUCTION[dew.dew_risk]
-    return round(max(0.40, base), 2)
+        base -= _SPINNER_ACTIVE_REDUCTION.get(dew.dew_risk, 0.0)
+    return round(max(0.30, base), 2)
 
 
 def _swing_bonus(reading: WeatherReading) -> float:
@@ -278,7 +292,19 @@ def calculate_weather_impact(
         dl_planning_needed = dl,
         dew_onset_over     = dew.onset_over,
         warnings           = warnings,
+        raw_humidity       = reading.humidity_pct,
+        raw_temp           = reading.temp_c,
+        raw_wind_kph       = reading.wind_kph,
+        raw_wind_dir       = reading.wind_dir,
     )
+
+
+# Module-level weather cache: {cache_key: (WeatherImpact, expiry_timestamp)}
+# Weather data is valid for 30 minutes — stale enough to avoid repeated API
+# calls within a session, fresh enough to catch rapid condition changes.
+import time as _time
+_WEATHER_CACHE: dict = {}
+_WEATHER_TTL_SECONDS = 1800   # 30 minutes
 
 
 def get_match_weather_impact(
@@ -291,6 +317,8 @@ def get_match_weather_impact(
     Convenience one-call function for pages.
     Fetches live weather → calculates dew → returns WeatherImpact.
     Falls back to WeatherImpact.neutral() if the API is unavailable.
+    Results are cached per venue+hour for 30 minutes to avoid repeated HTTP
+    calls during a session (the main source of brief generation latency).
 
     Used by:
       - prep_room.py (pre-match, current_over=0)
@@ -299,10 +327,21 @@ def get_match_weather_impact(
     from weather.weather_client import get_venue_weather, get_venue_forecast
     from weather.dew_calculator import assess_dew
 
+    # Build a cache key that is stable within the same match hour
+    _dt_hour = match_datetime.strftime("%Y%m%d%H") if hasattr(match_datetime, "strftime") else "0"
+    _cache_key = f"{venue}|{_dt_hour}|{current_over}"
+    _now = _time.monotonic()
+    if _cache_key in _WEATHER_CACHE:
+        _cached, _expiry = _WEATHER_CACHE[_cache_key]
+        if _now < _expiry:
+            return _cached
+
     reading = get_venue_weather(venue)
     if reading is None:
         print(f"[weather_impact] get_venue_weather returned None for venue={venue!r} — using neutral")
-        return WeatherImpact.neutral()
+        _result = WeatherImpact.neutral()
+        _WEATHER_CACHE[_cache_key] = (_result, _now + _WEATHER_TTL_SECONDS)
+        return _result
 
     forecast = get_venue_forecast(venue, match_datetime)
     dew = assess_dew(
@@ -313,4 +352,6 @@ def get_match_weather_impact(
         match_start_hour = match_datetime.hour if hasattr(match_datetime, "hour") else 19,
     )
 
-    return calculate_weather_impact(reading, dew, current_over)
+    _result = calculate_weather_impact(reading, dew, current_over)
+    _WEATHER_CACHE[_cache_key] = (_result, _now + _WEATHER_TTL_SECONDS)
+    return _result
