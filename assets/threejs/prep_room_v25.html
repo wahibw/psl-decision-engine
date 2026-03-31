@@ -2839,61 +2839,90 @@ trackOuter.rotation.x=Math.PI/2; trackOuter.position.y=0.12; scene.add(trackOute
       scene.add(rung);
     }
 
-    // ── Top cross-arm (extends toward field) ──
-    const armLen = 5.5;
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,armLen,6), steelMat);
-    arm.position.set(px + fdx*armLen/2, 35.5, pz + fdz*armLen/2);
-    arm.rotation.z = Math.PI/2; arm.rotation.y = a;
-    scene.add(arm);
+    // ── Horizontal cross-arm (side-to-side, perpendicular to radial) ──
+    const armHW = 7.5; // half-width of arm
+    const armMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,armHW*2,6), steelMat);
+    armMesh.position.set(px + fdx*4.2, 36.2, pz + fdz*4.2);
+    armMesh.rotation.z = Math.PI/2; armMesh.rotation.y = a + Math.PI/2;
+    scene.add(armMesh);
 
-    // Tip cap
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.12,6,6), steelMat);
-    cap.position.set(px + fdx*armLen, 35.5, pz + fdz*armLen); scene.add(cap);
+    // Support arm from mast top to cross-arm centre
+    const supLen = 4.5;
+    const supArm = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,supLen,6), steelMat);
+    supArm.position.set(px + fdx*supLen/2, 36.2, pz + fdz*supLen/2);
+    supArm.rotation.z = Math.PI/2; supArm.rotation.y = a;
+    scene.add(supArm);
 
-    // ── 3 LED panel assemblies along arm ──
-    const panelY = 35.0;
-    const offsets = [-1.6, 0, 1.6];
-    offsets.forEach(off => {
-      const wx = px + fdx*4.0 + fpx*off;
-      const wz = pz + fdz*4.0 + fpz*off;
-
-      // Dark housing box
-      const hbox = new THREE.Mesh(new THREE.BoxGeometry(1.5,1.1,0.2), darkMat);
-      hbox.position.set(wx, panelY, wz);
-      hbox.lookAt(new THREE.Vector3(wx+fdx*5, panelY-10, wz+fdz*5)); // face field, tilt down
-      scene.add(hbox);
-
-      // LED face — PlaneGeometry with MeshBasicMaterial (always bright regardless of lighting)
-      const face = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.35, 0.95),
-        new THREE.MeshBasicMaterial({map: panelTex})
-      );
-      face.position.set(wx, panelY, wz);
-      face.lookAt(new THREE.Vector3(wx+fdx*5, panelY-10, wz+fdz*5));
-      // Nudge face 0.12 in front of housing
-      face.position.x += fdx*0.12; face.position.z += fdz*0.12;
-      scene.add(face);
-
-      // Additive glow halo around each panel
-      const glowS = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: glowTex, transparent:true, opacity:0.50,
-        blending:THREE.AdditiveBlending, depthWrite:false
-      }));
-      glowS.position.set(wx, panelY, wz);
-      glowS.scale.set(5.5, 5.5, 1);
-      scene.add(glowS);
+    // Diagonal braces from mast to arm ends (structural look)
+    [-1,1].forEach(side=>{
+      const brLen = Math.sqrt(supLen*supLen + (armHW*0.7)*(armHW*0.7));
+      const brace = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,brLen,5), steelMat);
+      const bx = px + fdx*supLen*0.5 + fpx*armHW*0.35*side;
+      const bz = pz + fdz*supLen*0.5 + fpz*armHW*0.35*side;
+      brace.position.set(bx, 35.0, bz);
+      brace.lookAt(new THREE.Vector3(px + fdx*4.2 + fpx*armHW*0.7*side, 36.2, pz + fdz*4.2 + fpz*armHW*0.7*side));
+      scene.add(brace);
     });
 
-    // ── SpotLight aimed at field from tower head ──
-    const spotX = px + fdx*3.5, spotZ = pz + fdz*3.5;
-    const spot = new THREE.SpotLight(0xFFECC0, 2.2, 115, Math.PI/5.5, 0.38, 1.4);
-    spot.position.set(spotX, 36, spotZ);
-    spot.target.position.set(spotX*0.12, 0, spotZ*0.12);
+    // ── 12 light fixtures: 4 cols × 3 rows ──
+    const F_COLS = 4, F_ROWS = 3;
+    const COL_SP = 3.5, ROW_SP = 0.88; // spacing between fixtures
+    const panelBaseY = 35.6;
+    const armDepth  = 4.2; // how far toward field the fixture cluster sits
+
+    for(let row=0; row<F_ROWS; row++){
+      for(let col=0; col<F_COLS; col++){
+        const colOff = (col - (F_COLS-1)/2) * COL_SP; // -5.25,-1.75,1.75,5.25
+        const rowOff = (row - (F_ROWS-1)/2) * ROW_SP; // -0.88,0,0.88
+
+        const wx = px + fdx*armDepth + fpx*colOff;
+        const wy = panelBaseY + rowOff;
+        const wz = pz + fdz*armDepth + fpz*colOff;
+
+        // Aim target: toward field center, tilted down
+        const aimX = wx + fdx*6, aimY = wy - 14, aimZ = wz + fdz*6;
+
+        // Dark housing
+        const hbox = new THREE.Mesh(new THREE.BoxGeometry(1.05,0.78,0.22), darkMat);
+        hbox.position.set(wx, wy, wz);
+        hbox.lookAt(new THREE.Vector3(aimX, aimY, aimZ));
+        scene.add(hbox);
+
+        // LED face — MeshBasicMaterial stays bright regardless of lighting
+        const face = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.92, 0.65),
+          new THREE.MeshBasicMaterial({map: panelTex})
+        );
+        face.position.set(wx + fdx*0.13, wy, wz + fdz*0.13);
+        face.lookAt(new THREE.Vector3(aimX, aimY, aimZ));
+        scene.add(face);
+
+        // Individual glow halo per fixture
+        const gs = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: glowTex, transparent:true, opacity:0.42,
+          blending:THREE.AdditiveBlending, depthWrite:false
+        }));
+        gs.position.set(wx, wy, wz);
+        gs.scale.set(3.2, 3.2, 1);
+        scene.add(gs);
+
+        // Vertical mount rod connecting each fixture to the arm
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.55,5), steelMat);
+        rod.position.set(wx, wy + 0.5, wz);
+        scene.add(rod);
+      }
+    }
+
+    // ── SpotLight aimed at field (main) ──
+    const spotX = px + fdx*3.8, spotZ = pz + fdz*3.8;
+    const spot = new THREE.SpotLight(0xFFECC0, 2.4, 120, Math.PI/5, 0.35, 1.2);
+    spot.position.set(spotX, 37, spotZ);
+    spot.target.position.set(spotX*0.10, 0, spotZ*0.10);
     scene.add(spot); scene.add(spot.target);
 
-    // Secondary fill spot — softer, wider angle
-    const spot2 = new THREE.SpotLight(0xFFE090, 0.9, 85, Math.PI/4, 0.5, 1.8);
-    spot2.position.set(px*0.55, 28, pz*0.55);
+    // Secondary fill spot — wider, softer
+    const spot2 = new THREE.SpotLight(0xFFE090, 1.0, 90, Math.PI/4, 0.5, 1.6);
+    spot2.position.set(px*0.50, 28, pz*0.50);
     spot2.target.position.set(0,0,0);
     scene.add(spot2); scene.add(spot2.target);
   }
