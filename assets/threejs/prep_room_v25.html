@@ -120,23 +120,23 @@ body::before{
 .ptstrip-r{right:0}
 .ptbtn{
   display:flex;align-items:center;justify-content:center;
-  width:20px;min-height:44px;padding:10px 3px;
+  width:28px;min-height:52px;padding:12px 4px;
   writing-mode:vertical-rl;text-orientation:mixed;
-  font-family:Orbitron;font-size:5.5px;font-weight:700;letter-spacing:1.8px;
+  font-family:Rajdhani;font-size:10px;font-weight:700;letter-spacing:2px;
   text-transform:uppercase;
   cursor:pointer;outline:none;
-  background:rgba(7,12,28,0.82);
-  border:1px solid rgba(139,92,246,0.18);
-  color:rgba(135,158,215,0.38);
+  background:rgba(7,12,28,0.88);
+  border:1px solid rgba(139,92,246,0.25);
+  color:rgba(168,192,240,0.6);
   transition:all .2s;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   user-select:none;
 }
-.ptstrip-l .ptbtn{border-radius:0 7px 7px 0;border-left:none}
-.ptstrip-r .ptbtn{border-radius:7px 0 0 7px;border-right:none;direction:rtl}
-.ptbtn:hover{border-color:rgba(168,144,255,0.48);color:#B8A8FF;background:rgba(12,18,40,0.88)}
-.ptbtn.on{background:rgba(109,40,217,0.16);border-color:rgba(168,144,255,0.42);color:#C0B0FF}
-.ptbtn.on:hover{background:rgba(109,40,217,0.24)}
+.ptstrip-l .ptbtn{border-radius:0 8px 8px 0;border-left:none}
+.ptstrip-r .ptbtn{border-radius:8px 0 0 8px;border-right:none;direction:rtl}
+.ptbtn:hover{border-color:rgba(168,144,255,0.6);color:#D0C4FF;background:rgba(20,28,55,0.92)}
+.ptbtn.on{background:rgba(109,40,217,0.22);border-color:rgba(168,144,255,0.55);color:#E0D8FF}
+.ptbtn.on:hover{background:rgba(109,40,217,0.32)}
 
 .rp .rc{
   background:rgba(7,12,28,0.84);
@@ -623,12 +623,12 @@ body::before{
   <div class="rp" id="right-panel"></div>
 </div>
 
-<!-- Left panel toggle strip -->
-<div class="ptstrip ptstrip-l" id="ptstrip-l">
+<!-- Left panel toggle strip — hidden until brief generated -->
+<div class="ptstrip ptstrip-l" id="ptstrip-l" style="display:none">
   <button class="ptbtn on" id="ptbtn-left" onclick="toggleLeftPanel()" title="Toggle Info Panel">INFO</button>
 </div>
-<!-- Right panel section toggle strip -->
-<div class="ptstrip ptstrip-r" id="ptstrip-r">
+<!-- Right panel section toggle strip — hidden until brief generated -->
+<div class="ptstrip ptstrip-r" id="ptstrip-r" style="display:none">
   <button class="ptbtn on" id="ptbtn-bp" onclick="toggleRightSection('bp')" title="Interactive Blueprint">WIND</button>
   <button class="ptbtn on" id="ptbtn-wx" onclick="toggleRightSection('wx')" title="Weather Hub">WTHR</button>
   <button class="ptbtn on" id="ptbtn-soil" onclick="toggleRightSection('soil')" title="Soil Health">SOIL</button>
@@ -1019,6 +1019,7 @@ function generateBrief(){
     }
     briefGenerated=true;coachEval=null;evalLoading=false;aiCoaching=null;aiCoachLoading=false;
     curBriefFormation=0;curXI=0;
+    showPanelToggles();
     renderTabs();renderSidebar();renderRight();renderOverlays();renderPL();
     if(typeof refreshPitchHeatmap==='function') refreshPitchHeatmap();
     // Fire AI coaching analysis async — pops into each tab as it arrives
@@ -1027,6 +1028,7 @@ function generateBrief(){
     ls.style.display='none';
     console.error('Brief generation failed:',err);
     briefGenerated=true;coachEval=null;evalLoading=false;aiCoaching=null;aiCoachLoading=false;curBriefFormation=0;curXI=0;
+    showPanelToggles();
     renderTabs();renderSidebar();renderRight();renderOverlays();renderPL();
   });
 }
@@ -1410,6 +1412,13 @@ function toggleSquad(i,el){if(selectedSquad.has(i))selectedSquad.delete(i);else 
 // ═══ PANEL TOGGLE SYSTEM ═══
 const rightSectionVis={bp:true,wx:true,soil:true,xi:true};
 
+function showPanelToggles(){
+  const l=document.getElementById('ptstrip-l');
+  const r=document.getElementById('ptstrip-r');
+  if(l) l.style.display='flex';
+  if(r) r.style.display='flex';
+}
+
 function toggleLeftPanel(){
   const sb=document.getElementById('sidebar');
   const btn=document.getElementById('ptbtn-left');
@@ -1449,9 +1458,9 @@ function renderRight(){
   if(curTab===0) el.innerHTML=renderXIRight();
   else if(curTab===1) el.innerHTML=renderBowlRight();
   else if(curTab===2) el.innerHTML=renderOppRight();
-  // Show section toggles only on XI tab (tab 0); hide for others
+  // Section toggles only relevant on XI tab (tab 0)
   const ptR=document.getElementById('ptstrip-r');
-  if(ptR) ptR.style.display=curTab===0?'flex':'none';
+  if(ptR&&briefGenerated) ptR.style.display=curTab===0?'flex':'none';
   if(curTab===0) applyRightSectionVis();
 }
 
